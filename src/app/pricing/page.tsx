@@ -193,10 +193,10 @@ export default function PricingPage() {
 
                 <Link
                   href={tier.href}
-                  className={`block w-full text-center py-3 font-semibold uppercase tracking-wider text-sm transition-all ${
+                  className={`flex items-center justify-center w-full h-12 font-semibold uppercase tracking-wider text-sm transition-all ${
                     tier.highlighted
                       ? 'bg-[var(--background)] text-[var(--foreground)] hover:bg-[var(--muted)]'
-                      : 'btn-kinetic'
+                      : 'bg-[var(--accent)] text-[var(--accent-foreground)] hover:scale-105'
                   }`}
                 >
                   {tier.cta}
