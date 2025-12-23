@@ -248,7 +248,7 @@ function ContactFormContent() {
             </button>
 
             <p className="text-body text-sm text-center">
-              I read every submission. No sales team, no autoresponders—just me.
+              I read every submission. No sales team, no autoresponders.
             </p>
           </form>
         </div>

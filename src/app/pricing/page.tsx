@@ -19,7 +19,8 @@ const tiers = [
     ],
     cta: 'Get The Playbook',
     highlighted: false,
-    href: 'https://calendly.com/leefuhr/playbook',
+    href: '/contact?type=quote',
+    isInternal: true,
   },
   {
     name: 'Core Site',
@@ -39,7 +40,8 @@ const tiers = [
     ],
     cta: 'Schedule discovery call',
     highlighted: true,
-    href: 'https://calendly.com/leefuhr/discovery-call',
+    href: '/contact?type=quote',
+    isInternal: true,
   },
   {
     name: 'Full Site',
@@ -59,7 +61,8 @@ const tiers = [
     ],
     cta: 'Schedule discovery call',
     highlighted: false,
-    href: 'https://calendly.com/leefuhr/discovery-call',
+    href: '/contact?type=quote',
+    isInternal: true,
   },
 ]
 
@@ -188,10 +191,8 @@ export default function PricingPage() {
                   </ul>
                 )}
 
-                <a
+                <Link
                   href={tier.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className={`block w-full text-center py-3 font-semibold uppercase tracking-wider text-sm transition-all ${
                     tier.highlighted
                       ? 'bg-[var(--background)] text-[var(--foreground)] hover:bg-[var(--muted)]'
@@ -199,7 +200,7 @@ export default function PricingPage() {
                   }`}
                 >
                   {tier.cta}
-                </a>
+                </Link>
               </div>
             ))}
           </div>
@@ -304,13 +305,13 @@ export default function PricingPage() {
       <section className="py-16 px-6 bg-[var(--accent)]">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-display text-4xl text-[var(--accent-foreground)] mb-4">
-            Not sure which to pick?
+            Not sure where to start?
           </h2>
           <p className="text-[var(--accent-foreground)]/80 text-xl mb-8">
-            Run the free Commodity Test first. See your score, get 5 specific fixes. Then decide if you want help implementing.
+            Let's talk. I'll ask about your situation and recommend the right fit—no pressure, no pitch.
           </p>
-          <Link href="/" className="bg-[var(--background)] text-[var(--foreground)] px-8 py-4 font-semibold uppercase tracking-wider hover:bg-[var(--muted)] transition-colors inline-flex">
-            Run the free test
+          <Link href="/contact?type=quote" className="bg-[var(--background)] text-[var(--foreground)] px-8 py-4 font-semibold uppercase tracking-wider hover:bg-[var(--muted)] transition-colors inline-flex">
+            Start a conversation
           </Link>
         </div>
       </section>
@@ -325,7 +326,7 @@ export default function PricingPage() {
           <nav className="flex gap-6 text-sm">
             <Link href="/how-it-works" className="text-body hover:text-[var(--accent)]">How it works</Link>
             <Link href="/privacy" className="text-body hover:text-[var(--accent)]">Privacy</Link>
-            <a href="mailto:hello@leefuhr.com" className="text-body hover:text-[var(--accent)]">Contact</a>
+            <Link href="/contact" className="text-body hover:text-[var(--accent)]">Contact</Link>
           </nav>
           <Link href="/" className="text-[var(--accent)] hover:underline">
             Run the test →

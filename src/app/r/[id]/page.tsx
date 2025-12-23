@@ -195,8 +195,11 @@ export default async function ResultsPage({
 
           {/* Methodology breakdown */}
           {result.costAssumptions && (
-            <div className="bg-black/20 p-6 mt-8">
-              <p className="text-label text-[var(--accent-foreground)]/70 mb-6">Show your work</p>
+            <div className="bg-black/20 p-8 mt-8 max-w-2xl mx-auto">
+              <h3 className="text-xl font-semibold text-blue-300 mb-2">Show your work</h3>
+              <p className="text-[var(--accent-foreground)]/70 text-sm mb-6">
+                How much revenue walks out the door when prospects can't tell you apart from competitors?
+              </p>
 
               {/* The calculation as a readable equation */}
               <div className="text-[var(--accent-foreground)] mb-6">
@@ -232,7 +235,10 @@ export default async function ResultsPage({
 
               {/* ROI calculation - now more visual */}
               <div className="border-t border-[var(--accent-foreground)]/20 pt-6">
-                <p className="text-label text-[var(--accent-foreground)]/70 mb-4">If you fix it</p>
+                <h3 className="text-xl font-semibold text-blue-300 mb-2">If you fix it</h3>
+                <p className="text-[var(--accent-foreground)]/70 text-sm mb-4">
+                  How long until you're in the black—if you keep just half the jobs you'd otherwise lose?
+                </p>
                 <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-[var(--accent-foreground)] mb-4">
                   <div className="bg-black/20 px-4 py-3">
                     <p className="text-2xl md:text-3xl font-display">${(result.costEstimate / 1000).toFixed(0)}K</p>
@@ -395,7 +401,7 @@ export default async function ResultsPage({
           <nav className="flex gap-6 text-sm">
             <Link href="/how-it-works" className="text-body hover:text-[var(--accent)]">How it works</Link>
             <Link href="/privacy" className="text-body hover:text-[var(--accent)]">Privacy</Link>
-            <a href="mailto:hello@leefuhr.com" className="text-body hover:text-[var(--accent)]">Contact</a>
+            <Link href="/contact" className="text-body hover:text-[var(--accent)]">Contact</Link>
           </nav>
           <Link href="/" className="text-[var(--accent)] hover:underline">
             Run another test →
