@@ -86,11 +86,11 @@ const retainer = {
 const faqs = [
   {
     question: 'How do I know which tier is right?',
-    answer: 'Count your pages. Most manufacturers need 6–8 pages: Homepage, About, Services/Products, Process, Contact, and maybe a couple detail pages. If you're over 8, you probably need Full Site.',
+    answer: "Count your pages. Most manufacturers need 6–8 pages: Homepage, About, Services/Products, Process, Contact, and maybe a couple detail pages. If you're over 8, you probably need Full Site.",
   },
   {
     question: 'What if I need more than 12 pages?',
-    answer: 'We'll scope it custom. Complex sites with 15+ pages, multiple product lines, or unusual requirements get a custom quote based on actual scope.',
+    answer: "We'll scope it custom. Complex sites with 15+ pages, multiple product lines, or unusual requirements get a custom quote based on actual scope.",
   },
   {
     question: 'What about the messaging framework only?',
@@ -98,15 +98,15 @@ const faqs = [
   },
   {
     question: 'Do you guarantee results?',
-    answer: 'I guarantee deliverables: you'll get everything listed. Sales outcomes depend on your product, market, and implementation. But I promise your messaging will stop sounding like everyone else's.',
+    answer: "I guarantee deliverables: you'll get everything listed. Sales outcomes depend on your product, market, and implementation. But I promise your messaging will stop sounding like everyone else's.",
   },
   {
-    question: 'What's your refund policy?',
-    answer: 'Milestone-based payment protects both of us: 30% deposit, 30% at framework delivery, 40% at launch. You're protected because you can revise or walk away at framework stage. I'm protected because I'm bringing 27 years of expertise to bear—my time and insight have real value. Fair exchange.',
+    question: "What's your refund policy?",
+    answer: "Milestone-based payment protects both of us: 30% deposit, 30% at framework delivery, 40% at launch. You're protected because you can revise or walk away at framework stage. I'm protected because I'm bringing 27 years of expertise to bear—my time and insight have real value. Fair exchange.",
   },
   {
     question: 'What if I need it faster?',
-    answer: 'Rush delivery (+20%) compresses the timeline by about 25%. I'd rather do it right than fast, but I understand deadlines. We'll discuss trade-offs upfront.',
+    answer: "Rush delivery (+20%) compresses the timeline by about 25%. I'd rather do it right than fast, but I understand deadlines. We'll discuss trade-offs upfront.",
   },
 ]
 

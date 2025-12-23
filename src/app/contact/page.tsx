@@ -6,10 +6,25 @@ import Link from 'next/link'
 
 type FormType = 'quote' | 'retainer'
 
-const formConfig = {
+interface FormField {
+  name: string
+  label: string
+  type: 'text' | 'email' | 'url' | 'textarea' | 'select'
+  required: boolean
+  options?: string[]
+  placeholder?: string
+}
+
+interface FormConfig {
+  title: string
+  subtitle: string
+  fields: FormField[]
+}
+
+const formConfig: Record<FormType, FormConfig> = {
   quote: {
-    title: 'Let's scope your project',
-    subtitle: 'Tell me about what you're building. I'll review and we'll schedule a call to discuss.',
+    title: "Let's scope your project",
+    subtitle: "Tell me about what you're building. I'll review and we'll schedule a call to discuss.",
     fields: [
       { name: 'name', label: 'Your name', type: 'text', required: true },
       { name: 'email', label: 'Work email', type: 'email', required: true },
@@ -17,19 +32,19 @@ const formConfig = {
       { name: 'website', label: 'Current website (if any)', type: 'url', required: false },
       { name: 'pages', label: 'Estimated number of pages', type: 'select', required: true, options: ['6–8 pages', '9–12 pages', '13–20 pages', '20+ pages', 'Not sure yet'] },
       { name: 'timeline', label: 'Ideal timeline', type: 'select', required: true, options: ['ASAP (rush)', '2–3 months', '3–6 months', 'Flexible'] },
-      { name: 'context', label: 'What's driving this project?', type: 'textarea', required: true, placeholder: 'Rebrand? New product launch? Site just feels dated? The more context, the better.' },
+      { name: 'context', label: "What's driving this project?", type: 'textarea', required: true, placeholder: 'Rebrand? New product launch? Site just feels dated? The more context, the better.' },
     ],
   },
   retainer: {
-    title: 'Let's talk ongoing partnership',
-    subtitle: 'Tell me where you are and what you're trying to accomplish. I'll review and we'll schedule a call.',
+    title: "Let's talk ongoing partnership",
+    subtitle: "Tell me where you are and what you're trying to accomplish. I'll review and we'll schedule a call.",
     fields: [
       { name: 'name', label: 'Your name', type: 'text', required: true },
       { name: 'email', label: 'Work email', type: 'email', required: true },
       { name: 'company', label: 'Company name', type: 'text', required: true },
       { name: 'website', label: 'Current website', type: 'url', required: true },
       { name: 'role', label: 'Your role', type: 'text', required: true, placeholder: 'e.g., Marketing Director, CEO, Owner' },
-      { name: 'challenge', label: 'What's your biggest messaging/marketing challenge right now?', type: 'textarea', required: true },
+      { name: 'challenge', label: "What's your biggest messaging/marketing challenge right now?", type: 'textarea', required: true },
       { name: 'goals', label: 'What would success look like in 6 months?', type: 'textarea', required: true },
     ],
   },
