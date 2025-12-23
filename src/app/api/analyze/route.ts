@@ -438,19 +438,17 @@ Provide EXACTLY 5 fixes. Use the ${topPhrases.length} detected phrases first, th
 
 For each fix, provide:
 1. whyBad: Why this specific phrase hurts their differentiation (1-2 sentences, direct, no fluff)
-2. suggestions: THREE different alternative approaches - VARY the approach types based on what makes sense for THIS specific phrase. Choose from approaches like:
-   - quantify it (add real numbers)
-   - show the process (explain how they do it)
-   - make a guarantee (stake something on it)
-   - tell their story (specific client example)
-   - describe the experience (what working with them is like)
-   - prove retention (why clients stay)
-   - claim the niche (what only they do)
-   - name the innovation (specific tech/method)
-   - say what you do (plain language)
-   - publish the metrics (transparent data)
-   - find your only (unique differentiator)
-3. whyBetter: Why specificity wins over generic claims (1 sentence)
+2. suggestions: THREE different DROP-IN REPLACEMENTS. Each suggestion must be copy they can literally select the highlighted phrase, delete it, and paste your suggestion in its place. The suggestion must fit grammatically into the surrounding context.
+
+   For example, if the context is "We provide **quality** products to our customers" and "quality" is highlighted:
+   - GOOD: "zero-defect" (fits: "We provide zero-defect products...")
+   - GOOD: "ISO-9001 certified" (fits: "We provide ISO-9001 certified products...")
+   - BAD: "Our products have zero defects" (doesn't fit grammatically)
+
+   VARY the approach types across suggestions:
+   - quantify it, show the process, make a guarantee, tell their story, describe the experience, prove retention, claim the niche, name the innovation, say what you do, publish the metrics, find your only
+
+3. whyBetter: The KEY INSIGHT - why this specific change works. This is the most important learning for them. Make it punchy and memorable (1 sentence).
 
 CRITICAL - USE REAL DATA WHEN AVAILABLE:
 - If we found real stats on their site (listed above), USE THEM in your suggestions

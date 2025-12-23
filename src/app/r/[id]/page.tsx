@@ -251,9 +251,9 @@ export default async function ResultsPage({
                       <p className="text-body text-lg">{fix.whyBad}</p>
                     </div>
 
-                    {/* Multiple suggestions */}
+                    {/* Drop-in replacements */}
                     <div>
-                      <p className="text-label mb-3">Three ways to fix it</p>
+                      <p className="text-label mb-3">Replace with (copy + paste)</p>
                       <div className="space-y-3">
                         {fix.suggestions.map((suggestion, idx) => (
                           <div
@@ -271,7 +271,11 @@ export default async function ResultsPage({
                       </div>
                     </div>
 
-                    <p className="text-body text-sm italic">{fix.whyBetter}</p>
+                    {/* Key insight - the most important takeaway */}
+                    <div className="bg-[var(--foreground)]/5 border border-[var(--foreground)]/20 p-4 mt-2">
+                      <p className="text-label text-xs mb-1">The key insight</p>
+                      <p className="text-[var(--foreground)] text-lg font-medium">{fix.whyBetter}</p>
+                    </div>
                   </div>
                 </div>
               </div>
