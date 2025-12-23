@@ -155,6 +155,9 @@ export default async function ResultsPage({
               {result.commodityScore}
             </p>
             <p className={`text-section text-2xl ${scoreInfo.color}`}>{scoreInfo.label}</p>
+            <p className="text-body text-sm mt-2 opacity-70">
+              (Lower is better. High score = you sound like everyone else.)
+            </p>
           </div>
 
           {/* Context */}
@@ -211,6 +214,30 @@ export default async function ResultsPage({
               <p className="text-sm text-[var(--accent-foreground)]/60 mt-4">
                 Based on analysis of messaging impact at $2M-$10M manufacturers. Your actual numbers may vary.
               </p>
+
+              {/* ROI calculation */}
+              <div className="border-t border-[var(--accent-foreground)]/20 pt-6 mt-6">
+                <p className="text-label text-[var(--accent-foreground)]/70 mb-3">The math on fixing it</p>
+                <div className="grid md:grid-cols-2 gap-4 text-[var(--accent-foreground)]">
+                  <div className="bg-black/10 p-4">
+                    <p className="text-sm opacity-70 mb-1">If you invest $18K to fix your messaging:</p>
+                    <p className="text-2xl font-display">
+                      {Math.round((result.costEstimate / 18000) * 100)}% ROI
+                    </p>
+                    <p className="text-sm opacity-70">first-year return</p>
+                  </div>
+                  <div className="bg-black/10 p-4">
+                    <p className="text-sm opacity-70 mb-1">Payback period:</p>
+                    <p className="text-2xl font-display">
+                      {result.costEstimate > 0 ? Math.ceil(18000 / (result.costEstimate / 12)) : '—'} months
+                    </p>
+                    <p className="text-sm opacity-70">to recover investment</p>
+                  </div>
+                </div>
+                <p className="text-sm text-[var(--accent-foreground)]/50 mt-3">
+                  A core site rebuild runs $18K. See <a href="/pricing" className="underline hover:text-[var(--accent-foreground)]">pricing</a> for all options.
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -336,7 +363,7 @@ export default async function ResultsPage({
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 px-6 relative">
         {/* Version number - subtle, for deployment verification */}
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--background)] select-none">v0.4.0</span>
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--background)] select-none">v0.5.0</span>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
             <p className="text-[var(--foreground)] font-semibold">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
