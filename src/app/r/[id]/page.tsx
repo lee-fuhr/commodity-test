@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { kv } from '@vercel/kv'
 import { ShareButtons } from './ShareButtons'
 
 interface CostAssumptions {
@@ -40,19 +41,11 @@ interface AnalysisResult {
 
 async function getAnalysis(id: string): Promise<AnalysisResult | null> {
   try {
-    // In production, this would be a database query
-    // For now, we'll use the API route
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'
-
-    const response = await fetch(`${baseUrl}/api/analyze?id=${id}`, {
-      cache: 'no-store',
-    })
-
-    if (!response.ok) return null
-    return response.json()
-  } catch {
+    // Read directly from Vercel KV
+    const result = await kv.get<AnalysisResult>(`result:${id}`)
+    return result
+  } catch (error) {
+    console.error('Error fetching from KV:', error)
     return null
   }
 }
