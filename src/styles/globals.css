@@ -1,0 +1,308 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Changa fonts loaded via layout.tsx */
+
+:root {
+  /* Color System - Dark with brand blue accent */
+  --background: #09090B;
+  --foreground: #FAFAFA;
+  --muted: #1a1a1f;
+  --muted-foreground: #A1A1AA;
+  --accent: #4d65ff;
+  --accent-foreground: #FFFFFF;
+  --border: #3F3F46;
+
+  /* Typography - Changa family */
+  --font-display: 'Changa One', system-ui, sans-serif;
+  --font-body: 'Changa', system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-body);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    line-height: 1.6;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+  }
+}
+
+@layer components {
+  /* Display text - massive viewport-responsive (Changa One is already bold, don't add weight) */
+  .text-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    line-height: 0.85;
+  }
+
+  /* Section heading (Changa One is already bold, don't add weight) */
+  .text-section {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    line-height: 0.9;
+  }
+
+  /* Body text */
+  .text-body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    color: var(--muted-foreground);
+    line-height: 1.6;
+  }
+
+  /* Label text */
+  .text-label {
+    font-family: var(--font-body);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+  }
+
+  /* Primary button - brand blue */
+  .btn-kinetic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 3.5rem;
+    padding: 0 2rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: transform 200ms ease-out, background-color 200ms ease-out;
+  }
+
+  .btn-kinetic:hover:not(:disabled) {
+    transform: scale(1.05);
+  }
+
+  .btn-kinetic:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  .btn-kinetic:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Outline button */
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 3.5rem;
+    padding: 0 2rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background-color: transparent;
+    color: var(--foreground);
+    border: 2px solid var(--border);
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 200ms ease-out;
+  }
+
+  .btn-outline:hover:not(:disabled) {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+    border-color: var(--accent);
+  }
+
+  /* Input - dramatic oversized */
+  .input-kinetic {
+    width: 100%;
+    height: 4rem;
+    padding: 0;
+    font-family: var(--font-body);
+    font-size: clamp(1.25rem, 3vw, 2rem);
+    font-weight: 500;
+    background-color: transparent;
+    color: var(--foreground);
+    border: none;
+    border-bottom: 2px solid var(--border);
+    border-radius: 0;
+    transition: border-color 150ms ease-out;
+  }
+
+  .input-kinetic::placeholder {
+    color: var(--muted-foreground);
+  }
+
+  .input-kinetic:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+  }
+
+  /* Reversed input - for use on accent backgrounds */
+  .input-reversed {
+    width: 100%;
+    height: 4rem;
+    padding: 0;
+    font-family: var(--font-body);
+    font-size: clamp(1.25rem, 3vw, 2rem);
+    font-weight: 500;
+    background-color: transparent;
+    color: var(--accent-foreground);
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 0;
+    transition: border-color 150ms ease-out;
+  }
+
+  .input-reversed::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .input-reversed:focus {
+    outline: none;
+    border-bottom-color: var(--accent-foreground);
+  }
+
+  /* Reversed button - white on accent background */
+  .btn-reversed {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 3.5rem;
+    padding: 0 2rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background-color: var(--background);
+    color: var(--foreground);
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: transform 200ms ease-out, opacity 200ms ease-out;
+  }
+
+  .btn-reversed:hover:not(:disabled) {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+
+  .btn-reversed:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .btn-reversed:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Card with hover inversion */
+  .card-kinetic {
+    background-color: var(--background);
+    border: 2px solid var(--border);
+    border-radius: 0;
+    padding: 2rem;
+    transition: all 300ms ease-out;
+  }
+
+  .card-kinetic:hover {
+    background-color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .card-kinetic:hover .card-title,
+  .card-kinetic:hover .card-desc,
+  .card-kinetic:hover .card-number {
+    color: var(--accent-foreground);
+  }
+
+  .card-title {
+    color: var(--foreground);
+    transition: color 300ms ease-out;
+  }
+
+  .card-desc {
+    color: var(--muted-foreground);
+    transition: color 300ms ease-out;
+  }
+
+  .card-number {
+    color: var(--muted);
+    transition: color 300ms ease-out;
+  }
+
+  /* Marquee container */
+  .marquee-track {
+    display: flex;
+    gap: 4rem;
+    animation: marquee 30s linear infinite;
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* Massive number styling */
+  .number-massive {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 0.8;
+    letter-spacing: -0.05em;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
