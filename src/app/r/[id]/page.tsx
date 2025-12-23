@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { kv } from '@vercel/kv'
 import { ShareButtons } from './ShareButtons'
+import { CopyButton } from './CopyButton'
 
 interface CostAssumptions {
   averageDealValue: number
@@ -242,7 +243,12 @@ export default async function ResultsPage({
                 <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-[var(--accent-foreground)] mb-4">
                   <div className="bg-black/20 px-4 py-3">
                     <p className="text-2xl md:text-3xl font-display">${(result.costEstimate / 1000).toFixed(0)}K</p>
-                    <p className="text-xs opacity-60">recovered</p>
+                    <p className="text-xs opacity-60">annual loss</p>
+                  </div>
+                  <span className="text-2xl opacity-60">×</span>
+                  <div className="bg-black/20 px-4 py-3">
+                    <p className="text-2xl md:text-3xl font-display">50%</p>
+                    <p className="text-xs opacity-60">conservative</p>
                   </div>
                   <span className="text-2xl opacity-60">÷</span>
                   <div className="bg-black/20 px-4 py-3">
@@ -251,7 +257,7 @@ export default async function ResultsPage({
                   </div>
                   <span className="text-2xl opacity-60">=</span>
                   <div className="bg-green-500/30 px-4 py-3 border-2 border-green-400/50">
-                    <p className="text-2xl md:text-3xl font-display text-green-300">{Math.round((result.costEstimate / 18000) * 100)}%</p>
+                    <p className="text-2xl md:text-3xl font-display text-green-300">{Math.round((result.costEstimate / 2 / 18000) * 100)}%</p>
                     <p className="text-xs text-green-300/80">first-year ROI</p>
                   </div>
                 </div>
@@ -259,7 +265,7 @@ export default async function ResultsPage({
                   <strong>Payback period:</strong>{' '}
                   {result.costEstimate > 0 ? (
                     <>
-                      {Math.ceil(18000 / (result.costEstimate / 12))} {Math.ceil(18000 / (result.costEstimate / 12)) === 1 ? 'month' : 'months'}
+                      {Math.ceil(18000 / (result.costEstimate / 2 / 12))} {Math.ceil(18000 / (result.costEstimate / 2 / 12)) === 1 ? 'month' : 'months'}
                     </>
                   ) : '—'}
                 </p>
@@ -294,7 +300,7 @@ export default async function ResultsPage({
                   <div className="space-y-6 flex-1">
                     {/* Original phrase with context */}
                     <div>
-                      <p className="text-label mb-3">Found on your site</p>
+                      <p className="text-blue-300 font-semibold text-sm uppercase tracking-wider mb-3">Found on your site</p>
                       <div className="bg-[var(--muted)] p-4 text-lg leading-relaxed">
                         <HighlightedContext context={fix.context} phrase={fix.originalPhrase} />
                       </div>
@@ -303,20 +309,21 @@ export default async function ResultsPage({
 
                     {/* Why it hurts */}
                     <div>
-                      <p className="text-label mb-2">Why it hurts you</p>
+                      <p className="text-blue-300 font-semibold text-sm uppercase tracking-wider mb-2">Why it hurts you</p>
                       <p className="text-body text-lg">{fix.whyBad}</p>
                     </div>
 
                     {/* Drop-in replacements */}
                     <div>
-                      <p className="text-label mb-3">Replace with (copy + paste)</p>
+                      <p className="text-blue-300 font-semibold text-sm uppercase tracking-wider mb-3">Replace with</p>
                       <div className="space-y-3">
                         {fix.suggestions.map((suggestion, idx) => (
                           <div
                             key={idx}
                             className="bg-[var(--accent)]/10 border-l-4 border-[var(--accent)] p-4"
                           >
-                            <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3">
+                              <CopyButton text={suggestion.text} />
                               <p className="text-[var(--foreground)] text-lg flex-1">{suggestion.text}</p>
                               <span className={`text-xs uppercase tracking-wider px-2 py-1 border shrink-0 ${getApproachStyle(suggestion.approach)}`}>
                                 {suggestion.approach}
@@ -328,9 +335,9 @@ export default async function ResultsPage({
                     </div>
 
                     {/* Key insight - the most important takeaway */}
-                    <div className="bg-[var(--foreground)]/5 border border-[var(--foreground)]/20 p-4 mt-2">
-                      <p className="text-label text-xs mb-1">The key insight</p>
-                      <p className="text-[var(--foreground)] text-lg font-medium">{fix.whyBetter}</p>
+                    <div className="bg-blue-500/90 p-4 mt-2">
+                      <p className="text-blue-100 text-xs uppercase tracking-wider font-semibold mb-1">The key insight</p>
+                      <p className="text-white text-lg font-medium">{fix.whyBetter}</p>
                     </div>
                   </div>
                 </div>
