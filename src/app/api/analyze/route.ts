@@ -107,15 +107,14 @@ function isPrivateUrl(url: string): boolean {
   }
 }
 
-async function fetchHomepage(url: string): Promise<string> {
+async function fetchPage(url: string, timeout: number = 10000): Promise<string> {
   // SSRF protection
   if (isPrivateUrl(url)) {
     throw new Error('Invalid URL: Private or internal addresses are not allowed')
   }
 
-  // Create abort controller for timeout
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
 
   try {
     const response = await fetch(url, {
@@ -132,25 +131,22 @@ async function fetchHomepage(url: string): Promise<string> {
       throw new Error(`Failed to fetch URL: ${response.status}`)
     }
 
-    // Check content type
     const contentType = response.headers.get('content-type') || ''
     if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) {
       throw new Error('URL does not return HTML content')
     }
 
-    // Limit response size to 5MB
     const contentLength = response.headers.get('content-length')
     if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) {
       throw new Error('Page too large to analyze')
     }
 
-    // Read with size limit
     const reader = response.body?.getReader()
     if (!reader) throw new Error('Failed to read response')
 
     const chunks: Uint8Array[] = []
     let totalSize = 0
-    const maxSize = 5 * 1024 * 1024 // 5MB
+    const maxSize = 5 * 1024 * 1024
 
     while (true) {
       const { done, value } = await reader.read()
@@ -165,15 +161,109 @@ async function fetchHomepage(url: string): Promise<string> {
       chunks.push(value)
     }
 
-    const html = new TextDecoder().decode(Buffer.concat(chunks.map(c => Buffer.from(c))))
-    return html
+    return new TextDecoder().decode(Buffer.concat(chunks.map(c => Buffer.from(c))))
   } catch (error) {
     clearTimeout(timeoutId)
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Request timed out after 15 seconds')
+      return '' // Silent fail for secondary pages
     }
     throw error
   }
+}
+
+// Find key internal pages to scrape for stats
+function findKeyPages(html: string, baseUrl: string): string[] {
+  const $ = cheerio.load(html)
+  const base = new URL(baseUrl)
+  const keyPages: string[] = []
+
+  // Patterns for valuable pages
+  const patterns = [
+    /about/i, /company/i, /who-we-are/i,
+    /service/i, /capabilit/i, /what-we-do/i,
+    /project/i, /portfolio/i, /work/i, /case-stud/i,
+    /client/i, /customer/i, /testimonial/i,
+    /why-us/i, /why-choose/i, /difference/i,
+  ]
+
+  $('a[href]').each((_, el) => {
+    const href = $(el).attr('href')
+    if (!href) return
+
+    try {
+      const fullUrl = new URL(href, baseUrl)
+      // Only same domain
+      if (fullUrl.hostname !== base.hostname) return
+      // Skip assets, anchors, etc
+      if (fullUrl.pathname.match(/\.(pdf|jpg|png|gif|css|js)$/i)) return
+      if (fullUrl.pathname === '/' || fullUrl.pathname === base.pathname) return
+
+      // Check if matches our patterns
+      if (patterns.some(p => p.test(fullUrl.pathname))) {
+        const url = fullUrl.origin + fullUrl.pathname
+        if (!keyPages.includes(url)) {
+          keyPages.push(url)
+        }
+      }
+    } catch {
+      // Invalid URL, skip
+    }
+  })
+
+  return keyPages.slice(0, 5) // Max 5 additional pages
+}
+
+// Extract stats and proof points from text
+function extractStats(text: string): string[] {
+  const stats: string[] = []
+
+  // Numbers with context (e.g., "50 years", "1,000 clients", "99% satisfaction")
+  const patterns = [
+    /\d{1,3}(?:,\d{3})*\+?\s*(?:years?|clients?|customers?|projects?|employees?|locations?|countries?|states?)/gi,
+    /\d{1,3}(?:\.\d+)?%\s*(?:satisfaction|reduction|increase|improvement|growth|savings?|faster|better)/gi,
+    /\$\d{1,3}(?:,\d{3})*(?:\.\d{2})?\s*(?:million|billion|M|B|saved|revenue)/gi,
+    /(?:since|founded|established|serving)\s*(?:in\s*)?\d{4}/gi,
+    /(?:over|more than|nearly|almost)\s*\d{1,3}(?:,\d{3})*\s*(?:years?|clients?|projects?)/gi,
+    /#\d+\s*(?:in|ranked|rated)/gi,
+    /\d+(?:st|nd|rd|th)\s*(?:largest|biggest|fastest)/gi,
+    /first\s+(?:to|in)\s+[^.]+/gi,
+    /only\s+(?:company|provider|manufacturer)\s+[^.]+/gi,
+    /patented|proprietary|exclusive/gi,
+  ]
+
+  for (const pattern of patterns) {
+    const matches = text.match(pattern)
+    if (matches) {
+      stats.push(...matches.map(m => m.trim()))
+    }
+  }
+
+  // Dedupe and limit
+  return [...new Set(stats)].slice(0, 20)
+}
+
+// Extract notable projects/clients mentioned
+function extractProofPoints(text: string): string[] {
+  const proofs: string[] = []
+
+  // Look for sentences with company names (capitalized multi-word phrases)
+  const sentences = text.split(/[.!?]/)
+  for (const sentence of sentences) {
+    // Sentences mentioning specific projects, clients, or achievements
+    if (sentence.match(/(?:built|completed|delivered|served|worked with|partnered with|helped)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/)) {
+      proofs.push(sentence.trim())
+    }
+    // Award mentions
+    if (sentence.match(/(?:award|recognition|certified|accredited|ranked|rated)/i)) {
+      proofs.push(sentence.trim())
+    }
+  }
+
+  return proofs.slice(0, 10)
+}
+
+async function fetchHomepage(url: string): Promise<string> {
+  return fetchPage(url, 15000)
 }
 
 function extractContent(html: string): { headline: string; subheadline: string; bodyText: string; companyName: string } {
@@ -288,7 +378,9 @@ async function generateFixesWithClaude(
   subheadline: string,
   bodyText: string,
   companyName: string,
-  url: string
+  url: string,
+  siteStats: string[] = [],
+  proofPoints: string[] = []
 ): Promise<AnalysisResult['fixes']> {
   if (!anthropic) {
     return generateTemplateFixes(detectedPhrases, headline, companyName)
@@ -318,6 +410,15 @@ async function generateFixesWithClaude(
     .map((p, i) => `${i + 1}. "${p.phrase}" (found in ${p.location}, category: ${p.category})\n   Context: "${p.context}"`)
     .join('\n\n')
 
+  // Format real stats and proof points found on their site
+  const statsSection = siteStats.length > 0
+    ? `\nREAL STATS FOUND ON THEIR SITE (use these in suggestions when relevant):\n${siteStats.map(s => `- ${s}`).join('\n')}`
+    : ''
+
+  const proofsSection = proofPoints.length > 0
+    ? `\nPROOF POINTS & ACHIEVEMENTS FOUND:\n${proofPoints.slice(0, 5).map(p => `- ${p}`).join('\n')}`
+    : ''
+
   const prompt = `You are an expert B2B messaging strategist helping a manufacturing company improve their website copy. You're known for turning generic "we're the best" language into specific, differentiating claims.
 
 COMPANY: ${companyName}
@@ -327,6 +428,8 @@ SUBHEADLINE: "${subheadline}"
 
 DETECTED COMMODITY PHRASES (with surrounding context):
 ${phraseSummary}
+${statsSection}
+${proofsSection}
 
 HOMEPAGE EXCERPT:
 ${bodyText.slice(0, 1500)}
@@ -349,17 +452,22 @@ For each fix, provide:
    - find your only (unique differentiator)
 3. whyBetter: Why specificity wins over generic claims (1 sentence)
 
-CRITICAL - NO BRACKETS OR PLACEHOLDERS:
-- NEVER use [X], [Client Name], [specific manufacturer], or any bracketed placeholders
-- Instead, INVENT specific-sounding but realistic examples: "47 years", "Acme Industries", "Miller coating systems"
-- Make up believable numbers, client names, timeframes, percentages
-- These should sound like real examples even if fictional
+CRITICAL - USE REAL DATA WHEN AVAILABLE:
+- If we found real stats on their site (listed above), USE THEM in your suggestions
+- Repurpose their own numbers, years in business, project counts, client names, awards
+- When real data isn't available, invent specific-sounding but realistic examples
+- NEVER use brackets like [X] or [Client Name] - always provide concrete text
 - The suggestions should be copy they could use TODAY without filling in blanks
 
+APPROACH VARIETY IS CRITICAL:
+- You MUST use DIFFERENT approach types across the 5 fixes
+- Do NOT repeat the same approaches - vary between quantify, process, guarantee, story, experience, retention, niche, innovation, metrics, etc.
+- Each fix should demonstrate a different differentiation strategy
+- This variety shows the company multiple ways to stand out
+
 OTHER GUIDELINES:
-- Be specific to THIS company based on what you can infer from their content
+- Be specific to THIS company based on what you found on their site
 - Each suggestion should be a complete, ready-to-use rewrite
-- VARY the approach types - don't use the same three for every fix
 - If you can infer their industry, products, or capabilities, reference them
 - Never suggest more generic language - always go MORE specific
 - Match the tone of a direct consultant, not a marketing textbook
@@ -585,8 +693,39 @@ export async function POST(request: NextRequest) {
     const html = await fetchHomepage(validUrl)
     const { headline, subheadline, bodyText, companyName } = extractContent(html)
 
+    // Find and fetch additional pages for stats
+    const keyPages = findKeyPages(html, validUrl)
+    const additionalContent: string[] = []
+    const allStats: string[] = []
+    const allProofs: string[] = []
+
+    // Fetch additional pages in parallel (with 5 second timeout each)
+    if (keyPages.length > 0) {
+      const pagePromises = keyPages.map(async (pageUrl) => {
+        try {
+          const pageHtml = await fetchPage(pageUrl, 5000)
+          if (pageHtml) {
+            const $ = cheerio.load(pageHtml)
+            const pageText = $('body').text().replace(/\s+/g, ' ').trim()
+            return pageText.slice(0, 3000) // First 3000 chars per page
+          }
+        } catch {
+          // Silent fail for secondary pages
+        }
+        return ''
+      })
+
+      const results = await Promise.all(pagePromises)
+      additionalContent.push(...results.filter(Boolean))
+    }
+
     // Combine all text for analysis
     const allText = `${headline} ${subheadline} ${bodyText}`
+    const fullSiteText = [allText, ...additionalContent].join(' ')
+
+    // Extract stats and proof points from full site
+    allStats.push(...extractStats(fullSiteText))
+    allProofs.push(...extractProofPoints(fullSiteText))
 
     // Detect commodity phrases
     const rawDetectedPhrases = detectCommodityPhrases(allText)
@@ -611,7 +750,9 @@ export async function POST(request: NextRequest) {
       subheadline,
       bodyText,
       companyName,
-      validUrl
+      validUrl,
+      allStats,
+      allProofs
     )
 
     // Create result
