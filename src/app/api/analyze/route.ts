@@ -434,16 +434,23 @@ ${proofsSection}
 HOMEPAGE EXCERPT:
 ${bodyText.slice(0, 1500)}
 
-Provide EXACTLY 5 fixes. Use the ${topPhrases.length} detected phrases first, then add additional recommendations for their headline/messaging to reach 5 total.
+Provide EXACTLY 5 fixes. Use the ${topPhrases.length} detected commodity phrases first, then add ${5 - topPhrases.length} more fixes targeting OTHER weak spots you notice in their copy (vague claims, missed opportunities, generic language that wasn't in our detection list).
+
+For these additional fixes, pull ACTUAL TEXT from the homepage excerpt above - quote their real words, don't use placeholders like "Main website headline".
 
 For each fix, provide:
 1. whyBad: Why this specific phrase hurts their differentiation (1-2 sentences, direct, no fluff)
-2. suggestions: THREE different DROP-IN REPLACEMENTS. Each suggestion must be copy they can literally select the highlighted phrase, delete it, and paste your suggestion in its place. The suggestion must fit grammatically into the surrounding context.
+2. suggestions: THREE different DROP-IN REPLACEMENTS for the EXACT highlighted phrase.
 
-   For example, if the context is "We provide **quality** products to our customers" and "quality" is highlighted:
-   - GOOD: "zero-defect" (fits: "We provide zero-defect products...")
-   - GOOD: "ISO-9001 certified" (fits: "We provide ISO-9001 certified products...")
-   - BAD: "Our products have zero defects" (doesn't fit grammatically)
+   CRITICAL: The suggestion replaces ONLY the bolded/highlighted word(s), not the whole sentence.
+
+   Example - if context is "Our expertise and **value**-added offerings support our clients" and "value" is highlighted:
+   - GOOD: "risk-mitigation" (result: "Our expertise and risk-mitigation-added offerings...")
+   - GOOD: "cost-predictability"
+   - GOOD: "schedule-certainty"
+   - BAD: "We help clients manage risk" (this is a new sentence, not a replacement)
+
+   For HEADLINE fixes where you're replacing the entire headline, provide complete headline alternatives.
 
    VARY the approach types across suggestions:
    - quantify it, show the process, make a guarantee, tell their story, describe the experience, prove retention, claim the niche, name the innovation, say what you do, publish the metrics, find your only
