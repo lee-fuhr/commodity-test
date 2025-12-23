@@ -392,8 +392,14 @@ Only return the JSON, no other text.`
       .map(block => block.text)
       .join('')
 
+    // Strip markdown code fences if present
+    let jsonText = responseText.trim()
+    if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
+    }
+
     // Parse JSON response
-    const parsed = JSON.parse(responseText)
+    const parsed = JSON.parse(jsonText)
 
     if (parsed.fixes && Array.isArray(parsed.fixes) && parsed.fixes.length > 0) {
       // Validate each fix has required fields
