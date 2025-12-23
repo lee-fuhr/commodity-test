@@ -107,14 +107,14 @@ const faqs = [
 
 export default function PricingPage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-[var(--background)]">
       {/* Header */}
-      <header className="bg-white border-b border-brand-200 py-4 px-6">
+      <header className="border-b border-[var(--border)] py-4 px-6">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <Link href="/" className="text-brand-900 font-semibold">
+          <Link href="/" className="text-section text-lg text-[var(--foreground)]">
             The Commodity Test
           </Link>
-          <Link href="/" className="btn-secondary text-sm py-2 px-4">
+          <Link href="/" className="btn-kinetic text-sm py-2 px-4">
             Run the test
           </Link>
         </div>
@@ -122,11 +122,11 @@ export default function PricingPage() {
 
       {/* Hero */}
       <section className="py-16 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-h1 md:text-hero font-bold text-brand-900 mb-4">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-display text-4xl md:text-6xl text-[var(--foreground)] mb-6">
             What it costs to fix commodity messaging
           </h1>
-          <p className="text-body-lg text-brand-600">
+          <p className="text-body text-xl">
             Fixed-price project. No hourly billing. No scope creep. You know the price before we start.
           </p>
         </div>
@@ -139,37 +139,45 @@ export default function PricingPage() {
             {tiers.map((tier) => (
               <div
                 key={tier.name}
-                className={`relative rounded-xl p-8 ${
+                className={`relative p-8 ${
                   tier.highlighted
-                    ? 'bg-white border-3 border-accent-400 shadow-elevated'
-                    : 'bg-white border-2 border-brand-200'
+                    ? 'bg-[var(--accent)] text-[var(--accent-foreground)]'
+                    : 'border-2 border-[var(--border)] bg-[var(--muted)]'
                 }`}
               >
                 {tier.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent-400 text-white text-xs font-semibold uppercase tracking-wide px-4 py-1 rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--foreground)] text-[var(--background)] text-xs font-semibold uppercase tracking-wide px-4 py-1">
                     Most popular
                   </div>
                 )}
 
-                <h3 className="text-xl font-semibold text-brand-800 mb-2">{tier.name}</h3>
-                <p className="text-4xl font-bold text-brand-900 mb-1">{tier.price}</p>
-                <p className="text-sm text-brand-500 mb-6">{tier.timeline}</p>
-                <p className="text-brand-600 mb-6">{tier.description}</p>
+                <h3 className={`text-section text-xl mb-2 ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-[var(--foreground)]'}`}>
+                  {tier.name}
+                </h3>
+                <p className={`text-5xl font-display mb-1 ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-[var(--foreground)]'}`}>
+                  {tier.price}
+                </p>
+                <p className={`text-sm mb-6 ${tier.highlighted ? 'text-[var(--accent-foreground)]/70' : 'text-body'}`}>
+                  {tier.timeline}
+                </p>
+                <p className={`mb-6 ${tier.highlighted ? 'text-[var(--accent-foreground)]/90' : 'text-body'}`}>
+                  {tier.description}
+                </p>
 
                 <ul className="space-y-3 mb-8">
                   {tier.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-brand-700">
-                      <svg className="w-5 h-5 text-score-excellent mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                    <li key={i} className={`flex items-start gap-2 ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-body'}`}>
+                      <span className={tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-[var(--accent)]'}>→</span>
                       {feature}
                     </li>
                   ))}
                 </ul>
 
                 <div className="mb-6">
-                  <p className="text-sm font-semibold text-brand-700 mb-2">Perfect for:</p>
-                  <ul className="text-sm text-brand-500 space-y-1">
+                  <p className={`text-sm font-semibold mb-2 ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-[var(--foreground)]'}`}>
+                    Perfect for:
+                  </p>
+                  <ul className={`text-sm space-y-1 ${tier.highlighted ? 'text-[var(--accent-foreground)]/70' : 'text-body'}`}>
                     {tier.perfectFor.map((item, i) => (
                       <li key={i}>• {item}</li>
                     ))}
@@ -180,7 +188,11 @@ export default function PricingPage() {
                   href="https://calendly.com/leefuhr/discovery-call"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-full ${tier.highlighted ? 'btn-primary' : 'btn-secondary'}`}
+                  className={`block w-full text-center py-3 font-semibold uppercase tracking-wider text-sm transition-all ${
+                    tier.highlighted
+                      ? 'bg-[var(--background)] text-[var(--foreground)] hover:bg-[var(--muted)]'
+                      : 'btn-kinetic'
+                  }`}
                 >
                   {tier.cta}
                 </a>
@@ -191,24 +203,24 @@ export default function PricingPage() {
       </section>
 
       {/* Timeline */}
-      <section className="py-16 px-6 bg-brand-50">
+      <section className="py-16 px-6 bg-[var(--muted)]">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-h1 font-bold text-brand-900 text-center mb-12">
+          <h2 className="text-section text-3xl text-[var(--foreground)] text-center mb-12">
             How it works: 6-8 weeks
           </h2>
 
           <div className="relative">
             {/* Timeline line */}
-            <div className="hidden md:block absolute top-6 left-0 right-0 h-1 bg-brand-200" />
+            <div className="hidden md:block absolute top-6 left-0 right-0 h-0.5 bg-[var(--border)]" />
 
             <div className="grid grid-cols-2 md:grid-cols-6 gap-6">
               {timeline.map((item) => (
                 <div key={item.week} className="relative text-center">
-                  <div className="w-12 h-12 mx-auto bg-white border-3 border-accent-400 rounded-full flex items-center justify-center font-semibold text-brand-800 mb-3">
+                  <div className="w-12 h-12 mx-auto bg-[var(--background)] border-2 border-[var(--accent)] flex items-center justify-center font-display text-[var(--accent)] mb-3">
                     {item.week}
                   </div>
-                  <p className="font-semibold text-brand-800 text-sm">{item.label}</p>
-                  <p className="text-xs text-brand-500 mt-1">{item.description}</p>
+                  <p className="text-[var(--foreground)] font-semibold text-sm">{item.label}</p>
+                  <p className="text-body text-xs mt-1">{item.description}</p>
                 </div>
               ))}
             </div>
@@ -219,20 +231,18 @@ export default function PricingPage() {
       {/* What's not included */}
       <section className="py-16 px-6">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-8">
-            <h2 className="text-xl font-semibold text-amber-900 mb-6">
+          <div className="bg-yellow-500/10 border-2 border-yellow-500/30 p-8">
+            <h2 className="text-section text-xl text-yellow-300 mb-6">
               What&apos;s NOT included
             </h2>
-            <p className="text-amber-800 mb-6">
+            <p className="text-yellow-200/80 mb-6">
               I&apos;m a messaging strategist, not a full-service agency. You get expert positioning and copy.
               You handle (or hire for) design, development, and ongoing content.
             </p>
             <ul className="grid md:grid-cols-2 gap-3">
               {notIncluded.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-amber-800">
-                  <svg className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                <li key={i} className="flex items-start gap-2 text-yellow-200/80">
+                  <span className="text-yellow-500">✕</span>
                   {item}
                 </li>
               ))}
@@ -242,19 +252,19 @@ export default function PricingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-16 px-6 bg-brand-50">
+      <section className="py-16 px-6 bg-[var(--muted)]">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-h1 font-bold text-brand-900 text-center mb-12">
+          <h2 className="text-section text-3xl text-[var(--foreground)] text-center mb-12">
             Common questions
           </h2>
 
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-white rounded-lg p-6 border border-brand-200">
-                <h3 className="text-lg font-semibold text-brand-800 mb-3">
+              <div key={i} className="border-2 border-[var(--border)] bg-[var(--background)] p-6">
+                <h3 className="text-[var(--foreground)] font-semibold text-lg mb-3">
                   {faq.question}
                 </h3>
-                <p className="text-brand-600">{faq.answer}</p>
+                <p className="text-body">{faq.answer}</p>
               </div>
             ))}
           </div>
@@ -264,10 +274,10 @@ export default function PricingPage() {
       {/* Final CTA */}
       <section className="py-16 px-6">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-h1 font-bold text-brand-900 mb-4">
+          <h2 className="text-display text-4xl text-[var(--foreground)] mb-4">
             Let&apos;s figure out which tier fits
           </h2>
-          <p className="text-body-lg text-brand-600 mb-8">
+          <p className="text-body text-xl mb-8">
             The discovery call is 30 minutes. We&apos;ll talk about your challenges, who you&apos;re selling to,
             and which tier makes sense. No pressure. No obligation.
           </p>
@@ -275,13 +285,13 @@ export default function PricingPage() {
             href="https://calendly.com/leefuhr/discovery-call"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-primary inline-flex"
+            className="btn-kinetic inline-flex text-lg"
           >
             Schedule discovery call
           </a>
-          <p className="text-sm text-brand-500 mt-6">
+          <p className="text-body text-sm mt-6">
             Not ready to talk yet?{' '}
-            <Link href="/guide" className="text-accent-400 hover:underline">
+            <Link href="/guide" className="text-[var(--accent)] hover:underline">
               Download the DIY guide
             </Link>
             {' '}and try fixing it yourself first.
@@ -290,14 +300,20 @@ export default function PricingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-brand-900 text-brand-400 py-10 px-6">
+      <footer className="border-t border-[var(--border)] py-8 px-6">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm">© 2025 Lee Fuhr Inc</p>
+          <div className="text-center md:text-left">
+            <p className="text-[var(--foreground)] font-semibold">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
+            <p className="text-body text-sm">27 years helping manufacturers stop sounding like everyone else</p>
+          </div>
           <nav className="flex gap-6 text-sm">
-            <Link href="/how-it-works" className="hover:text-white">How it works</Link>
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-            <a href="mailto:hello@leefuhr.com" className="hover:text-white">Contact</a>
+            <Link href="/how-it-works" className="text-body hover:text-[var(--accent)]">How it works</Link>
+            <Link href="/privacy" className="text-body hover:text-[var(--accent)]">Privacy</Link>
+            <a href="mailto:hello@leefuhr.com" className="text-body hover:text-[var(--accent)]">Contact</a>
           </nav>
+          <Link href="/" className="text-[var(--accent)] hover:underline">
+            Run the test →
+          </Link>
         </div>
       </footer>
     </main>
