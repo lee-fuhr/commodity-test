@@ -780,6 +780,25 @@ export async function POST(request: NextRequest) {
     // Store result in Vercel KV with TTL
     await kv.set(`result:${id}`, result, { ex: RESULT_TTL_SECONDS })
 
+    // Store anonymized analytics for learning (no TTL - permanent)
+    try {
+      const analyticsData = {
+        timestamp: new Date().toISOString(),
+        score: commodityScore,
+        phraseCount: detectedPhrases.length,
+        phrases: detectedPhrases.map(p => ({ phrase: p.phrase, category: p.category })),
+        statsFound: allStats.length,
+        proofsFound: allProofs.length,
+        // Anonymized industry hint from URL domain
+        domain: new URL(validUrl).hostname.replace(/^www\./, ''),
+      }
+      await kv.lpush('analytics:analyses', JSON.stringify(analyticsData))
+      // Keep only last 1000 analyses
+      await kv.ltrim('analytics:analyses', 0, 999)
+    } catch {
+      // Silent fail - analytics shouldn't break the main flow
+    }
+
     return NextResponse.json({ id })
   } catch (error) {
     console.error('Analysis error:', error)

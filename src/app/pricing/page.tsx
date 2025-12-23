@@ -2,106 +2,111 @@ import Link from 'next/link'
 
 const tiers = [
   {
-    name: 'Base',
-    price: '$18,000',
-    description: 'Single market positioning',
-    timeline: '6 weeks',
+    name: 'The Playbook',
+    price: '$1,000',
+    description: 'DIY with expert guidance',
+    timeline: '1 week',
     features: [
-      'Competitive positioning audit',
-      'Complete messaging framework',
-      'Homepage + 3 key pages',
-      'Sales messaging toolkit',
-      '3 revision rounds',
+      'Your Commodity Test results as starting point',
+      'Full site audit with prioritized fixes',
+      'MoSCoW prioritization (Must/Should/Could/Won\'t)',
+      'Harder changes clearly marked (new sections, pages)',
+      'Two 30-minute calls (kickoff + unveil)',
     ],
-    perfectFor: [
-      'Clear single market (e.g., only distributors)',
-      'Straightforward product line',
-      'One primary buyer persona',
+    notIncluded: [
+      'I don\'t implement - you do',
+      'No design or development',
     ],
-    cta: 'Schedule discovery call',
+    cta: 'Get The Playbook',
     highlighted: false,
+    href: 'https://calendly.com/leefuhr/playbook',
   },
   {
-    name: 'Extended',
-    price: '$22,000',
-    description: 'Two market positioning strategies',
-    timeline: '7 weeks',
+    name: 'Core Site',
+    price: '$18,000',
+    description: 'Up to 6 pages, done for you',
+    timeline: '6-8 weeks',
     features: [
-      'Everything in Base, plus:',
-      'Two market positioning strategies',
+      'Complete messaging framework',
       'Homepage + 5 key pages',
-      'Extended sales toolkit',
-      '4 revision rounds',
+      'Copywriting for all pages',
+      'Webflow design & development',
+      'CMS for basic self-editing',
     ],
-    perfectFor: [
-      'Selling to multiple buyer types',
-      'Complex product lines',
-      'Multiple stakeholder groups',
+    notIncluded: [
+      'Single buyer persona',
+      'Standard CMS structure',
     ],
     cta: 'Schedule discovery call',
     highlighted: true,
+    href: 'https://calendly.com/leefuhr/discovery-call',
   },
   {
-    name: 'Comprehensive',
+    name: 'Full Site',
     price: '$25,000',
-    description: 'Full messaging transformation',
-    timeline: '8 weeks',
+    description: 'Up to 12 pages, done for you',
+    timeline: '8-10 weeks',
     features: [
-      'Everything in Extended, plus:',
-      'Three market positioning strategies',
-      'Up to 8 pages',
-      'Competitive response playbook',
-      '5 revision rounds',
+      'Everything in Core, plus:',
+      'Up to 12 pages total',
+      'Product/service detail pages',
+      'More complex IA & navigation',
+      'Extended CMS capabilities',
     ],
-    perfectFor: [
-      'Complex go-to-market',
-      'Multiple product lines',
-      'Deep sales enablement needs',
+    notIncluded: [
+      'Single buyer persona',
+      'Add-ons available below',
     ],
     cta: 'Schedule discovery call',
     highlighted: false,
+    href: 'https://calendly.com/leefuhr/discovery-call',
   },
 ]
 
-const timeline = [
-  { week: '1', label: 'Discovery', description: 'Kickoff, materials review' },
-  { week: '2-3', label: 'Research', description: 'Competitor audit, analysis' },
-  { week: '4-5', label: 'Framework', description: 'Messaging framework draft' },
-  { week: '6', label: 'Copy', description: 'Website copy delivery' },
-  { week: '7', label: 'Toolkit', description: 'Sales materials' },
-  { week: '8', label: 'Handoff', description: 'Final revisions, training' },
+const addons = [
+  { name: 'Additional buyer persona', price: '+$3,000', description: 'Messaging + pages for a second audience' },
+  { name: 'Advanced CMS setup', price: '+$2,000', description: 'Complex content structures, filtering, custom fields' },
+  { name: 'Rush delivery', price: '+20%', description: 'Compress timeline by ~2 weeks' },
 ]
 
-const notIncluded = [
-  'Website design or development',
-  'Logo design or brand identity creation',
-  'Graphic design for sales materials',
-  'Social media content creation',
-  'Blog writing or content marketing',
-  'SEO optimization beyond page copy',
-  'Primary market research (surveys, focus groups)',
-]
+const retainer = {
+  name: 'Monthly Retainer',
+  price: 'From $6,000/mo',
+  description: 'Fractional CMO / messaging partner',
+  features: [
+    'Ongoing messaging optimization',
+    'Content strategy & guidance',
+    'Campaign messaging support',
+    'Regular strategy calls',
+    'Priority access & response',
+  ],
+  note: 'Starting at 1/6 time allocation (~6-7 hrs/week). Larger allocations available.',
+}
 
 const faqs = [
   {
-    question: 'What if I don\'t like what you deliver?',
-    answer: 'Milestone-based payment: 30% deposit, 30% at framework delivery, 40% at final handoff. If you\'re unhappy at framework stage, we can revise or part ways (you keep the work completed). I\'ve been doing this 27 years - I\'m confident you\'ll like it.',
+    question: 'How do I know which tier is right?',
+    answer: 'Count your pages. Most manufacturers need 6-8 pages: Homepage, About, Services/Products, Process, Contact, and maybe a couple detail pages. If you\'re over 8, you probably need Full Site.',
   },
   {
-    question: 'How do I know which tier is right for me?',
-    answer: 'We\'ll figure it out on the discovery call. I\'ll ask about your markets, product complexity, and sales process. The scoping logic above gives you 80% clarity before we talk.',
+    question: 'What if I need more than 12 pages?',
+    answer: 'We\'ll scope it custom. Complex sites with 15+ pages, multiple product lines, or unusual requirements get a custom quote based on actual scope.',
+  },
+  {
+    question: 'What about the messaging framework only?',
+    answer: 'If you just want the strategic work without design/development, The Playbook is your option. It gives you everything you need to brief your own team or another agency.',
   },
   {
     question: 'Do you guarantee results?',
-    answer: 'I guarantee deliverables, not outcomes. You\'ll get everything listed in "What You Get." Whether it increases sales depends on implementation, product quality, and market. But I promise: your messaging will stop sounding like everyone else\'s.',
-  },
-  {
-    question: 'What if my timeline is tighter than 6-8 weeks?',
-    answer: 'We can compress to 4-5 weeks if needed, but quality may suffer. Messaging work needs time to develop and test. I\'d rather do it right than fast.',
+    answer: 'I guarantee deliverables: you\'ll get everything listed. Sales outcomes depend on your product, market, and implementation. But I promise your messaging will stop sounding like everyone else\'s.',
   },
   {
     question: 'What\'s your refund policy?',
-    answer: 'No refunds after work starts, but milestone payments protect you. If you hate the framework at week 4, you walk away having paid 60%. You keep the work completed.',
+    answer: 'Milestone-based payment protects you: 30% deposit, 30% at framework delivery, 40% at launch. If you\'re unhappy at framework stage, we can revise or part ways.',
+  },
+  {
+    question: 'What if I need it faster?',
+    answer: 'Rush delivery (+20%) compresses the timeline by about 2 weeks. Quality may be slightly impacted - I\'d rather do it right than fast, but I understand deadlines.',
   },
 ]
 
@@ -124,10 +129,10 @@ export default function PricingPage() {
       <section className="py-16 px-6">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-display text-4xl md:text-6xl text-[var(--foreground)] mb-6">
-            What it costs to fix commodity messaging
+            Fix your commodity messaging
           </h1>
           <p className="text-body text-xl">
-            Fixed-price project. No hourly billing. No scope creep. You know the price before we start.
+            Three ways to work together. Pick the one that fits your budget and bandwidth.
           </p>
         </div>
       </section>
@@ -154,38 +159,38 @@ export default function PricingPage() {
                 <h3 className={`text-section text-xl mb-2 ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-[var(--foreground)]'}`}>
                   {tier.name}
                 </h3>
-                <p className={`text-5xl font-display mb-1 ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-[var(--foreground)]'}`}>
+                <p className={`text-4xl font-display mb-1 ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-[var(--foreground)]'}`}>
                   {tier.price}
                 </p>
-                <p className={`text-sm mb-6 ${tier.highlighted ? 'text-[var(--accent-foreground)]/70' : 'text-body'}`}>
+                <p className={`text-sm mb-4 ${tier.highlighted ? 'text-[var(--accent-foreground)]/70' : 'text-body'}`}>
                   {tier.timeline}
                 </p>
                 <p className={`mb-6 ${tier.highlighted ? 'text-[var(--accent-foreground)]/90' : 'text-body'}`}>
                   {tier.description}
                 </p>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-2 mb-6">
                   {tier.features.map((feature, i) => (
-                    <li key={i} className={`flex items-start gap-2 ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-body'}`}>
-                      <span className={tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-[var(--accent)]'}>→</span>
+                    <li key={i} className={`flex items-start gap-2 text-sm ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-body'}`}>
+                      <span className={tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-green-400'}>✓</span>
                       {feature}
                     </li>
                   ))}
                 </ul>
 
-                <div className="mb-6">
-                  <p className={`text-sm font-semibold mb-2 ${tier.highlighted ? 'text-[var(--accent-foreground)]' : 'text-[var(--foreground)]'}`}>
-                    Perfect for:
-                  </p>
-                  <ul className={`text-sm space-y-1 ${tier.highlighted ? 'text-[var(--accent-foreground)]/70' : 'text-body'}`}>
-                    {tier.perfectFor.map((item, i) => (
-                      <li key={i}>• {item}</li>
+                {tier.notIncluded && (
+                  <ul className="space-y-1 mb-6 pt-4 border-t border-current/20">
+                    {tier.notIncluded.map((item, i) => (
+                      <li key={i} className={`flex items-start gap-2 text-xs ${tier.highlighted ? 'text-[var(--accent-foreground)]/60' : 'text-body/60'}`}>
+                        <span>•</span>
+                        {item}
+                      </li>
                     ))}
                   </ul>
-                </div>
+                )}
 
                 <a
-                  href="https://calendly.com/leefuhr/discovery-call"
+                  href={tier.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`block w-full text-center py-3 font-semibold uppercase tracking-wider text-sm transition-all ${
@@ -202,57 +207,87 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Timeline */}
+      {/* Add-ons */}
+      <section className="py-12 px-6">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-section text-2xl text-[var(--foreground)] mb-6">
+            Add-ons (Core & Full Site)
+          </h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {addons.map((addon) => (
+              <div key={addon.name} className="border border-[var(--border)] p-4">
+                <p className="text-[var(--foreground)] font-semibold">{addon.name}</p>
+                <p className="text-[var(--accent)] font-display text-xl">{addon.price}</p>
+                <p className="text-body text-sm">{addon.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Enterprise callout */}
+      <section className="py-8 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-[var(--muted)] border-2 border-[var(--border)] p-8 text-center">
+            <h2 className="text-section text-2xl text-[var(--foreground)] mb-4">
+              Need something bigger?
+            </h2>
+            <p className="text-body text-lg mb-6">
+              12+ pages, multiple product lines, complex requirements? Let&apos;s scope it properly.
+            </p>
+            <a
+              href="https://calendly.com/leefuhr/discovery-call"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline inline-flex"
+            >
+              Request custom quote
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Retainer */}
       <section className="py-16 px-6 bg-[var(--muted)]">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-section text-3xl text-[var(--foreground)] text-center mb-12">
-            How it works: 6-8 weeks
-          </h2>
-
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="hidden md:block absolute top-6 left-0 right-0 h-0.5 bg-[var(--border)]" />
-
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-6">
-              {timeline.map((item) => (
-                <div key={item.week} className="relative text-center">
-                  <div className="w-12 h-12 mx-auto bg-[var(--background)] border-2 border-[var(--accent)] flex items-center justify-center font-display text-[var(--accent)] mb-3">
-                    {item.week}
-                  </div>
-                  <p className="text-[var(--foreground)] font-semibold text-sm">{item.label}</p>
-                  <p className="text-body text-xs mt-1">{item.description}</p>
-                </div>
-              ))}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <p className="text-label text-[var(--accent)] mb-2">Ongoing partnership</p>
+              <h2 className="text-display text-3xl text-[var(--foreground)] mb-4">
+                {retainer.name}
+              </h2>
+              <p className="text-4xl font-display text-[var(--foreground)] mb-2">
+                {retainer.price}
+              </p>
+              <p className="text-body text-lg mb-6">
+                {retainer.description}
+              </p>
+              <ul className="space-y-2 mb-6">
+                {retainer.features.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-2 text-body">
+                    <span className="text-[var(--accent)]">→</span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-body text-sm italic">{retainer.note}</p>
+            </div>
+            <div className="text-center">
+              <a
+                href="https://calendly.com/leefuhr/discovery-call"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-kinetic inline-flex text-lg"
+              >
+                Discuss retainer
+              </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* What's not included */}
-      <section className="py-16 px-6">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-yellow-500/10 border-2 border-yellow-500/30 p-8">
-            <h2 className="text-section text-xl text-yellow-300 mb-6">
-              What&apos;s NOT included
-            </h2>
-            <p className="text-yellow-200/80 mb-6">
-              I&apos;m a messaging strategist, not a full-service agency. You get expert positioning and copy.
-              You handle (or hire for) design, development, and ongoing content.
-            </p>
-            <ul className="grid md:grid-cols-2 gap-3">
-              {notIncluded.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-yellow-200/80">
-                  <span className="text-yellow-500">✕</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
-      <section className="py-16 px-6 bg-[var(--muted)]">
+      <section className="py-16 px-6">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-section text-3xl text-[var(--foreground)] text-center mb-12">
             Common questions
@@ -260,7 +295,7 @@ export default function PricingPage() {
 
           <div className="space-y-6">
             {faqs.map((faq, i) => (
-              <div key={i} className="border-2 border-[var(--border)] bg-[var(--background)] p-6">
+              <div key={i} className="border-2 border-[var(--border)] bg-[var(--muted)] p-6">
                 <h3 className="text-[var(--foreground)] font-semibold text-lg mb-3">
                   {faq.question}
                 </h3>
@@ -272,30 +307,17 @@ export default function PricingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 px-6">
+      <section className="py-16 px-6 bg-[var(--accent)]">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-display text-4xl text-[var(--foreground)] mb-4">
-            Let&apos;s figure out which tier fits
+          <h2 className="text-display text-4xl text-[var(--accent-foreground)] mb-4">
+            Not sure which to pick?
           </h2>
-          <p className="text-body text-xl mb-8">
-            The discovery call is 30 minutes. We&apos;ll talk about your challenges, who you&apos;re selling to,
-            and which tier makes sense. No pressure. No obligation.
+          <p className="text-[var(--accent-foreground)]/80 text-xl mb-8">
+            Run the free Commodity Test first. See your score, get 5 specific fixes. Then decide if you want help implementing.
           </p>
-          <a
-            href="https://calendly.com/leefuhr/discovery-call"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-kinetic inline-flex text-lg"
-          >
-            Schedule discovery call
-          </a>
-          <p className="text-body text-sm mt-6">
-            Not ready to talk yet?{' '}
-            <Link href="/guide" className="text-[var(--accent)] hover:underline">
-              Download the DIY guide
-            </Link>
-            {' '}and try fixing it yourself first.
-          </p>
+          <Link href="/" className="bg-[var(--background)] text-[var(--foreground)] px-8 py-4 font-semibold uppercase tracking-wider hover:bg-[var(--muted)] transition-colors inline-flex">
+            Run the free test
+          </Link>
         </div>
       </section>
 
