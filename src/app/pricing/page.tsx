@@ -71,7 +71,7 @@ const addons = [
 
 const retainer = {
   name: 'Monthly Retainer',
-  price: 'From $6,000/mo',
+  price: 'From $4,000/mo',
   description: 'Fractional CMO / messaging partner',
   features: [
     'Ongoing messaging optimization',
@@ -80,7 +80,6 @@ const retainer = {
     'Regular strategy calls',
     'Priority access & response',
   ],
-  note: 'Starting at 1/6 time allocation (~6-7 hrs/week). Larger allocations available.',
 }
 
 const faqs = [
@@ -268,7 +267,6 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <p className="text-body text-sm italic">{retainer.note}</p>
             </div>
             <div className="text-center">
               <Link
