@@ -2,22 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as cheerio from 'cheerio'
 import { nanoid } from 'nanoid'
 import Anthropic from '@anthropic-ai/sdk'
+import { kv } from '@vercel/kv'
 import { detectCommodityPhrases, calculateCommodityScore } from '@/lib/commodity-phrases'
 
-// In-memory store with TTL (30 days in ms)
-// Note: In production, replace with database (Vercel KV, Postgres, Redis)
-const RESULT_TTL_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
-const analysisStore = new Map<string, { data: AnalysisResult; timestamp: number }>()
-
-// Cleanup old entries every hour
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, value] of analysisStore.entries()) {
-    if (now - value.timestamp > RESULT_TTL_MS) {
-      analysisStore.delete(key)
-    }
-  }
-}, 60 * 60 * 1000)
+// TTL for stored results (30 days in seconds for Vercel KV)
+const RESULT_TTL_SECONDS = 30 * 24 * 60 * 60 // 30 days
 
 interface CostAssumptions {
   averageDealValue: number
@@ -616,8 +605,8 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     }
 
-    // Store result with timestamp
-    analysisStore.set(id, { data: result, timestamp: Date.now() })
+    // Store result in Vercel KV with TTL
+    await kv.set(`result:${id}`, result, { ex: RESULT_TTL_SECONDS })
 
     return NextResponse.json({ id })
   } catch (error) {
@@ -653,11 +642,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'ID is required' }, { status: 400 })
   }
 
-  const stored = analysisStore.get(id)
+  const result = await kv.get<AnalysisResult>(`result:${id}`)
 
-  if (!stored) {
+  if (!result) {
     return NextResponse.json({ error: 'Result not found or expired' }, { status: 404 })
   }
 
-  return NextResponse.json(stored.data)
+  return NextResponse.json(result)
 }
