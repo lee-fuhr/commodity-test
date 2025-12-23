@@ -440,17 +440,27 @@ For these additional fixes, pull ACTUAL TEXT from the homepage excerpt above - q
 
 For each fix, provide:
 1. whyBad: Why this specific phrase hurts their differentiation (1-2 sentences, direct, no fluff)
-2. suggestions: THREE different DROP-IN REPLACEMENTS for the EXACT highlighted phrase.
+2. suggestions: THREE different DROP-IN REPLACEMENTS that create grammatically correct sentences.
 
-   CRITICAL: The suggestion replaces ONLY the bolded/highlighted word(s), not the whole sentence.
+   CRITICAL GRAMMAR RULES:
+   - If the highlighted phrase is part of a compound word (like "value" in "value-added"), you must REPLACE THE ENTIRE COMPOUND, not just the highlighted word
+   - The resulting sentence MUST read naturally and be grammatically correct
+   - Test it: mentally substitute your suggestion into the original context - does it make sense?
 
-   Example - if context is "Our expertise and **value**-added offerings support our clients" and "value" is highlighted:
-   - GOOD: "risk-mitigation" (result: "Our expertise and risk-mitigation-added offerings...")
-   - GOOD: "cost-predictability"
-   - GOOD: "schedule-certainty"
-   - BAD: "We help clients manage risk" (this is a new sentence, not a replacement)
+   Example 1 - compound word context "Our **value**-added services support clients":
+   - WRONG: "risk-mitigation" → "Our risk-mitigation-added services" (broken grammar!)
+   - RIGHT: Replace "value-added services" entirely → "Our risk-analysis services support clients"
+   - RIGHT: Replace whole phrase → "Our predictive maintenance programs support clients"
 
-   For HEADLINE fixes where you're replacing the entire headline, provide complete headline alternatives.
+   Example 2 - standalone phrase "We deliver **quality** you can trust":
+   - RIGHT: "ISO 9001-certified precision" → "We deliver ISO 9001-certified precision you can trust"
+   - RIGHT: "±0.0005" tolerances" → "We deliver ±0.0005" tolerances you can trust"
+
+   Example 3 - headline replacement "**Innovative solutions** for your business":
+   - RIGHT: Replace full headline → "47 years machining aerospace-grade titanium"
+   - RIGHT: Replace full headline → "The only Midwest shop with 5-axis EDM capability"
+
+   For each suggestion, include ONLY the text that should replace the highlighted portion. The text must slot in grammatically.
 
    VARY the approach types across suggestions:
    - quantify it, show the process, make a guarantee, tell their story, describe the experience, prove retention, claim the niche, name the innovation, say what you do, publish the metrics, find your only
