@@ -230,7 +230,7 @@ export default function GuidePage() {
           <nav className="flex gap-6 text-sm">
             <Link href="/how-it-works" className="text-body hover:text-[var(--accent)]">How it works</Link>
             <Link href="/privacy" className="text-body hover:text-[var(--accent)]">Privacy</Link>
-            <a href="mailto:hello@leefuhr.com" className="text-body hover:text-[var(--accent)]">Contact</a>
+            <Link href="/contact" className="text-body hover:text-[var(--accent)]">Contact</Link>
           </nav>
           <Link href="/" className="text-[var(--accent)] hover:underline">
             Run the test →

@@ -239,9 +239,9 @@ export default function HomePage() {
             <Link href="/privacy" className="text-body text-sm hover:text-[var(--accent)] transition-colors">
               Privacy
             </Link>
-            <a href="mailto:hello@leefuhr.com" className="text-body text-sm hover:text-[var(--accent)] transition-colors">
+            <Link href="/contact" className="text-body text-sm hover:text-[var(--accent)] transition-colors">
               Contact
-            </a>
+            </Link>
           </nav>
 
           <p className="text-label">No tracking · No bullshit</p>
