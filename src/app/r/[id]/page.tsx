@@ -363,7 +363,7 @@ export default async function ResultsPage({
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 px-6 relative">
         {/* Version number - subtle, for deployment verification */}
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--background)] select-none">v0.5.0</span>
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--background)] select-none">v0.5.1</span>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
             <p className="text-[var(--foreground)] font-semibold">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
