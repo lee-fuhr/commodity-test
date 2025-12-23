@@ -331,7 +331,9 @@ ${phraseSummary}
 HOMEPAGE EXCERPT:
 ${bodyText.slice(0, 1500)}
 
-For each of the ${topPhrases.length} commodity phrases detected, provide:
+Provide EXACTLY 5 fixes. Use the ${topPhrases.length} detected phrases first, then add additional recommendations for their headline/messaging to reach 5 total.
+
+For each fix, provide:
 1. whyBad: Why this specific phrase hurts their differentiation (1-2 sentences, direct, no fluff)
 2. suggestions: THREE different alternative approaches - VARY the approach types based on what makes sense for THIS specific phrase. Choose from approaches like:
    - quantify it (add real numbers)
@@ -347,10 +349,16 @@ For each of the ${topPhrases.length} commodity phrases detected, provide:
    - find your only (unique differentiator)
 3. whyBetter: Why specificity wins over generic claims (1 sentence)
 
-IMPORTANT GUIDELINES:
+CRITICAL - NO BRACKETS OR PLACEHOLDERS:
+- NEVER use [X], [Client Name], [specific manufacturer], or any bracketed placeholders
+- Instead, INVENT specific-sounding but realistic examples: "47 years", "Acme Industries", "Miller coating systems"
+- Make up believable numbers, client names, timeframes, percentages
+- These should sound like real examples even if fictional
+- The suggestions should be copy they could use TODAY without filling in blanks
+
+OTHER GUIDELINES:
 - Be specific to THIS company based on what you can infer from their content
-- Each suggestion should be a complete rewrite they could use today
-- Use placeholder brackets like [X years] or [Client Name] where they'd fill in specifics
+- Each suggestion should be a complete, ready-to-use rewrite
 - VARY the approach types - don't use the same three for every fix
 - If you can infer their industry, products, or capabilities, reference them
 - Never suggest more generic language - always go MORE specific
@@ -411,6 +419,18 @@ Only return the JSON, no other text.`
         )
 
       if (validatedFixes.length > 0) {
+        // If we got fewer than 5 from Claude, pad with template fixes
+        if (validatedFixes.length < 5) {
+          const templateFixes = generateTemplateFixes(detectedPhrases, headline, companyName)
+          // Add template fixes for remaining slots, renumbering
+          for (let i = validatedFixes.length; i < 5 && (i - validatedFixes.length) < templateFixes.length; i++) {
+            const templateFix = templateFixes[i - validatedFixes.length]
+            validatedFixes.push({
+              ...templateFix,
+              number: i + 1
+            })
+          }
+        }
         return validatedFixes
       }
     }
