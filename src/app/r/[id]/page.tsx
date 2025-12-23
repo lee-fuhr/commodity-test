@@ -196,46 +196,69 @@ export default async function ResultsPage({
           {/* Methodology breakdown */}
           {result.costAssumptions && (
             <div className="bg-black/20 p-6 mt-8">
-              <p className="text-label text-[var(--accent-foreground)]/70 mb-4">How we calculated this</p>
-              <div className="grid md:grid-cols-3 gap-6 text-[var(--accent-foreground)]">
-                <div>
-                  <p className="text-3xl font-display">${result.costAssumptions.averageDealValue.toLocaleString()}</p>
-                  <p className="text-sm opacity-70">avg deal value (industry typical)</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-display">×{result.costAssumptions.annualDeals}</p>
-                  <p className="text-sm opacity-70">deals per year ($2-10M company)</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-display">×{Math.round(result.costAssumptions.lossRate * 100)}%</p>
-                  <p className="text-sm opacity-70">{result.costAssumptions.lossRateLabel}</p>
+              <p className="text-label text-[var(--accent-foreground)]/70 mb-6">Show your work</p>
+
+              {/* The calculation as a readable equation */}
+              <div className="text-[var(--accent-foreground)] mb-6">
+                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center">
+                  <div className="bg-black/20 px-4 py-3 min-w-[100px]">
+                    <p className="text-2xl md:text-3xl font-display">${(result.costAssumptions.averageDealValue / 1000).toFixed(0)}K</p>
+                    <p className="text-xs opacity-60">avg deal</p>
+                  </div>
+                  <span className="text-2xl opacity-60">×</span>
+                  <div className="bg-black/20 px-4 py-3 min-w-[80px]">
+                    <p className="text-2xl md:text-3xl font-display">{result.costAssumptions.annualDeals}</p>
+                    <p className="text-xs opacity-60">deals/yr</p>
+                  </div>
+                  <span className="text-2xl opacity-60">×</span>
+                  <div className="bg-black/20 px-4 py-3 min-w-[80px]">
+                    <p className="text-2xl md:text-3xl font-display">{Math.round(result.costAssumptions.lossRate * 100)}%</p>
+                    <p className="text-xs opacity-60">loss rate</p>
+                  </div>
+                  <span className="text-2xl opacity-60">=</span>
+                  <div className="bg-[var(--accent-foreground)]/20 px-4 py-3 min-w-[120px] border-2 border-[var(--accent-foreground)]/40">
+                    <p className="text-2xl md:text-3xl font-display">${(result.costEstimate / 1000).toFixed(0)}K</p>
+                    <p className="text-xs opacity-60">annual loss</p>
+                  </div>
                 </div>
               </div>
-              <p className="text-sm text-[var(--accent-foreground)]/60 mt-4">
-                Based on analysis of messaging impact at $2M-$10M manufacturers. Your actual numbers may vary.
-              </p>
 
-              {/* ROI calculation */}
-              <div className="border-t border-[var(--accent-foreground)]/20 pt-6 mt-6">
-                <p className="text-label text-[var(--accent-foreground)]/70 mb-3">The math on fixing it</p>
-                <div className="grid md:grid-cols-2 gap-4 text-[var(--accent-foreground)]">
-                  <div className="bg-black/10 p-4">
-                    <p className="text-sm opacity-70 mb-1">If you invest $18K to fix your messaging:</p>
-                    <p className="text-2xl font-display">
-                      {Math.round((result.costEstimate / 18000) * 100)}% ROI
-                    </p>
-                    <p className="text-sm opacity-70">first-year return</p>
+              {/* Assumptions explained */}
+              <div className="text-sm text-[var(--accent-foreground)]/70 space-y-1 mb-6">
+                <p><strong className="text-[var(--accent-foreground)]/90">Deal value:</strong> Industry typical for $2M–$10M manufacturers</p>
+                <p><strong className="text-[var(--accent-foreground)]/90">Deals/year:</strong> Mid-range for your company size</p>
+                <p><strong className="text-[var(--accent-foreground)]/90">Loss rate:</strong> {result.costAssumptions.lossRateLabel}</p>
+              </div>
+
+              {/* ROI calculation - now more visual */}
+              <div className="border-t border-[var(--accent-foreground)]/20 pt-6">
+                <p className="text-label text-[var(--accent-foreground)]/70 mb-4">If you fix it</p>
+                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-[var(--accent-foreground)] mb-4">
+                  <div className="bg-black/20 px-4 py-3">
+                    <p className="text-2xl md:text-3xl font-display">${(result.costEstimate / 1000).toFixed(0)}K</p>
+                    <p className="text-xs opacity-60">recovered</p>
                   </div>
-                  <div className="bg-black/10 p-4">
-                    <p className="text-sm opacity-70 mb-1">Payback period:</p>
-                    <p className="text-2xl font-display">
-                      {result.costEstimate > 0 ? Math.ceil(18000 / (result.costEstimate / 12)) : '—'} months
-                    </p>
-                    <p className="text-sm opacity-70">to recover investment</p>
+                  <span className="text-2xl opacity-60">÷</span>
+                  <div className="bg-black/20 px-4 py-3">
+                    <p className="text-2xl md:text-3xl font-display">$18K</p>
+                    <p className="text-xs opacity-60">investment</p>
+                  </div>
+                  <span className="text-2xl opacity-60">=</span>
+                  <div className="bg-green-500/30 px-4 py-3 border-2 border-green-400/50">
+                    <p className="text-2xl md:text-3xl font-display text-green-300">{Math.round((result.costEstimate / 18000) * 100)}%</p>
+                    <p className="text-xs text-green-300/80">first-year ROI</p>
                   </div>
                 </div>
-                <p className="text-sm text-[var(--accent-foreground)]/50 mt-3">
-                  A core site rebuild runs $18K. See <a href="/pricing" className="underline hover:text-[var(--accent-foreground)]">pricing</a> for all options.
+                <p className="text-center text-[var(--accent-foreground)]">
+                  <strong>Payback period:</strong>{' '}
+                  {result.costEstimate > 0 ? (
+                    <>
+                      {Math.ceil(18000 / (result.costEstimate / 12))} {Math.ceil(18000 / (result.costEstimate / 12)) === 1 ? 'month' : 'months'}
+                    </>
+                  ) : '—'}
+                </p>
+                <p className="text-sm text-[var(--accent-foreground)]/50 mt-4 text-center">
+                  Core site rebuild: $18K. <a href="/pricing" className="underline hover:text-[var(--accent-foreground)]">See all options →</a>
                 </p>
               </div>
             </div>
@@ -363,7 +386,7 @@ export default async function ResultsPage({
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 px-6 relative">
         {/* Version number - subtle, for deployment verification */}
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--background)] select-none">v0.5.1</span>
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.6.0</span>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
             <p className="text-[var(--foreground)] font-semibold">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>

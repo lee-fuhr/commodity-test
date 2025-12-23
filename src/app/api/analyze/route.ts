@@ -301,16 +301,17 @@ function extractContent(html: string): { headline: string; subheadline: string; 
 }
 
 function generateDiagnosis(score: number, phraseCount: number): string {
+  const phraseWord = phraseCount === 1 ? 'phrase' : 'phrases'
   if (score <= 40) {
     return `Your messaging is differentiated. You use specific language that sets you apart from competitors. This is rare - only 15% of manufacturers achieve this level of clarity.`
   }
   if (score <= 60) {
-    return `Your homepage uses ${phraseCount} commodity phrases that make you sound similar to competitors. Buyers can partially distinguish you, but you're leaving differentiation on the table.`
+    return `Your homepage uses ${phraseCount} commodity ${phraseWord} that make you sound similar to competitors. Buyers can partially distinguish you, but you're leaving differentiation on the table.`
   }
   if (score <= 80) {
-    return `Your homepage uses ${phraseCount} generic phrases that make you sound identical to competitors. When buyers can't tell you apart, they default to price comparison.`
+    return `Your homepage uses ${phraseCount} generic ${phraseWord} that make you sound identical to competitors. When buyers can't tell you apart, they default to price comparison.`
   }
-  return `Your messaging is highly commoditized with ${phraseCount} generic phrases. Buyers see no difference between you and competitors - you're invisible except for price.`
+  return `Your messaging is highly commoditized with ${phraseCount} generic ${phraseWord}. Buyers see no difference between you and competitors - you're invisible except for price.`
 }
 
 function calculateCostEstimate(score: number): { estimate: number; assumptions: CostAssumptions } {

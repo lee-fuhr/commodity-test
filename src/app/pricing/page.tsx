@@ -66,7 +66,7 @@ const tiers = [
 const addons = [
   { name: 'Additional buyer persona', price: '+$3,000', description: 'Messaging + pages for a second audience' },
   { name: 'Advanced CMS setup', price: '+$2,000', description: 'Complex content structures, filtering, custom fields' },
-  { name: 'Rush delivery', price: '+20%', description: 'Compress timeline by ~2 weeks' },
+  { name: 'Rush delivery', price: '+20%', description: 'Compress timeline by ~25%' },
 ]
 
 const retainer = {
@@ -86,11 +86,11 @@ const retainer = {
 const faqs = [
   {
     question: 'How do I know which tier is right?',
-    answer: 'Count your pages. Most manufacturers need 6-8 pages: Homepage, About, Services/Products, Process, Contact, and maybe a couple detail pages. If you\'re over 8, you probably need Full Site.',
+    answer: 'Count your pages. Most manufacturers need 6–8 pages: Homepage, About, Services/Products, Process, Contact, and maybe a couple detail pages. If you're over 8, you probably need Full Site.',
   },
   {
     question: 'What if I need more than 12 pages?',
-    answer: 'We\'ll scope it custom. Complex sites with 15+ pages, multiple product lines, or unusual requirements get a custom quote based on actual scope.',
+    answer: 'We'll scope it custom. Complex sites with 15+ pages, multiple product lines, or unusual requirements get a custom quote based on actual scope.',
   },
   {
     question: 'What about the messaging framework only?',
@@ -98,15 +98,15 @@ const faqs = [
   },
   {
     question: 'Do you guarantee results?',
-    answer: 'I guarantee deliverables: you\'ll get everything listed. Sales outcomes depend on your product, market, and implementation. But I promise your messaging will stop sounding like everyone else\'s.',
+    answer: 'I guarantee deliverables: you'll get everything listed. Sales outcomes depend on your product, market, and implementation. But I promise your messaging will stop sounding like everyone else's.',
   },
   {
-    question: 'What\'s your refund policy?',
-    answer: 'Milestone-based payment protects you: 30% deposit, 30% at framework delivery, 40% at launch. If you\'re unhappy at framework stage, we can revise or part ways.',
+    question: 'What's your refund policy?',
+    answer: 'Milestone-based payment protects both of us: 30% deposit, 30% at framework delivery, 40% at launch. You're protected because you can revise or walk away at framework stage. I'm protected because I'm bringing 27 years of expertise to bear—my time and insight have real value. Fair exchange.',
   },
   {
     question: 'What if I need it faster?',
-    answer: 'Rush delivery (+20%) compresses the timeline by about 2 weeks. Quality may be slightly impacted - I\'d rather do it right than fast, but I understand deadlines.',
+    answer: 'Rush delivery (+20%) compresses the timeline by about 25%. I'd rather do it right than fast, but I understand deadlines. We'll discuss trade-offs upfront.',
   },
 ]
 
@@ -235,14 +235,12 @@ export default function PricingPage() {
             <p className="text-body text-lg mb-6">
               12+ pages, multiple product lines, complex requirements? Let&apos;s scope it properly.
             </p>
-            <a
-              href="https://calendly.com/leefuhr/discovery-call"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/contact?type=quote"
               className="btn-outline inline-flex"
             >
               Request custom quote
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -273,14 +271,12 @@ export default function PricingPage() {
               <p className="text-body text-sm italic">{retainer.note}</p>
             </div>
             <div className="text-center">
-              <a
-                href="https://calendly.com/leefuhr/discovery-call"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/contact?type=retainer"
                 className="btn-kinetic inline-flex text-lg"
               >
                 Discuss retainer
-              </a>
+              </Link>
             </div>
           </div>
         </div>
