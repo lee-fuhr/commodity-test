@@ -186,6 +186,9 @@ export default async function ResultsPage({
             <h2 className="text-section text-2xl text-[var(--accent-foreground)] mb-4">
               What this is costing you
             </h2>
+            <p className="text-[var(--accent-foreground)]/70 text-sm mb-4 max-w-xl mx-auto">
+              Based on typical deal values for $2M–$10M manufacturers, mid-range deal volume, and a {Math.round((result.costAssumptions?.lossRate || 0.3) * 100)}% loss rate to "cheaper" competitors.
+            </p>
             <p className="text-[5rem] md:text-[7rem] font-display text-[var(--accent-foreground)] leading-none mb-4">
               ${result.costEstimate.toLocaleString()}
             </p>
@@ -238,7 +241,7 @@ export default async function ResultsPage({
               <div className="border-t border-[var(--accent-foreground)]/20 pt-6">
                 <h3 className="text-xl font-semibold text-blue-300 mb-2">If you fix it</h3>
                 <p className="text-[var(--accent-foreground)]/70 text-sm mb-4">
-                  How long until you're in the black—if you keep just half the jobs you'd otherwise lose?
+                  A Core Site rebuild runs $18K. Keep just half the deals you'd otherwise lose, and here's your return:
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-[var(--accent-foreground)] mb-4">
                   <div className="bg-black/20 px-4 py-3">
