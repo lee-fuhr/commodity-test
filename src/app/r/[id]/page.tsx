@@ -230,13 +230,6 @@ export default async function ResultsPage({
                 </div>
               </div>
 
-              {/* Assumptions explained */}
-              <div className="text-sm text-[var(--accent-foreground)]/70 space-y-1 mb-6">
-                <p><strong className="text-[var(--accent-foreground)]/90">Deal value:</strong> Industry typical for $2M–$10M manufacturers</p>
-                <p><strong className="text-[var(--accent-foreground)]/90">Deals/year:</strong> Mid-range for your company size</p>
-                <p><strong className="text-[var(--accent-foreground)]/90">Loss rate:</strong> {result.costAssumptions.lossRateLabel}</p>
-              </div>
-
               {/* ROI calculation - now more visual */}
               <div className="border-t border-[var(--accent-foreground)]/20 pt-6">
                 <h3 className="text-xl font-semibold text-blue-300 mb-2">If you fix it</h3>

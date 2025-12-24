@@ -99,10 +99,23 @@ function ContactFormContent() {
     }
 
     try {
-      // TODO: Send to backend/email service
-      // For now, simulate submission
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setIsSubmitted(true)
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formType,
+          tier: tierParam,
+          ...formData,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setIsSubmitted(true)
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {
