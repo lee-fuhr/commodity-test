@@ -6,6 +6,12 @@ import Link from 'next/link'
 
 type FormType = 'quote' | 'retainer'
 
+const tierInfo: Record<string, { name: string; price: string }> = {
+  playbook: { name: 'The Playbook', price: '$1,000' },
+  core: { name: 'Core Site', price: '$18,000' },
+  full: { name: 'Full Site', price: '$25,000' },
+}
+
 interface FormField {
   name: string
   label: string
@@ -53,6 +59,8 @@ const formConfig: Record<FormType, FormConfig> = {
 function ContactFormContent() {
   const searchParams = useSearchParams()
   const typeParam = searchParams.get('type') as FormType | null
+  const tierParam = searchParams.get('tier')
+  const selectedTier = tierParam && tierInfo[tierParam] ? tierInfo[tierParam] : null
   const [formType, setFormType] = useState<FormType>(typeParam === 'retainer' ? 'retainer' : 'quote')
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -189,9 +197,20 @@ function ContactFormContent() {
           <h1 className="text-display text-4xl text-[var(--foreground)] mb-4">
             {config.title}
           </h1>
-          <p className="text-body text-xl mb-12">
+          <p className="text-body text-xl mb-8">
             {config.subtitle}
           </p>
+
+          {selectedTier && formType === 'quote' && (
+            <div className="bg-[var(--accent)]/10 border-2 border-[var(--accent)] p-4 mb-8">
+              <p className="text-[var(--foreground)] font-semibold">
+                Selected: {selectedTier.name} <span className="text-[var(--accent)]">({selectedTier.price})</span>
+              </p>
+              <p className="text-body text-sm mt-1">
+                We'll discuss scope and fit on our call.
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {config.fields.map((field) => (

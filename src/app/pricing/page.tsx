@@ -19,7 +19,7 @@ const tiers = [
     ],
     cta: 'Get The Playbook',
     highlighted: false,
-    href: '/contact?type=quote',
+    href: '/contact?type=quote&tier=playbook',
     isInternal: true,
   },
   {
@@ -38,9 +38,9 @@ const tiers = [
       'Single buyer persona',
       'Standard CMS structure',
     ],
-    cta: 'Schedule discovery call',
+    cta: 'Start with Core Site',
     highlighted: true,
-    href: '/contact?type=quote',
+    href: '/contact?type=quote&tier=core',
     isInternal: true,
   },
   {
@@ -59,9 +59,9 @@ const tiers = [
       'Single buyer persona',
       'Add-ons available below',
     ],
-    cta: 'Schedule discovery call',
+    cta: 'Start with Full Site',
     highlighted: false,
-    href: '/contact?type=quote',
+    href: '/contact?type=quote&tier=full',
     isInternal: true,
   },
 ]
