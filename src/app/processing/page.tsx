@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 const STAGES = [
   { label: 'Fetching your homepage', tease: null },
-  { label: 'Scanning for commodity phrases', tease: '73% of B2B sites use the same 50 phrases' },
+  { label: 'Scanning for commodity phrases', tease: '73% of manufacturing sites use the same 50 phrases' },
   { label: 'Analyzing messaging patterns', tease: 'When buyers can\'t tell you apart, they compare on price' },
   { label: 'Calculating your score', tease: 'Most manufacturers score 60-80 (commodity territory)' },
   { label: 'Generating specific fixes', tease: 'Not generic advice — fixes for YOUR copy' },

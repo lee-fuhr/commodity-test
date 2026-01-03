@@ -51,11 +51,13 @@ async function getAnalysis(id: string): Promise<AnalysisResult | null> {
   }
 }
 
+// Differentiation score: 100 = highly differentiated (good), 0 = pure commodity (bad)
 function getScoreLabel(score: number): { label: string; color: string } {
-  if (score <= 40) return { label: 'Differentiated', color: 'text-green-400' }
-  if (score <= 60) return { label: 'Moderate', color: 'text-yellow-400' }
-  if (score <= 80) return { label: 'Commodity', color: 'text-orange-400' }
-  return { label: 'Highly commoditized', color: 'text-red-400' }
+  if (score >= 80) return { label: 'Highly differentiated', color: 'text-green-400' }
+  if (score >= 60) return { label: 'Differentiated', color: 'text-lime-400' }
+  if (score >= 40) return { label: 'Moderate', color: 'text-yellow-400' }
+  if (score >= 20) return { label: 'Commodity risk', color: 'text-orange-400' }
+  return { label: 'Undifferentiated', color: 'text-red-400' }
 }
 
 // Highlight the phrase within its context

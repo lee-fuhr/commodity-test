@@ -72,7 +72,7 @@ export default function HowItWorksPage() {
 
           <div className="space-y-6 text-body text-lg">
             <p>
-              73% of B2B manufacturing websites use the same 50 phrases. &ldquo;Quality.&rdquo; &ldquo;Trusted partner.&rdquo;
+              73% of manufacturing websites use the same 50 phrases. &ldquo;Quality.&rdquo; &ldquo;Trusted partner.&rdquo;
               &ldquo;Industry-leading.&rdquo; When everyone sounds the same, buyers default to the only
               differentiator left: price.
             </p>
