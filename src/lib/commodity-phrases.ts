@@ -78,6 +78,80 @@ export const commodityPhrases = [
   { phrase: 'full range', weight: 4, category: 'range' },
   { phrase: 'one-stop shop', weight: 6, category: 'range' },
   { phrase: 'all your needs', weight: 5, category: 'range' },
+
+  // Digital transformation buzzwords
+  { phrase: 'digital transformation', weight: 7, category: 'buzzword' },
+  { phrase: 'transform your business', weight: 6, category: 'buzzword' },
+  { phrase: 'transformative', weight: 5, category: 'buzzword' },
+  { phrase: 'next generation', weight: 5, category: 'buzzword' },
+  { phrase: 'next-generation', weight: 5, category: 'buzzword' },
+  { phrase: 'future-proof', weight: 6, category: 'buzzword' },
+  { phrase: 'future proof', weight: 6, category: 'buzzword' },
+
+  // AI/Tech buzzwords
+  { phrase: 'ai-powered', weight: 5, category: 'buzzword' },
+  { phrase: 'ai powered', weight: 5, category: 'buzzword' },
+  { phrase: 'machine learning', weight: 4, category: 'buzzword' },
+  { phrase: 'powered by ai', weight: 5, category: 'buzzword' },
+  { phrase: 'intelligent', weight: 4, category: 'buzzword' },
+
+  // Scale and global claims
+  { phrase: 'global leader', weight: 7, category: 'leadership' },
+  { phrase: 'global scale', weight: 5, category: 'scale' },
+  { phrase: 'enterprise-grade', weight: 5, category: 'scale' },
+  { phrase: 'enterprise grade', weight: 5, category: 'scale' },
+  { phrase: 'scalable', weight: 4, category: 'scale' },
+
+  // Optimization claims
+  { phrase: 'optimize', weight: 4, category: 'optimize' },
+  { phrase: 'streamline', weight: 4, category: 'optimize' },
+  { phrase: 'maximize', weight: 4, category: 'optimize' },
+  { phrase: 'enhance', weight: 3, category: 'optimize' },
+  { phrase: 'improve efficiency', weight: 5, category: 'optimize' },
+
+  // Ecosystem and integration
+  { phrase: 'ecosystem', weight: 5, category: 'ecosystem' },
+  { phrase: 'seamless integration', weight: 6, category: 'ecosystem' },
+  { phrase: 'integrated platform', weight: 5, category: 'ecosystem' },
+  { phrase: 'unified platform', weight: 5, category: 'ecosystem' },
+
+  // Mission/vision statements
+  { phrase: 'our mission', weight: 4, category: 'mission' },
+  { phrase: 'our vision', weight: 4, category: 'mission' },
+  { phrase: 'we believe', weight: 3, category: 'mission' },
+  { phrase: 'we strive', weight: 4, category: 'mission' },
+  { phrase: 'empowering', weight: 4, category: 'mission' },
+  { phrase: 'enabling', weight: 3, category: 'mission' },
+
+  // Results without proof
+  { phrase: 'proven results', weight: 5, category: 'results' },
+  { phrase: 'proven track record', weight: 6, category: 'results' },
+  { phrase: 'track record', weight: 4, category: 'results' },
+  { phrase: 'success stories', weight: 4, category: 'results' },
+
+  // Custom/tailored claims
+  { phrase: 'customized', weight: 4, category: 'custom' },
+  { phrase: 'tailored', weight: 4, category: 'custom' },
+  { phrase: 'custom-built', weight: 4, category: 'custom' },
+  { phrase: 'personalized', weight: 4, category: 'custom' },
+
+  // Competitive positioning
+  { phrase: 'competitive advantage', weight: 5, category: 'competitive' },
+  { phrase: 'stay ahead', weight: 4, category: 'competitive' },
+  { phrase: 'ahead of the curve', weight: 5, category: 'competitive' },
+
+  // Leverage/utilize jargon
+  { phrase: 'leverage', weight: 4, category: 'jargon' },
+  { phrase: 'utilize', weight: 3, category: 'jargon' },
+  { phrase: 'harness', weight: 4, category: 'jargon' },
+  { phrase: 'drive growth', weight: 4, category: 'jargon' },
+  { phrase: 'unlock potential', weight: 5, category: 'jargon' },
+
+  // Perfect for claims
+  { phrase: 'perfect for', weight: 3, category: 'generic' },
+  { phrase: 'ideal for', weight: 3, category: 'generic' },
+  { phrase: 'designed for', weight: 3, category: 'generic' },
+  { phrase: 'built for', weight: 3, category: 'generic' },
 ]
 
 export function detectCommodityPhrases(text: string): Array<{
