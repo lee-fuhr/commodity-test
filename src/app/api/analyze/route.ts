@@ -578,6 +578,7 @@ Only return the JSON, no other text.`
 
       // Deduplicate fixes based on phrase overlap + location
       // Detects exact matches AND overlapping/substring matches
+      console.log(`[Dedup] Starting with ${validatedFixes.length} validated fixes`)
       const dedupedFixes = validatedFixes.filter((fix: any, index: number) => {
         const currentPhrase = fix.originalPhrase.toLowerCase().trim()
         const currentLocation = fix.location.toLowerCase().trim()
@@ -592,11 +593,13 @@ Only return the JSON, no other text.`
           if (currentLocation === prevLocation) {
             // Exact match
             if (currentPhrase === prevPhrase) {
+              console.log(`[Dedup] Filtering exact duplicate: "${currentPhrase}" at ${currentLocation}`)
               return false
             }
 
             // Substring match (one phrase contains the other)
             if (currentPhrase.includes(prevPhrase) || prevPhrase.includes(currentPhrase)) {
+              console.log(`[Dedup] Filtering substring match: "${currentPhrase}" contains/in "${prevPhrase}" at ${currentLocation}`)
               return false
             }
 
@@ -605,6 +608,7 @@ Only return the JSON, no other text.`
             const prevWords = new Set(prevPhrase.split(/\s+/).filter(w => w.length > 3))
             const commonWords = [...currentWords].filter(w => prevWords.has(w))
             if (commonWords.length >= 2) {
+              console.log(`[Dedup] Filtering word overlap: "${currentPhrase}" shares ${commonWords.length} words with "${prevPhrase}" at ${currentLocation}`)
               return false
             }
           }
@@ -612,6 +616,7 @@ Only return the JSON, no other text.`
 
         return true
       })
+      console.log(`[Dedup] After deduplication: ${dedupedFixes.length} fixes remain`)
 
       if (dedupedFixes.length > 0) {
         // If we got fewer than 5 from Claude, pad with template fixes
