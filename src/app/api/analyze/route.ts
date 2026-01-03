@@ -593,14 +593,14 @@ Only return the JSON, no other text.`
       const dedupedFixes = validatedFixes.filter((fix: any, index: number) => {
         const currentPhrase = fix.originalPhrase.toLowerCase().trim()
         const currentLocation = fix.location.toLowerCase().trim()
-        const currentContent = (fix.whyBad + ' ' + fix.suggestions.map((s: any) => s.text).join(' ')).toLowerCase().trim()
+        const currentContent = (fix.whyBad + ' ' + fix.suggestions.map((s: any) => s.text).join(' ') + ' ' + fix.whyBetter).toLowerCase().trim()
 
         // Check against all previous fixes for duplicates or overlaps
         for (let i = 0; i < index; i++) {
           const prevFix = validatedFixes[i]
           const prevPhrase = prevFix.originalPhrase.toLowerCase().trim()
           const prevLocation = prevFix.location.toLowerCase().trim()
-          const prevContent = (prevFix.whyBad + ' ' + prevFix.suggestions.map((s: any) => s.text).join(' ')).toLowerCase().trim()
+          const prevContent = (prevFix.whyBad + ' ' + prevFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + prevFix.whyBetter).toLowerCase().trim()
 
           // Same location check
           if (currentLocation === prevLocation) {
@@ -623,12 +623,12 @@ Only return the JSON, no other text.`
             }
 
             // Content similarity check (identical advice = duplicate fix)
-            // If 60%+ of the fix content is identical, consider it a duplicate
+            // If 50%+ of the fix content is identical, consider it a duplicate
             if (currentContent === prevContent) {
               return false
             }
             const similarity = calculateSimilarity(currentContent, prevContent)
-            if (similarity > 0.6) {
+            if (similarity > 0.5) {
               return false
             }
           }
