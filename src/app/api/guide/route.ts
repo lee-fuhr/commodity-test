@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Send the guide via Resend
     const { data, error } = await resend.emails.send({
-      from: 'Lee Fuhr <lee@leefuhr.com>',
+      from: 'Lee Fuhr <hi@leefuhr.com>',
       to: [email],
       subject: 'Your DIY guide to fixing commodity messaging',
       html: `
