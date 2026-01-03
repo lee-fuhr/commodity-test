@@ -593,14 +593,14 @@ Only return the JSON, no other text.`
       const dedupedFixes = validatedFixes.filter((fix: any, index: number) => {
         const currentPhrase = fix.originalPhrase.toLowerCase().trim()
         const currentLocation = fix.location.toLowerCase().trim()
-        const currentContent = (fix.whyBad + fix.suggestions.join(' ')).toLowerCase().trim()
+        const currentContent = (fix.whyBad + ' ' + fix.suggestions.map((s: any) => s.text).join(' ')).toLowerCase().trim()
 
         // Check against all previous fixes for duplicates or overlaps
         for (let i = 0; i < index; i++) {
           const prevFix = validatedFixes[i]
           const prevPhrase = prevFix.originalPhrase.toLowerCase().trim()
           const prevLocation = prevFix.location.toLowerCase().trim()
-          const prevContent = (prevFix.whyBad + prevFix.suggestions.join(' ')).toLowerCase().trim()
+          const prevContent = (prevFix.whyBad + ' ' + prevFix.suggestions.map((s: any) => s.text).join(' ')).toLowerCase().trim()
 
           // Same location check
           if (currentLocation === prevLocation) {
