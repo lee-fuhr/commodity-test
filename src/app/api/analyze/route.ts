@@ -266,7 +266,7 @@ async function fetchHomepage(url: string): Promise<string> {
   return fetchPage(url, 15000)
 }
 
-function extractContent(html: string): { headline: string; subheadline: string; bodyText: string; companyName: string } {
+function extractContent(html: string, url: string): { headline: string; subheadline: string; bodyText: string; companyName: string } {
   const $ = cheerio.load(html)
 
   // Extract headline (h1 or largest heading)
@@ -302,7 +302,24 @@ function extractContent(html: string): { headline: string; subheadline: string; 
   if (!companyName || companyName.length > 100) {
     companyName = $('meta[property="og:site_name"]').attr('content') ||
                   $('meta[name="application-name"]').attr('content') ||
-                  'Your Company'
+                  ''
+  }
+
+  // Final fallback: extract domain name from URL
+  if (!companyName) {
+    try {
+      const domain = new URL(url).hostname
+      // Remove www. and convert to title case
+      companyName = domain
+        .replace(/^www\./, '')
+        .split('.')[0]
+        .replace(/[-_]/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    } catch {
+      companyName = 'Your Company'
+    }
   }
 
   return { headline, subheadline, bodyText, companyName }
@@ -696,11 +713,10 @@ function generateTemplateFixes(
     })
   }
 
-  // If we have fewer than 5 phrases, add generic headline fixes
-  while (fixes.length < 5) {
-    const n = fixes.length + 1
+  // If we have fewer than 5 phrases, add ONE generic headline fix (not multiple copies)
+  if (fixes.length < 5 && headline.length > 0) {
     fixes.push({
-      number: n,
+      number: fixes.length + 1,
       originalPhrase: headline.slice(0, 50) + (headline.length > 50 ? '...' : ''),
       location: 'Headline',
       context: headline,
@@ -742,7 +758,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch and parse homepage
     const html = await fetchHomepage(validUrl)
-    const { headline, subheadline, bodyText, companyName } = extractContent(html)
+    const { headline, subheadline, bodyText, companyName } = extractContent(html, validUrl)
 
     // Detect if this is a JavaScript-rendered SPA with minimal server-side content
     const contentLength = bodyText.trim().length
