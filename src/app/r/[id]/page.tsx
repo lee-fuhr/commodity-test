@@ -202,64 +202,64 @@ export default async function ResultsPage({
           {/* Methodology breakdown */}
           {result.costAssumptions && (
             <div className="bg-black/20 p-8 mt-8 max-w-2xl mx-auto">
-              <h3 className="text-xl font-semibold text-blue-300 mb-2">Show your work</h3>
-              <p className="text-[var(--accent-foreground)]/70 text-sm mb-6">
+              <h3 className="text-xl font-semibold text-blue-200 mb-2">Show your work</h3>
+              <p className="text-white/80 text-sm mb-6">
                 How much revenue walks out the door when prospects can't tell you apart from competitors?
               </p>
 
               {/* The calculation as a readable equation */}
-              <div className="text-[var(--accent-foreground)] mb-6">
+              <div className="text-white mb-6">
                 <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center">
                   <div className="bg-black/20 px-4 py-3 min-w-[100px]">
-                    <p className="text-2xl md:text-3xl font-display">${(result.costAssumptions.averageDealValue / 1000).toFixed(0)}K</p>
-                    <p className="text-xs opacity-60">avg deal</p>
+                    <p className="text-2xl md:text-3xl font-display text-white">${(result.costAssumptions.averageDealValue / 1000).toFixed(0)}K</p>
+                    <p className="text-xs text-white/70">avg deal</p>
                   </div>
-                  <span className="text-2xl opacity-60">×</span>
+                  <span className="text-2xl text-white/70">×</span>
                   <div className="bg-black/20 px-4 py-3 min-w-[80px]">
-                    <p className="text-2xl md:text-3xl font-display">{result.costAssumptions.annualDeals}</p>
-                    <p className="text-xs opacity-60">deals/yr</p>
+                    <p className="text-2xl md:text-3xl font-display text-white">{result.costAssumptions.annualDeals}</p>
+                    <p className="text-xs text-white/70">deals/yr</p>
                   </div>
-                  <span className="text-2xl opacity-60">×</span>
+                  <span className="text-2xl text-white/70">×</span>
                   <div className="bg-black/20 px-4 py-3 min-w-[80px]">
-                    <p className="text-2xl md:text-3xl font-display">{Math.round(result.costAssumptions.lossRate * 100)}%</p>
-                    <p className="text-xs opacity-60">loss rate</p>
+                    <p className="text-2xl md:text-3xl font-display text-white">{Math.round(result.costAssumptions.lossRate * 100)}%</p>
+                    <p className="text-xs text-white/70">loss rate</p>
                   </div>
-                  <span className="text-2xl opacity-60">=</span>
-                  <div className="bg-[var(--accent-foreground)]/20 px-4 py-3 min-w-[120px] border-2 border-[var(--accent-foreground)]/40">
-                    <p className="text-2xl md:text-3xl font-display">${(result.costEstimate / 1000).toFixed(0)}K</p>
-                    <p className="text-xs opacity-60">annual loss</p>
+                  <span className="text-2xl text-white/70">=</span>
+                  <div className="bg-white/10 px-4 py-3 min-w-[120px] border-2 border-white/30">
+                    <p className="text-2xl md:text-3xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
+                    <p className="text-xs text-white/70">annual loss</p>
                   </div>
                 </div>
               </div>
 
               {/* ROI calculation - now more visual */}
-              <div className="border-t border-[var(--accent-foreground)]/20 pt-6">
-                <h3 className="text-xl font-semibold text-blue-300 mb-2">If you fix it</h3>
-                <p className="text-[var(--accent-foreground)]/70 text-sm mb-4">
+              <div className="border-t border-white/20 pt-6">
+                <h3 className="text-xl font-semibold text-blue-200 mb-2">If you fix it</h3>
+                <p className="text-white/80 text-sm mb-4">
                   A Core Site rebuild runs $18K. Keep just half the deals you'd otherwise lose, and here's your return:
                 </p>
-                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-[var(--accent-foreground)] mb-4">
+                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-white mb-4">
                   <div className="bg-black/20 px-4 py-3">
-                    <p className="text-2xl md:text-3xl font-display">${(result.costEstimate / 1000).toFixed(0)}K</p>
-                    <p className="text-xs opacity-60">annual loss</p>
+                    <p className="text-2xl md:text-3xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
+                    <p className="text-xs text-white/70">annual loss</p>
                   </div>
-                  <span className="text-2xl opacity-60">×</span>
+                  <span className="text-2xl text-white/70">×</span>
                   <div className="bg-black/20 px-4 py-3">
-                    <p className="text-2xl md:text-3xl font-display">50%</p>
-                    <p className="text-xs opacity-60">conservative</p>
+                    <p className="text-2xl md:text-3xl font-display text-white">50%</p>
+                    <p className="text-xs text-white/70">conservative</p>
                   </div>
-                  <span className="text-2xl opacity-60">÷</span>
+                  <span className="text-2xl text-white/70">÷</span>
                   <div className="bg-black/20 px-4 py-3">
-                    <p className="text-2xl md:text-3xl font-display">$18K</p>
-                    <p className="text-xs opacity-60">investment</p>
+                    <p className="text-2xl md:text-3xl font-display text-white">$18K</p>
+                    <p className="text-xs text-white/70">investment</p>
                   </div>
-                  <span className="text-2xl opacity-60">=</span>
-                  <div className="bg-green-500/30 px-4 py-3 border-2 border-green-400/50">
-                    <p className="text-2xl md:text-3xl font-display text-green-300">{Math.round((result.costEstimate / 2 / 18000) * 100)}%</p>
-                    <p className="text-xs text-green-300/80">first-year ROI</p>
+                  <span className="text-2xl text-white/70">=</span>
+                  <div className="bg-green-500/20 px-4 py-3 border-2 border-green-400/40">
+                    <p className="text-2xl md:text-3xl font-display text-green-200">{Math.round((result.costEstimate / 2 / 18000) * 100)}%</p>
+                    <p className="text-xs text-green-200/80">first-year ROI</p>
                   </div>
                 </div>
-                <p className="text-center text-[var(--accent-foreground)]">
+                <p className="text-center text-white">
                   <strong>Payback period:</strong>{' '}
                   {result.costEstimate > 0 ? (
                     <>
