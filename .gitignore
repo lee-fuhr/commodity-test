@@ -33,3 +33,5 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+.env.prod
+test-analyze.js
