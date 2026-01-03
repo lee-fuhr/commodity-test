@@ -159,7 +159,7 @@ export default async function ResultsPage({
             </p>
             <p className={`text-section text-2xl ${scoreInfo.color}`}>{scoreInfo.label}</p>
             <p className="text-body text-sm mt-2 opacity-70">
-              (Lower is better. High score = you sound like everyone else.)
+              (Higher is better. 100 = highly differentiated. 0 = pure commodity.)
             </p>
           </div>
 
