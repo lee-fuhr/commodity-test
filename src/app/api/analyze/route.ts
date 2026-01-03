@@ -623,12 +623,12 @@ Only return the JSON, no other text.`
             }
 
             // Content similarity check (identical advice = duplicate fix)
-            // If 80%+ of the fix content is identical, consider it a duplicate
+            // If 60%+ of the fix content is identical, consider it a duplicate
             if (currentContent === prevContent) {
               return false
             }
             const similarity = calculateSimilarity(currentContent, prevContent)
-            if (similarity > 0.8) {
+            if (similarity > 0.6) {
               return false
             }
           }
