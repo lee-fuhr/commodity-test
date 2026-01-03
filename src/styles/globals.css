@@ -2,21 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Changa fonts loaded via layout.tsx */
+/* LFI Design System - Minimalist Monochrome */
+/* Albert Sans (display) + Literata (body) */
 
 :root {
-  /* Color System - Dark with brand blue accent */
-  --background: #09090B;
-  --foreground: #FAFAFA;
-  --muted: #1a1a1f;
-  --muted-foreground: #A1A1AA;
-  --accent: #4d65ff;
+  --background: #FFFFFF;
+  --foreground: #0A0A0A;
+  --muted: #F5F5F5;
+  --muted-foreground: #525252;
+  --accent: #1e3a5f;
   --accent-foreground: #FFFFFF;
-  --border: #3F3F46;
+  --border: #0A0A0A;
+  --border-light: #E5E5E5;
+  --success: #15803d;
+  --warning: #ca8a04;
+  --danger: #dc2626;
 
-  /* Typography - Changa family */
-  --font-display: 'Changa One', system-ui, sans-serif;
-  --font-body: 'Changa', system-ui, sans-serif;
+  --font-display: 'Albert Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Literata', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 @layer base {
@@ -30,67 +34,147 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    line-height: 1.6;
+    line-height: 1.625;
     min-height: 100vh;
-    position: relative;
   }
 
-  /* Noise texture overlay */
+  /* Subtle paper texture */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    opacity: 0.03;
-    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.015;
     pointer-events: none;
     z-index: 9999;
   }
 
   ::selection {
-    background-color: var(--accent);
-    color: var(--accent-foreground);
+    background-color: var(--foreground);
+    color: var(--background);
+  }
+
+  *:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
   }
 }
 
 @layer components {
-  /* Display text - massive viewport-responsive (Changa One is already bold, don't add weight) */
+  /* Heading scale - Albert Sans with graduated line-heights */
+  h1, .h1 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  h2, .h2 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.07;
+  }
+
+  h3, .h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  h4, .h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.12;
+  }
+
+  h5, .h5 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.14;
+  }
+
+  h6, .h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.15;
+  }
+
+  /* Display typography - for hero/impact text */
   .text-display {
     font-family: var(--font-display);
-    font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: -0.04em;
-    line-height: 0.85;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
   }
 
-  /* Section heading (Changa One is already bold, don't add weight) */
+  /* Section headers */
   .text-section {
     font-family: var(--font-display);
-    font-weight: 400;
-    text-transform: uppercase;
+    font-weight: 700;
     letter-spacing: -0.02em;
-    line-height: 0.9;
+    line-height: 1.1;
   }
 
-  /* Body text */
+  /* Body text - Literata */
   .text-body {
     font-family: var(--font-body);
     font-weight: 400;
-    color: var(--muted-foreground);
-    line-height: 1.6;
+    color: #0A0A0A;
+    color: var(--foreground);
+    line-height: 1.625;
   }
 
-  /* Label text */
+  /* Bold in body text - extra heavy */
+  .text-body strong,
+  p strong {
+    font-weight: 900;
+  }
+
+  /* Labels - mono */
   .text-label {
-    font-family: var(--font-body);
-    font-weight: 500;
+    font-family: var(--font-mono);
+    font-weight: 400;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     font-size: 0.75rem;
     color: var(--muted-foreground);
   }
 
-  /* Primary button - brand blue */
+  /* Primary button - accent color */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+    border: 2px solid var(--accent);
+    cursor: pointer;
+    transition: all 150ms;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--background);
+    color: var(--accent);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Kinetic button (legacy support) */
   .btn-kinetic {
     display: inline-flex;
     align-items: center;
@@ -98,25 +182,21 @@
     gap: 0.5rem;
     height: 3.5rem;
     padding: 0 2rem;
-    font-family: var(--font-body);
+    font-family: var(--font-display);
     font-weight: 600;
     font-size: 1rem;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.05em;
     background-color: var(--accent);
     color: var(--accent-foreground);
-    border: none;
-    border-radius: 0;
+    border: 2px solid var(--accent);
     cursor: pointer;
-    transition: transform 200ms ease-out, background-color 200ms ease-out;
+    transition: all 150ms;
   }
 
   .btn-kinetic:hover:not(:disabled) {
-    transform: scale(1.05);
-  }
-
-  .btn-kinetic:active:not(:disabled) {
-    transform: scale(0.95);
+    background-color: var(--background);
+    color: var(--accent);
   }
 
   .btn-kinetic:disabled {
@@ -130,28 +210,94 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    height: 3.5rem;
-    padding: 0 2rem;
-    font-family: var(--font-body);
+    padding: 1rem 2rem;
+    font-family: var(--font-display);
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.875rem;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.05em;
     background-color: transparent;
     color: var(--foreground);
-    border: 2px solid var(--border);
-    border-radius: 0;
+    border: 2px solid var(--foreground);
     cursor: pointer;
-    transition: all 200ms ease-out;
+    transition: all 150ms;
   }
 
   .btn-outline:hover:not(:disabled) {
-    background-color: var(--accent);
-    color: var(--accent-foreground);
-    border-color: var(--accent);
+    background-color: var(--foreground);
+    color: var(--background);
   }
 
-  /* Input - dramatic oversized */
+  /* Reversed button - for dark backgrounds */
+  .btn-reversed {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 3.5rem;
+    padding: 0 2rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: var(--background);
+    color: var(--foreground);
+    border: 2px solid var(--background);
+    cursor: pointer;
+    transition: all 150ms;
+  }
+
+  .btn-reversed:hover:not(:disabled) {
+    background-color: transparent;
+    color: var(--background);
+    border-color: var(--background);
+  }
+
+  /* Inverted section - black background */
+  .section-inverted {
+    background-color: var(--foreground);
+    color: var(--background);
+  }
+
+  /* Heavy horizontal rule */
+  .rule-thick {
+    border: none;
+    height: 4px;
+    background-color: var(--foreground);
+    margin: 0;
+  }
+
+  /* Card with hover inversion */
+  .card-kinetic {
+    background-color: var(--background);
+    border: 2px solid var(--border);
+    padding: 2rem;
+    transition: all 150ms;
+  }
+
+  .card-kinetic:hover {
+    background-color: var(--foreground);
+    border-color: var(--foreground);
+  }
+
+  .card-kinetic:hover .card-title,
+  .card-kinetic:hover .card-desc,
+  .card-kinetic:hover .card-number {
+    color: var(--background);
+  }
+
+  .card-title {
+    color: var(--foreground);
+    transition: color 150ms;
+  }
+
+  .card-desc {
+    color: var(--muted-foreground);
+    transition: color 150ms;
+  }
+
+  /* Input styling */
   .input-kinetic {
     width: 100%;
     height: 4rem;
@@ -163,8 +309,7 @@
     color: var(--foreground);
     border: none;
     border-bottom: 2px solid var(--border);
-    border-radius: 0;
-    transition: border-color 150ms ease-out;
+    transition: border-color 150ms;
   }
 
   .input-kinetic::placeholder {
@@ -174,9 +319,10 @@
   .input-kinetic:focus {
     outline: none;
     border-bottom-color: var(--accent);
+    border-bottom-width: 4px;
   }
 
-  /* Reversed input - for use on accent backgrounds */
+  /* Reversed input - for dark backgrounds */
   .input-reversed {
     width: 100%;
     height: 4rem;
@@ -185,11 +331,10 @@
     font-size: clamp(1.25rem, 3vw, 2rem);
     font-weight: 500;
     background-color: transparent;
-    color: var(--accent-foreground);
+    color: var(--background);
     border: none;
     border-bottom: 2px solid rgba(255, 255, 255, 0.4);
-    border-radius: 0;
-    transition: border-color 150ms ease-out;
+    transition: border-color 150ms;
   }
 
   .input-reversed::placeholder {
@@ -198,106 +343,20 @@
 
   .input-reversed:focus {
     outline: none;
-    border-bottom-color: var(--accent-foreground);
+    border-bottom-color: var(--background);
   }
 
-  /* Reversed button - white on accent background */
-  .btn-reversed {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    height: 3.5rem;
-    padding: 0 2rem;
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    background-color: var(--background);
-    color: var(--foreground);
-    border: none;
-    border-radius: 0;
-    cursor: pointer;
-    transition: transform 200ms ease-out, opacity 200ms ease-out;
-  }
+  /* Score colors */
+  .score-good { color: var(--success); }
+  .score-warning { color: var(--warning); }
+  .score-danger { color: var(--danger); }
 
-  .btn-reversed:hover:not(:disabled) {
-    transform: scale(1.02);
-    opacity: 0.95;
-  }
-
-  .btn-reversed:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-
-  .btn-reversed:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* Card with hover inversion */
-  .card-kinetic {
-    background-color: var(--background);
-    border: 2px solid var(--border);
-    border-radius: 0;
-    padding: 2rem;
-    transition: all 300ms ease-out;
-  }
-
-  .card-kinetic:hover {
-    background-color: var(--accent);
-    border-color: var(--accent);
-  }
-
-  .card-kinetic:hover .card-title,
-  .card-kinetic:hover .card-desc,
-  .card-kinetic:hover .card-number {
-    color: var(--accent-foreground);
-  }
-
-  .card-title {
-    color: var(--foreground);
-    transition: color 300ms ease-out;
-  }
-
-  .card-desc {
-    color: var(--muted-foreground);
-    transition: color 300ms ease-out;
-  }
-
-  .card-number {
-    color: var(--muted);
-    transition: color 300ms ease-out;
-  }
-
-  /* Marquee container */
-  .marquee-track {
-    display: flex;
-    gap: 4rem;
-    animation: marquee 30s linear infinite;
-  }
-
-  @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-
-  /* Massive number styling */
-  .number-massive {
-    font-family: var(--font-display);
-    font-weight: 700;
-    line-height: 0.8;
-    letter-spacing: -0.05em;
-  }
+  .bg-score-good { background-color: var(--success); }
+  .bg-score-warning { background-color: var(--warning); }
+  .bg-score-danger { background-color: var(--danger); }
 }
 
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-  }
-
   *,
   *::before,
   *::after {

@@ -300,20 +300,26 @@ function extractContent(html: string): { headline: string; subheadline: string; 
   return { headline, subheadline, bodyText, companyName }
 }
 
+// Differentiation score: 100 = highly differentiated (good), 0 = pure commodity (bad)
 function generateDiagnosis(score: number, phraseCount: number): string {
   const phraseWord = phraseCount === 1 ? 'phrase' : 'phrases'
-  if (score <= 40) {
-    return `Your messaging is differentiated. You use specific language that sets you apart from competitors. This is rare - only 15% of manufacturers achieve this level of clarity.`
+  if (score >= 80) {
+    return `Your messaging is highly differentiated. You use specific language that sets you apart from competitors. This is rare - only 15% of manufacturers achieve this level of clarity.`
   }
-  if (score <= 60) {
+  if (score >= 60) {
+    return `Your messaging is differentiated. You have ${phraseCount} commodity ${phraseWord} to clean up, but buyers can tell you apart from competitors.`
+  }
+  if (score >= 40) {
     return `Your homepage uses ${phraseCount} commodity ${phraseWord} that make you sound similar to competitors. Buyers can partially distinguish you, but you're leaving differentiation on the table.`
   }
-  if (score <= 80) {
+  if (score >= 20) {
     return `Your homepage uses ${phraseCount} generic ${phraseWord} that make you sound identical to competitors. When buyers can't tell you apart, they default to price comparison.`
   }
   return `Your messaging is highly commoditized with ${phraseCount} generic ${phraseWord}. Buyers see no difference between you and competitors - you're invisible except for price.`
 }
 
+// Differentiation score: 100 = highly differentiated (good), 0 = pure commodity (bad)
+// Lower scores = more commodity = higher deal loss
 function calculateCostEstimate(score: number): { estimate: number; assumptions: CostAssumptions } {
   // Industry average assumptions:
   // - Average deal value: $50K (typical for $2M-$10M manufacturer)
@@ -325,18 +331,21 @@ function calculateCostEstimate(score: number): { estimate: number; assumptions: 
   let lossRate: number
   let lossRateLabel: string
 
-  if (score > 80) {
-    lossRate = 0.30
-    lossRateLabel = '30% of deals lost to "cheaper" competitors'
-  } else if (score > 60) {
-    lossRate = 0.20
-    lossRateLabel = '20% of deals lost to price pressure'
-  } else if (score > 40) {
-    lossRate = 0.10
-    lossRateLabel = '10% of deals lost to undifferentiated positioning'
-  } else {
+  if (score >= 80) {
     lossRate = 0.05
     lossRateLabel = '5% baseline deal loss'
+  } else if (score >= 60) {
+    lossRate = 0.10
+    lossRateLabel = '10% of deals lost to undifferentiated positioning'
+  } else if (score >= 40) {
+    lossRate = 0.15
+    lossRateLabel = '15% of deals lost to price pressure'
+  } else if (score >= 20) {
+    lossRate = 0.25
+    lossRateLabel = '25% of deals lost to "cheaper" competitors'
+  } else {
+    lossRate = 0.30
+    lossRateLabel = '30% of deals lost - you look identical to competitors'
   }
 
   const estimate = baseDealValue * annualDeals * lossRate
@@ -813,6 +822,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ id })
   } catch (error) {
     console.error('Analysis error:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error)
 
     // Return user-friendly error messages
     if (error instanceof Error) {
@@ -827,6 +838,14 @@ export async function POST(request: NextRequest) {
       }
       if (error.message.includes('too large')) {
         return NextResponse.json({ error: 'The page is too large to analyze.' }, { status: 400 })
+      }
+
+      // Include actual error message in development
+      if (process.env.NODE_ENV === 'development') {
+        return NextResponse.json(
+          { error: `Analysis failed: ${error.message}` },
+          { status: 500 }
+        )
       }
     }
 
