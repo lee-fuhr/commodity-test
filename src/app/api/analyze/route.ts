@@ -292,9 +292,17 @@ function extractContent(html: string): { headline: string; subheadline: string; 
     .slice(0, 2000)
 
   // Extract company name from title or meta
-  let companyName = $('title').text().split('|')[0].split('-')[0].trim()
-  if (!companyName) {
-    companyName = $('meta[property="og:site_name"]').attr('content') || 'Your Company'
+  let companyName = $('title').text()
+    .split(/[|•–—\-]/)  // Split on common separators
+    [0]
+    .replace(/\s+(Home|homepage)\s*$/i, '')  // Remove trailing "Home" etc
+    .trim()
+
+  // Fallback to og:site_name if title is empty or too long
+  if (!companyName || companyName.length > 100) {
+    companyName = $('meta[property="og:site_name"]').attr('content') ||
+                  $('meta[name="application-name"]').attr('content') ||
+                  'Your Company'
   }
 
   return { headline, subheadline, bodyText, companyName }
@@ -551,20 +559,31 @@ Only return the JSON, no other text.`
           fix.whyBad && fix.suggestions && Array.isArray(fix.suggestions) && fix.whyBetter
         )
 
-      if (validatedFixes.length > 0) {
+      // Deduplicate fixes based on originalPhrase (case-insensitive)
+      const seenPhrases = new Set<string>()
+      const dedupedFixes = validatedFixes.filter((fix: any) => {
+        const lowerPhrase = fix.originalPhrase.toLowerCase().trim()
+        if (seenPhrases.has(lowerPhrase)) {
+          return false
+        }
+        seenPhrases.add(lowerPhrase)
+        return true
+      })
+
+      if (dedupedFixes.length > 0) {
         // If we got fewer than 5 from Claude, pad with template fixes
-        if (validatedFixes.length < 5) {
+        if (dedupedFixes.length < 5) {
           const templateFixes = generateTemplateFixes(detectedPhrases, headline, companyName)
           // Add template fixes for remaining slots, renumbering
-          for (let i = validatedFixes.length; i < 5 && (i - validatedFixes.length) < templateFixes.length; i++) {
-            const templateFix = templateFixes[i - validatedFixes.length]
-            validatedFixes.push({
+          for (let i = dedupedFixes.length; i < 5 && (i - dedupedFixes.length) < templateFixes.length; i++) {
+            const templateFix = templateFixes[i - dedupedFixes.length]
+            dedupedFixes.push({
               ...templateFix,
               number: i + 1
             })
           }
         }
-        return validatedFixes
+        return dedupedFixes
       }
     }
 
@@ -717,6 +736,23 @@ export async function POST(request: NextRequest) {
     // Fetch and parse homepage
     const html = await fetchHomepage(validUrl)
     const { headline, subheadline, bodyText, companyName } = extractContent(html)
+
+    // Detect if this is a JavaScript-rendered SPA with minimal server-side content
+    const contentLength = bodyText.trim().length
+    const isLikelySPA = contentLength < 200 && (
+      html.includes('react') ||
+      html.includes('ng-app') ||
+      html.includes('vue-app') ||
+      html.includes('__NEXT_DATA__') ||
+      html.includes('root"></div><script')
+    )
+
+    if (isLikelySPA) {
+      return NextResponse.json({
+        error: 'This site uses client-side JavaScript rendering, which our analyzer doesn\'t support yet. Try a site with server-rendered HTML content.',
+        hint: 'SPA sites (React, Vue, Angular) render content in the browser, so we can\'t analyze them without a headless browser.'
+      }, { status: 400 })
+    }
 
     // Find and fetch additional pages for stats
     const keyPages = findKeyPages(html, validUrl)
