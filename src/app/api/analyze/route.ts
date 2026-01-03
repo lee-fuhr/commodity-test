@@ -8,6 +8,18 @@ import { detectCommodityPhrases, calculateCommodityScore } from '@/lib/commodity
 // TTL for stored results (30 days in seconds for Vercel KV)
 const RESULT_TTL_SECONDS = 30 * 24 * 60 * 60 // 30 days
 
+// Calculate text similarity using Jaccard index (word overlap)
+function calculateSimilarity(text1: string, text2: string): number {
+  const words1 = new Set(text1.toLowerCase().split(/\s+/).filter(w => w.length > 3))
+  const words2 = new Set(text2.toLowerCase().split(/\s+/).filter(w => w.length > 3))
+
+  const intersection = new Set(Array.from(words1).filter(w => words2.has(w)))
+  const union = new Set([...Array.from(words1), ...Array.from(words2)])
+
+  if (union.size === 0) return 0
+  return intersection.size / union.size
+}
+
 interface CostAssumptions {
   averageDealValue: number
   annualDeals: number
@@ -576,17 +588,19 @@ Only return the JSON, no other text.`
           fix.whyBad && fix.suggestions && Array.isArray(fix.suggestions) && fix.whyBetter
         )
 
-      // Deduplicate fixes based on phrase overlap + location
-      // Detects exact matches AND overlapping/substring matches
+      // Deduplicate fixes based on phrase overlap + location + content similarity
+      // Detects exact matches, overlapping phrases, AND identical advice
       const dedupedFixes = validatedFixes.filter((fix: any, index: number) => {
         const currentPhrase = fix.originalPhrase.toLowerCase().trim()
         const currentLocation = fix.location.toLowerCase().trim()
+        const currentContent = (fix.whyBad + fix.suggestions.join(' ')).toLowerCase().trim()
 
         // Check against all previous fixes for duplicates or overlaps
         for (let i = 0; i < index; i++) {
           const prevFix = validatedFixes[i]
           const prevPhrase = prevFix.originalPhrase.toLowerCase().trim()
           const prevLocation = prevFix.location.toLowerCase().trim()
+          const prevContent = (prevFix.whyBad + prevFix.suggestions.join(' ')).toLowerCase().trim()
 
           // Same location check
           if (currentLocation === prevLocation) {
@@ -605,6 +619,16 @@ Only return the JSON, no other text.`
             const prevWords = new Set<string>(prevPhrase.split(/\s+/).filter((w: string) => w.length > 3))
             const commonWords = Array.from(currentWords).filter((w: string) => prevWords.has(w))
             if (commonWords.length >= 2) {
+              return false
+            }
+
+            // Content similarity check (identical advice = duplicate fix)
+            // If 80%+ of the fix content is identical, consider it a duplicate
+            if (currentContent === prevContent) {
+              return false
+            }
+            const similarity = calculateSimilarity(currentContent, prevContent)
+            if (similarity > 0.8) {
               return false
             }
           }
