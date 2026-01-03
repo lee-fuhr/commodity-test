@@ -898,17 +898,71 @@ export async function POST(request: NextRequest) {
 
     // Return user-friendly error messages
     if (error instanceof Error) {
-      if (error.message.includes('timed out')) {
-        return NextResponse.json({ error: 'The website took too long to respond. Please try again.' }, { status: 504 })
+      const errorMsg = error.message.toLowerCase()
+      const errorName = error.name || ''
+
+      // Timeout errors
+      if (errorMsg.includes('timed out') || errorMsg.includes('timeout') || errorName === 'AbortError') {
+        return NextResponse.json({
+          error: 'The website took too long to respond. Try again or try a different site.'
+        }, { status: 504 })
       }
-      if (error.message.includes('Private or internal')) {
+
+      // Network/DNS errors
+      if (errorMsg.includes('enotfound') || errorMsg.includes('dns') || errorMsg.includes('getaddrinfo')) {
+        return NextResponse.json({
+          error: 'Could not find that website. Check the URL and try again.'
+        }, { status: 400 })
+      }
+
+      // Connection refused
+      if (errorMsg.includes('econnrefused') || errorMsg.includes('connection refused')) {
+        return NextResponse.json({
+          error: 'The website refused the connection. It may be down or blocking automated access.'
+        }, { status: 503 })
+      }
+
+      // SSL/Certificate errors
+      if (errorMsg.includes('certificate') || errorMsg.includes('ssl') || errorMsg.includes('tls')) {
+        return NextResponse.json({
+          error: 'SSL certificate error. The website may have security configuration issues.'
+        }, { status: 400 })
+      }
+
+      // HTTP status errors
+      if (errorMsg.includes('failed to fetch url: 403') || errorMsg.includes('status 403')) {
+        return NextResponse.json({
+          error: 'The website blocked our request (403 Forbidden). It may be using bot protection.'
+        }, { status: 403 })
+      }
+
+      if (errorMsg.includes('failed to fetch url: 404') || errorMsg.includes('status 404')) {
+        return NextResponse.json({
+          error: 'Page not found (404). Check the URL and try again.'
+        }, { status: 404 })
+      }
+
+      if (errorMsg.includes('failed to fetch url: 5') || errorMsg.includes('status 5')) {
+        return NextResponse.json({
+          error: 'The website is experiencing server errors. Try again later.'
+        }, { status: 502 })
+      }
+
+      // Content type errors
+      if (errorMsg.includes('private or internal')) {
         return NextResponse.json({ error: error.message }, { status: 400 })
       }
-      if (error.message.includes('HTML')) {
-        return NextResponse.json({ error: 'The URL does not appear to be a website.' }, { status: 400 })
+
+      if (errorMsg.includes('html') || errorMsg.includes('content')) {
+        return NextResponse.json({
+          error: 'The URL does not appear to be a website. Make sure it returns HTML.'
+        }, { status: 400 })
       }
-      if (error.message.includes('too large')) {
-        return NextResponse.json({ error: 'The page is too large to analyze.' }, { status: 400 })
+
+      if (errorMsg.includes('too large')) {
+        return NextResponse.json({
+          error: 'The page is too large to analyze (max 5MB).'
+        }, { status: 400 })
       }
 
       // Include actual error message in development
