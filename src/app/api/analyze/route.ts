@@ -604,9 +604,9 @@ Only return the JSON, no other text.`
             }
 
             // Significant word overlap (share 2+ words and same location = likely duplicate)
-            const currentWords = new Set(currentPhrase.split(/\s+/).filter(w => w.length > 3))
-            const prevWords = new Set(prevPhrase.split(/\s+/).filter(w => w.length > 3))
-            const commonWords = [...currentWords].filter(w => prevWords.has(w))
+            const currentWords = new Set<string>(currentPhrase.split(/\s+/).filter((w: string) => w.length > 3))
+            const prevWords = new Set<string>(prevPhrase.split(/\s+/).filter((w: string) => w.length > 3))
+            const commonWords = Array.from(currentWords).filter((w: string) => prevWords.has(w))
             if (commonWords.length >= 2) {
               console.log(`[Dedup] Filtering word overlap: "${currentPhrase}" shares ${commonWords.length} words with "${prevPhrase}" at ${currentLocation}`)
               return false
@@ -645,9 +645,9 @@ Only return the JSON, no other text.`
                   break
                 }
 
-                const templateWords = new Set(templatePhrase.split(/\s+/).filter(w => w.length > 3))
-                const existingWords = new Set(existingPhrase.split(/\s+/).filter(w => w.length > 3))
-                const commonWords = [...templateWords].filter(w => existingWords.has(w))
+                const templateWords = new Set<string>(templatePhrase.split(/\s+/).filter((w: string) => w.length > 3))
+                const existingWords = new Set<string>(existingPhrase.split(/\s+/).filter((w: string) => w.length > 3))
+                const commonWords = Array.from(templateWords).filter((w: string) => existingWords.has(w))
                 if (commonWords.length >= 2) {
                   isDuplicate = true
                   break
