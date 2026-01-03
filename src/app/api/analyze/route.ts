@@ -559,14 +559,15 @@ Only return the JSON, no other text.`
           fix.whyBad && fix.suggestions && Array.isArray(fix.suggestions) && fix.whyBetter
         )
 
-      // Deduplicate fixes based on originalPhrase (case-insensitive)
-      const seenPhrases = new Set<string>()
+      // Deduplicate fixes based on originalPhrase + location (case-insensitive)
+      const seenKeys = new Set<string>()
       const dedupedFixes = validatedFixes.filter((fix: any) => {
-        const lowerPhrase = fix.originalPhrase.toLowerCase().trim()
-        if (seenPhrases.has(lowerPhrase)) {
+        // Create unique key from phrase + location to catch true duplicates
+        const key = `${fix.originalPhrase.toLowerCase().trim()}|${fix.location.toLowerCase().trim()}`
+        if (seenKeys.has(key)) {
           return false
         }
-        seenPhrases.add(lowerPhrase)
+        seenKeys.add(key)
         return true
       })
 
@@ -574,13 +575,19 @@ Only return the JSON, no other text.`
         // If we got fewer than 5 from Claude, pad with template fixes
         if (dedupedFixes.length < 5) {
           const templateFixes = generateTemplateFixes(detectedPhrases, headline, companyName)
-          // Add template fixes for remaining slots, renumbering
-          for (let i = dedupedFixes.length; i < 5 && (i - dedupedFixes.length) < templateFixes.length; i++) {
-            const templateFix = templateFixes[i - dedupedFixes.length]
-            dedupedFixes.push({
-              ...templateFix,
-              number: i + 1
-            })
+
+          // Add template fixes, avoiding duplicates with existing fixes
+          for (const templateFix of templateFixes) {
+            if (dedupedFixes.length >= 5) break
+
+            const key = `${templateFix.originalPhrase.toLowerCase().trim()}|${templateFix.location.toLowerCase().trim()}`
+            if (!seenKeys.has(key)) {
+              seenKeys.add(key)
+              dedupedFixes.push({
+                ...templateFix,
+                number: dedupedFixes.length + 1
+              })
+            }
           }
         }
         return dedupedFixes
@@ -739,15 +746,27 @@ export async function POST(request: NextRequest) {
 
     // Detect if this is a JavaScript-rendered SPA with minimal server-side content
     const contentLength = bodyText.trim().length
-    const isLikelySPA = contentLength < 200 && (
+    const headlineLength = headline.trim().length
+
+    // Check for SPA indicators in HTML
+    const hasSPAMarkers = (
       html.includes('react') ||
+      html.includes('React') ||
       html.includes('ng-app') ||
       html.includes('vue-app') ||
       html.includes('__NEXT_DATA__') ||
-      html.includes('root"></div><script')
+      html.includes('root"></div><script') ||
+      html.toLowerCase().includes('id="app"') ||
+      html.toLowerCase().includes('id="root"')
     )
 
-    if (isLikelySPA) {
+    // SPA if: very little content AND SPA markers, OR almost no content at all
+    const isLikelySPA = (contentLength < 300 && hasSPAMarkers) || contentLength < 100
+
+    // Also check if we got a title but no meaningful body content
+    const hasNoMeaningfulContent = headlineLength > 0 && contentLength < 150
+
+    if (isLikelySPA || hasNoMeaningfulContent) {
       return NextResponse.json({
         error: 'This site uses client-side JavaScript rendering, which our analyzer doesn\'t support yet. Try a site with server-rendered HTML content.',
         hint: 'SPA sites (React, Vue, Angular) render content in the browser, so we can\'t analyze them without a headless browser.'
