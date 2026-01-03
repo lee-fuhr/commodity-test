@@ -576,15 +576,40 @@ Only return the JSON, no other text.`
           fix.whyBad && fix.suggestions && Array.isArray(fix.suggestions) && fix.whyBetter
         )
 
-      // Deduplicate fixes based on originalPhrase + location (case-insensitive)
-      const seenKeys = new Set<string>()
-      const dedupedFixes = validatedFixes.filter((fix: any) => {
-        // Create unique key from phrase + location to catch true duplicates
-        const key = `${fix.originalPhrase.toLowerCase().trim()}|${fix.location.toLowerCase().trim()}`
-        if (seenKeys.has(key)) {
-          return false
+      // Deduplicate fixes based on phrase overlap + location
+      // Detects exact matches AND overlapping/substring matches
+      const dedupedFixes = validatedFixes.filter((fix: any, index: number) => {
+        const currentPhrase = fix.originalPhrase.toLowerCase().trim()
+        const currentLocation = fix.location.toLowerCase().trim()
+
+        // Check against all previous fixes for duplicates or overlaps
+        for (let i = 0; i < index; i++) {
+          const prevFix = validatedFixes[i]
+          const prevPhrase = prevFix.originalPhrase.toLowerCase().trim()
+          const prevLocation = prevFix.location.toLowerCase().trim()
+
+          // Same location check
+          if (currentLocation === prevLocation) {
+            // Exact match
+            if (currentPhrase === prevPhrase) {
+              return false
+            }
+
+            // Substring match (one phrase contains the other)
+            if (currentPhrase.includes(prevPhrase) || prevPhrase.includes(currentPhrase)) {
+              return false
+            }
+
+            // Significant word overlap (share 2+ words and same location = likely duplicate)
+            const currentWords = new Set(currentPhrase.split(/\s+/).filter(w => w.length > 3))
+            const prevWords = new Set(prevPhrase.split(/\s+/).filter(w => w.length > 3))
+            const commonWords = [...currentWords].filter(w => prevWords.has(w))
+            if (commonWords.length >= 2) {
+              return false
+            }
+          }
         }
-        seenKeys.add(key)
+
         return true
       })
 
@@ -593,13 +618,39 @@ Only return the JSON, no other text.`
         if (dedupedFixes.length < 5) {
           const templateFixes = generateTemplateFixes(detectedPhrases, headline, companyName)
 
-          // Add template fixes, avoiding duplicates with existing fixes
+          // Add template fixes, avoiding duplicates/overlaps with existing fixes
           for (const templateFix of templateFixes) {
             if (dedupedFixes.length >= 5) break
 
-            const key = `${templateFix.originalPhrase.toLowerCase().trim()}|${templateFix.location.toLowerCase().trim()}`
-            if (!seenKeys.has(key)) {
-              seenKeys.add(key)
+            const templatePhrase = templateFix.originalPhrase.toLowerCase().trim()
+            const templateLocation = templateFix.location.toLowerCase().trim()
+
+            // Check for duplicates/overlaps against all existing fixes
+            let isDuplicate = false
+            for (const existingFix of dedupedFixes) {
+              const existingPhrase = existingFix.originalPhrase.toLowerCase().trim()
+              const existingLocation = existingFix.location.toLowerCase().trim()
+
+              if (templateLocation === existingLocation) {
+                // Exact match, substring, or word overlap
+                if (templatePhrase === existingPhrase ||
+                    templatePhrase.includes(existingPhrase) ||
+                    existingPhrase.includes(templatePhrase)) {
+                  isDuplicate = true
+                  break
+                }
+
+                const templateWords = new Set(templatePhrase.split(/\s+/).filter(w => w.length > 3))
+                const existingWords = new Set(existingPhrase.split(/\s+/).filter(w => w.length > 3))
+                const commonWords = [...templateWords].filter(w => existingWords.has(w))
+                if (commonWords.length >= 2) {
+                  isDuplicate = true
+                  break
+                }
+              }
+            }
+
+            if (!isDuplicate) {
               dedupedFixes.push({
                 ...templateFix,
                 number: dedupedFixes.length + 1
