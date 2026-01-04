@@ -655,6 +655,19 @@ Only return the JSON, no other text.`
             for (const existingFix of dedupedFixes) {
               const existingPhrase = existingFix.originalPhrase.toLowerCase().trim()
               const existingLocation = existingFix.location.toLowerCase().trim()
+              const existingContent = (existingFix.whyBad + ' ' + existingFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + existingFix.whyBetter).toLowerCase().trim()
+              const templateContent = (templateFix.whyBad + ' ' + templateFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + templateFix.whyBetter).toLowerCase().trim()
+
+              // Content similarity check REGARDLESS of location (same as main dedupe logic)
+              if (templateContent === existingContent) {
+                isDuplicate = true
+                break
+              }
+              const similarity = calculateSimilarity(templateContent, existingContent)
+              if (similarity > 0.2) {
+                isDuplicate = true
+                break
+              }
 
               if (templateLocation === existingLocation) {
                 // Exact match, substring, or word overlap
