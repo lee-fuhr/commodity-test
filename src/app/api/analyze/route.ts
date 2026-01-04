@@ -64,9 +64,9 @@ const anthropic = process.env.ANTHROPIC_API_KEY
   ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   : null
 
-// Log warning if no API key in production
-if (process.env.NODE_ENV === 'production' && !anthropic) {
-  console.warn('WARNING: ANTHROPIC_API_KEY not set. Using template-based fixes.')
+// Log warning if no API key (keep this for debugging)
+if (!anthropic) {
+  console.warn('ANTHROPIC_API_KEY not set. Using template-based fixes.')
 }
 
 // Private IP ranges to block (SSRF protection)
@@ -649,6 +649,7 @@ Only return the JSON, no other text.`
 
             const templatePhrase = templateFix.originalPhrase.toLowerCase().trim()
             const templateLocation = templateFix.location.toLowerCase().trim()
+            const templateContent = (templateFix.whyBad + ' ' + templateFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + templateFix.whyBetter).toLowerCase().trim()
 
             // Check for duplicates/overlaps against all existing fixes
             let isDuplicate = false
@@ -656,7 +657,6 @@ Only return the JSON, no other text.`
               const existingPhrase = existingFix.originalPhrase.toLowerCase().trim()
               const existingLocation = existingFix.location.toLowerCase().trim()
               const existingContent = (existingFix.whyBad + ' ' + existingFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + existingFix.whyBetter).toLowerCase().trim()
-              const templateContent = (templateFix.whyBad + ' ' + templateFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + templateFix.whyBetter).toLowerCase().trim()
 
               // Content similarity check REGARDLESS of location (same as main dedupe logic)
               if (templateContent === existingContent) {
@@ -787,12 +787,23 @@ function generateTemplateFixes(
     },
   }
 
+  // Track which template keys we've already used to avoid duplicate content
+  const usedTemplateKeys = new Set<string>()
+
   for (let i = 0; i < topPhrases.length; i++) {
     const phrase = topPhrases[i]
-    const template = fixTemplates[phrase.category] || fixTemplates['default']
+    const templateKey = fixTemplates[phrase.category] ? phrase.category : 'default'
+
+    // Skip if we've already used this template (would produce duplicate content)
+    if (usedTemplateKeys.has(templateKey)) {
+      continue
+    }
+
+    const template = fixTemplates[templateKey]
+    usedTemplateKeys.add(templateKey)
 
     fixes.push({
-      number: i + 1,
+      number: fixes.length + 1,
       originalPhrase: phrase.phrase,
       location: phrase.location,
       context: phrase.context || phrase.phrase,
@@ -800,6 +811,9 @@ function generateTemplateFixes(
       suggestions: template.suggestions,
       whyBetter: template.whyBetter,
     })
+
+    // Stop at 5 fixes
+    if (fixes.length >= 5) break
   }
 
   // If we have fewer than 5 phrases, add ONE generic headline fix (not multiple copies)
