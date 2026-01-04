@@ -608,7 +608,8 @@ Only return the JSON, no other text.`
             return false
           }
           const similarity = calculateSimilarity(currentContent, prevContent)
-          if (similarity > 0.5) {
+          // Ultra-aggressive: 20% similarity = duplicate
+          if (similarity > 0.2) {
             return false
           }
 
