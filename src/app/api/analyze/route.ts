@@ -602,7 +602,17 @@ Only return the JSON, no other text.`
           const prevLocation = prevFix.location.toLowerCase().trim()
           const prevContent = (prevFix.whyBad + ' ' + prevFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + prevFix.whyBetter).toLowerCase().trim()
 
-          // Same location check
+          // OPTION A: Content similarity check runs REGARDLESS of location
+          // Identical advice = duplicate, even if different locations
+          if (currentContent === prevContent) {
+            return false
+          }
+          const similarity = calculateSimilarity(currentContent, prevContent)
+          if (similarity > 0.5) {
+            return false
+          }
+
+          // Same location phrase checks (keep these location-specific)
           if (currentLocation === prevLocation) {
             // Exact match
             if (currentPhrase === prevPhrase) {
@@ -619,16 +629,6 @@ Only return the JSON, no other text.`
             const prevWords = new Set<string>(prevPhrase.split(/\s+/).filter((w: string) => w.length > 3))
             const commonWords = Array.from(currentWords).filter((w: string) => prevWords.has(w))
             if (commonWords.length >= 2) {
-              return false
-            }
-
-            // Content similarity check (identical advice = duplicate fix)
-            // If 50%+ of the fix content is identical, consider it a duplicate
-            if (currentContent === prevContent) {
-              return false
-            }
-            const similarity = calculateSimilarity(currentContent, prevContent)
-            if (similarity > 0.5) {
               return false
             }
           }
