@@ -64,9 +64,9 @@ const anthropic = process.env.ANTHROPIC_API_KEY
   ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   : null
 
-// Log warning if no API key (keep this for debugging)
+// Require API key - no template fallback
 if (!anthropic) {
-  console.warn('ANTHROPIC_API_KEY not set. Using template-based fixes.')
+  console.error('FATAL: ANTHROPIC_API_KEY not set. Claude API is required for analysis.')
 }
 
 // Private IP ranges to block (SSRF protection)
@@ -430,7 +430,7 @@ async function generateFixesWithClaude(
   proofPoints: string[] = []
 ): Promise<AnalysisResult['fixes']> {
   if (!anthropic) {
-    return generateTemplateFixes(detectedPhrases, headline, companyName)
+    throw new Error('ANTHROPIC_API_KEY is required. Cannot generate fixes without Claude API.')
   }
 
   const topPhrases = detectedPhrases.slice(0, 5) // 5 fixes now
@@ -555,14 +555,54 @@ Respond in this exact JSON format:
 
 Only return the JSON, no other text.`
 
+  const CLAUDE_TIMEOUT_MS = 45000 // 45 second timeout
+  const MAX_RETRIES = 1
+
+  // Helper function to call Claude with timeout
+  // Note: anthropic is guaranteed non-null here (checked at function start)
+  async function callClaudeWithTimeout(attempt: number): Promise<Anthropic.Message> {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS)
+
+    try {
+      const message = await anthropic!.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: prompt }],
+      }, {
+        signal: controller.signal
+      })
+      clearTimeout(timeoutId)
+      return message
+    } catch (error) {
+      clearTimeout(timeoutId)
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Claude API timeout after ${CLAUDE_TIMEOUT_MS / 1000}s (attempt ${attempt + 1})`)
+      }
+      throw error
+    }
+  }
+
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048, // More tokens for 5 fixes with 3 suggestions each
-      messages: [
-        { role: 'user', content: prompt }
-      ],
-    })
+    let message: Anthropic.Message | null = null
+    let lastError: Error | null = null
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        message = await callClaudeWithTimeout(attempt)
+        break // Success, exit retry loop
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+        console.warn(`Claude API attempt ${attempt + 1} failed:`, lastError.message)
+        if (attempt < MAX_RETRIES) {
+          console.log(`Retrying Claude API call...`)
+        }
+      }
+    }
+
+    if (!message) {
+      throw lastError || new Error('Claude API failed after all retries')
+    }
 
     // Extract text from response
     const responseText = message.content
@@ -639,201 +679,19 @@ Only return the JSON, no other text.`
       })
 
       if (dedupedFixes.length > 0) {
-        // If we got fewer than 5 from Claude, pad with template fixes
-        if (dedupedFixes.length < 5) {
-          const templateFixes = generateTemplateFixes(detectedPhrases, headline, companyName)
-
-          // Add template fixes, avoiding duplicates/overlaps with existing fixes
-          for (const templateFix of templateFixes) {
-            if (dedupedFixes.length >= 5) break
-
-            const templatePhrase = templateFix.originalPhrase.toLowerCase().trim()
-            const templateLocation = templateFix.location.toLowerCase().trim()
-            const templateContent = (templateFix.whyBad + ' ' + templateFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + templateFix.whyBetter).toLowerCase().trim()
-
-            // Check for duplicates/overlaps against all existing fixes
-            let isDuplicate = false
-            for (const existingFix of dedupedFixes) {
-              const existingPhrase = existingFix.originalPhrase.toLowerCase().trim()
-              const existingLocation = existingFix.location.toLowerCase().trim()
-              const existingContent = (existingFix.whyBad + ' ' + existingFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + existingFix.whyBetter).toLowerCase().trim()
-
-              // Content similarity check REGARDLESS of location (same as main dedupe logic)
-              if (templateContent === existingContent) {
-                isDuplicate = true
-                break
-              }
-              const similarity = calculateSimilarity(templateContent, existingContent)
-              if (similarity > 0.2) {
-                isDuplicate = true
-                break
-              }
-
-              if (templateLocation === existingLocation) {
-                // Exact match, substring, or word overlap
-                if (templatePhrase === existingPhrase ||
-                    templatePhrase.includes(existingPhrase) ||
-                    existingPhrase.includes(templatePhrase)) {
-                  isDuplicate = true
-                  break
-                }
-
-                const templateWords = new Set<string>(templatePhrase.split(/\s+/).filter((w: string) => w.length > 3))
-                const existingWords = new Set<string>(existingPhrase.split(/\s+/).filter((w: string) => w.length > 3))
-                const commonWords = Array.from(templateWords).filter((w: string) => existingWords.has(w))
-                if (commonWords.length >= 2) {
-                  isDuplicate = true
-                  break
-                }
-              }
-            }
-
-            if (!isDuplicate) {
-              dedupedFixes.push({
-                ...templateFix,
-                number: dedupedFixes.length + 1
-              })
-            }
-          }
-        }
+        // Return whatever Claude gave us (no template padding - dynamic generation only)
         return dedupedFixes
       }
     }
 
-    // Fallback to templates if parsing fails
-    return generateTemplateFixes(detectedPhrases, headline, companyName)
+    // If parsing completely fails, throw error (no template fallback)
+    console.error('Failed to parse Claude response after all attempts')
+    throw new Error('Failed to generate fixes: Claude response parsing failed')
   } catch (error) {
     console.error('Claude API error:', error)
-    // Fallback to template-based fixes
-    return generateTemplateFixes(detectedPhrases, headline, companyName)
+    // No template fallback - propagate the error
+    throw new Error(`Claude API failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
-}
-
-function generateTemplateFixes(
-  detectedPhrases: Array<{ phrase: string; location: string; category: string; context?: string }>,
-  headline: string,
-  companyName: string
-): AnalysisResult['fixes'] {
-  const topPhrases = detectedPhrases.slice(0, 5) // 5 fixes now
-  const fixes: AnalysisResult['fixes'] = []
-
-  const fixTemplates: Record<string, {
-    whyBad: string
-    suggestions: Array<{ text: string; approach: string }>
-    whyBetter: string
-  }> = {
-    'vague-quality': {
-      whyBad: 'Every competitor claims "quality." Without specifics, it means nothing. Buyers have heard this exact phrase 1000 times.',
-      suggestions: [
-        { text: 'Zero defects in [X] units shipped last year. That\'s what quality looks like.', approach: 'quantify it' },
-        { text: 'Our [inspection process] catches what others miss. Here\'s how it works.', approach: 'show the process' },
-        { text: 'We guarantee [specific outcome] or we remake it free. No questions.', approach: 'make a guarantee' }
-      ],
-      whyBetter: 'Numbers and specifics are believable. Vague claims are ignored.',
-    },
-    'partnership': {
-      whyBad: '"Trusted partner" appears on 70%+ of B2B websites. It signals nothing and wastes precious headline real estate.',
-      suggestions: [
-        { text: '[Client Name] called us their "secret weapon." Here\'s why.', approach: 'tell their story' },
-        { text: 'Your dedicated engineer will know your tolerances by heart within 30 days.', approach: 'describe the experience' },
-        { text: 'Average client tenure: [X] years. They stay because [specific reason].', approach: 'prove retention' }
-      ],
-      whyBetter: 'Demonstrated partnership > claimed partnership.',
-    },
-    'leadership': {
-      whyBad: 'Self-proclaimed "industry leaders" are everywhere. Without proof, it reads as marketing fluff.',
-      suggestions: [
-        { text: 'Installed in [X]+ facilities across [Region]. See the map.', approach: 'show reach' },
-        { text: 'The only [type] manufacturer offering [capability] in-house.', approach: 'claim the niche' },
-        { text: '[Industry Publication] ranked us #[X] for [category] in 2024.', approach: 'cite recognition' }
-      ],
-      whyBetter: 'Leadership is proven through specifics, not claimed through adjectives.',
-    },
-    'innovation': {
-      whyBad: '"Innovative" has lost all meaning through overuse. Every company claims innovation.',
-      suggestions: [
-        { text: 'Our patented [process] cuts [metric] by [X]%. Here\'s the data.', approach: 'name the innovation' },
-        { text: 'The first [product type] with [specific feature]. Still the only one.', approach: 'claim the first' },
-        { text: 'We invested [X] in R&D last year. Here\'s what we built.', approach: 'show investment' }
-      ],
-      whyBetter: 'Specific innovations are memorable. Generic innovation claims are invisible.',
-    },
-    'jargon': {
-      whyBad: '"Solutions" is the most overused word in B2B. It says nothing about what you actually do.',
-      suggestions: [
-        { text: 'We [specific verb] [specific product] for [specific industry].', approach: 'say what you do' },
-        { text: 'When [problem] happens, we [specific action]. Done in [timeframe].', approach: 'describe the scenario' },
-        { text: 'We make [thing]. It does [specific function]. Here\'s one in action.', approach: 'keep it simple' }
-      ],
-      whyBetter: 'Clarity beats cleverness. Say what you do, not what category you\'re in.',
-    },
-    'service': {
-      whyBad: 'Everyone claims "exceptional service." It\'s table stakes, not a differentiator.',
-      suggestions: [
-        { text: 'Average response time: [X] hours. Track record: [Y]% same-day ship.', approach: 'publish the metrics' },
-        { text: 'Your rep\'s cell number, day one. They answer weekends.', approach: 'describe the access' },
-        { text: 'If we miss your deadline, the rush fee is on us.', approach: 'stake something on it' }
-      ],
-      whyBetter: 'Measurable commitments beat unmeasurable claims.',
-    },
-    'default': {
-      whyBad: 'This phrase appears on countless competitor websites. It doesn\'t help buyers understand why you\'re different.',
-      suggestions: [
-        { text: 'Add a specific number: [X] years, [Y] clients, [Z]% improvement.', approach: 'add numbers' },
-        { text: 'What would only YOUR company say? Lead with that.', approach: 'find your only' },
-        { text: 'Describe a specific customer win. Name names if you can.', approach: 'tell a story' }
-      ],
-      whyBetter: 'Differentiation comes from specificity, not from adjectives.',
-    },
-  }
-
-  // Track which template keys we've already used to avoid duplicate content
-  const usedTemplateKeys = new Set<string>()
-
-  for (let i = 0; i < topPhrases.length; i++) {
-    const phrase = topPhrases[i]
-    const templateKey = fixTemplates[phrase.category] ? phrase.category : 'default'
-
-    // Skip if we've already used this template (would produce duplicate content)
-    if (usedTemplateKeys.has(templateKey)) {
-      continue
-    }
-
-    const template = fixTemplates[templateKey]
-    usedTemplateKeys.add(templateKey)
-
-    fixes.push({
-      number: fixes.length + 1,
-      originalPhrase: phrase.phrase,
-      location: phrase.location,
-      context: phrase.context || phrase.phrase,
-      whyBad: template.whyBad,
-      suggestions: template.suggestions,
-      whyBetter: template.whyBetter,
-    })
-
-    // Stop at 5 fixes
-    if (fixes.length >= 5) break
-  }
-
-  // If we have fewer than 5 phrases, add ONE generic headline fix (not multiple copies)
-  if (fixes.length < 5 && headline.length > 0) {
-    fixes.push({
-      number: fixes.length + 1,
-      originalPhrase: headline.slice(0, 50) + (headline.length > 50 ? '...' : ''),
-      location: 'Headline',
-      context: headline,
-      whyBad: 'Your headline doesn\'t immediately answer: "Why should I choose you over competitors?"',
-      suggestions: [
-        { text: `[X] years serving [industry]. [Y] satisfied clients. Here's one.`, approach: 'add numbers' },
-        { text: `The only [type] that [unique capability]. And we can prove it.`, approach: 'claim the niche' },
-        { text: `See why [Client Name] switched from [competitor type] to ${companyName}.`, approach: 'tell their story' }
-      ],
-      whyBetter: 'Headlines that answer "why you" outperform generic value claims.',
-    })
-  }
-
-  return fixes.slice(0, 5)
 }
 
 export async function POST(request: NextRequest) {
