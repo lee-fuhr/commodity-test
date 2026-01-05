@@ -214,7 +214,7 @@ export default function TestPage() {
       {/* Footer */}
       <footer className="px-4 md:px-8 lg:px-12 py-8 border-t border-[var(--border)]">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-label">Commodity Test <span className="text-[var(--background)]">v0.12.0</span></p>
+          <p className="text-label">Commodity Test <span className="text-[var(--background)]">v0.13.0</span></p>
         </div>
       </footer>
     </main>
