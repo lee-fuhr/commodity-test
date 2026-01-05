@@ -496,8 +496,8 @@ export async function POST(request: NextRequest) {
     const industry = detectIndustry(allText)
     console.log(`[Analyze] Score: ${commodityScore} (penalty: ${scoringResult.commodityPenalty}, bonus: ${scoringResult.differentiationBonus}), industry: ${industry}`)
 
-    // Generate diagnosis and cost (pass contentQuality for honest diagnosis)
-    const diagnosis = generateDiagnosis(commodityScore, detectedPhrases.length, differentiationSignals.length, contentQuality)
+    // Generate diagnosis and cost (pass contentQuality and industry for honest diagnosis)
+    const diagnosis = generateDiagnosis(commodityScore, detectedPhrases.length, differentiationSignals.length, contentQuality, industry)
     const costResult = calculateCostEstimate(commodityScore)
 
     // Fetch additional pages for more context (if direct scrape worked)
