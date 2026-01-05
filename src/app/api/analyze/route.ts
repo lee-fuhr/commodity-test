@@ -598,6 +598,7 @@ export async function POST(request: NextRequest) {
         companyName,
         score: commodityScore,
         industry,
+        ip: clientIP,
         timestamp: new Date().toISOString(),
       })
       // Keep last 500 scans (30 days of results stored, scan log for visibility)

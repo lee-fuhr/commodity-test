@@ -21,19 +21,20 @@ function EditableNumber({
   prefix = '',
   suffix = '',
   label,
-  formatAsK = true
+  showAsK = false
 }: {
   value: number
   onChange: (val: number) => void
   prefix?: string
   suffix?: string
   label: string
-  formatAsK?: boolean
+  showAsK?: boolean
 }) {
   const [isEditing, setIsEditing] = useState(false)
   const spanRef = useRef<HTMLSpanElement>(null)
 
-  const displayNumber = formatAsK && value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value.toString()
+  // If showAsK, display as thousands (e.g., 12000 -> 12)
+  const displayNumber = showAsK ? Math.round(value / 1000).toString() : value.toLocaleString()
 
   const handleClick = () => {
     setIsEditing(true)
@@ -53,18 +54,13 @@ function EditableNumber({
 
   const handleBlur = () => {
     if (spanRef.current) {
-      const text = spanRef.current.innerText.replace(/[^0-9kK]/g, '')
-      let parsed: number
-
-      // Handle "12K" or "12k" format
-      if (text.toLowerCase().endsWith('k')) {
-        parsed = parseInt(text.slice(0, -1), 10) * 1000
-      } else {
-        parsed = parseInt(text, 10)
-      }
+      // Remove everything except digits
+      const text = spanRef.current.innerText.replace(/[^0-9]/g, '')
+      const parsed = parseInt(text, 10)
 
       if (!isNaN(parsed) && parsed > 0) {
-        onChange(parsed)
+        // If showing as K, multiply back to full value
+        onChange(showAsK ? parsed * 1000 : parsed)
       } else {
         // Reset to original value if invalid
         spanRef.current.innerText = displayNumber
@@ -87,7 +83,7 @@ function EditableNumber({
 
   return (
     <div
-      className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[80px] sm:min-w-[100px] cursor-pointer hover:bg-black/30 transition-colors group"
+      className="bg-black/20 border border-white/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[80px] sm:min-w-[100px] cursor-pointer hover:bg-black/30 hover:border-white/40 transition-colors group"
       onClick={!isEditing ? handleClick : undefined}
       title="Click to edit"
     >
@@ -104,7 +100,7 @@ function EditableNumber({
         >
           {displayNumber}
         </span>
-        {suffix}
+        {showAsK ? 'K' : suffix}
       </p>
       <p className="text-[10px] sm:text-xs text-white/70">{label}</p>
     </div>
@@ -169,7 +165,7 @@ function EditablePercent({
 
   return (
     <div
-      className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[60px] sm:min-w-[80px] cursor-pointer hover:bg-black/30 transition-colors group"
+      className="bg-black/20 border border-white/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[60px] sm:min-w-[80px] cursor-pointer hover:bg-black/30 hover:border-white/40 transition-colors group"
       onClick={!isEditing ? handleClick : undefined}
       title="Click to edit"
     >
@@ -199,7 +195,7 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
 
   const annualLoss = Math.round(dealValue * deals * lossRate)
   const roi = Math.round((annualLoss / 2 / 18000) * 100)
-  const roiDollars = Math.round(annualLoss / 2 / 1000)
+  const roiDollars = Math.round(annualLoss / 2)
   const paybackMonths = annualLoss > 0 ? Math.ceil(18000 / (annualLoss / 2 / 12)) : 0
 
   return (
@@ -218,13 +214,13 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
             onChange={setDealValue}
             prefix="$"
             label="avg deal"
+            showAsK={true}
           />
           <span className="text-xl sm:text-2xl text-white/70">×</span>
           <EditableNumber
             value={deals}
             onChange={setDeals}
             label="deals/yr"
-            formatAsK={false}
           />
           <span className="text-xl sm:text-2xl text-white/70">×</span>
           <EditablePercent
@@ -234,7 +230,7 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
           />
           <span className="text-xl sm:text-2xl text-white/70">=</span>
           <div className="bg-white/10 px-3 sm:px-4 py-2 sm:py-3 min-w-[100px] sm:min-w-[120px] border-2 border-white/30">
-            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${(annualLoss / 1000).toFixed(0)}K</p>
+            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${annualLoss.toLocaleString()}</p>
             <p className="text-[10px] sm:text-xs text-white/70">annual loss</p>
           </div>
         </div>
@@ -246,12 +242,12 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
               onChange={setDealValue}
               prefix="$"
               label="avg deal"
+              showAsK={true}
             />
             <EditableNumber
               value={deals}
               onChange={setDeals}
               label="deals/yr"
-              formatAsK={false}
             />
             <EditablePercent
               value={lossRate}
@@ -261,7 +257,7 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
           </div>
           <div className="flex justify-center">
             <div className="bg-white/10 px-4 py-2 border-2 border-white/30 text-center">
-              <p className="text-2xl font-display text-white">${(annualLoss / 1000).toFixed(0)}K</p>
+              <p className="text-2xl font-display text-white">${annualLoss.toLocaleString()}</p>
               <p className="text-[10px] text-white/70">annual loss</p>
             </div>
           </div>
@@ -277,7 +273,7 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
         {/* Desktop: horizontal flow */}
         <div className="hidden sm:flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-white mb-4">
           <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
-            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${(annualLoss / 1000).toFixed(0)}K</p>
+            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${annualLoss.toLocaleString()}</p>
             <p className="text-[10px] sm:text-xs text-white/70">annual loss</p>
           </div>
           <span className="text-xl sm:text-2xl text-white/70">×</span>
@@ -287,13 +283,13 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
           </div>
           <span className="text-xl sm:text-2xl text-white/70">÷</span>
           <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
-            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">$18K</p>
+            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">$18,000</p>
             <p className="text-[10px] sm:text-xs text-white/70">investment</p>
           </div>
           <span className="text-xl sm:text-2xl text-white/70">=</span>
           <div className="bg-green-500/20 px-3 sm:px-4 py-2 sm:py-3 border-2 border-green-400/40">
             <p className="text-xl sm:text-2xl md:text-3xl font-display text-green-200">{roi}%</p>
-            <p className="text-sm sm:text-lg font-display text-green-200">(${roiDollars}K)</p>
+            <p className="text-sm sm:text-lg font-display text-green-200">(${roiDollars.toLocaleString()})</p>
             <p className="text-[10px] sm:text-xs text-green-200/80">first-year ROI</p>
           </div>
         </div>
@@ -301,7 +297,7 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
         <div className="sm:hidden space-y-3 mb-4">
           <div className="grid grid-cols-3 gap-2 text-center text-white">
             <div className="bg-black/20 px-2 py-2">
-              <p className="text-lg font-display">${(annualLoss / 1000).toFixed(0)}K</p>
+              <p className="text-lg font-display">${annualLoss.toLocaleString()}</p>
               <p className="text-[10px] text-white/70">annual loss</p>
             </div>
             <div className="bg-black/20 px-2 py-2">
@@ -309,14 +305,14 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
               <p className="text-[10px] text-white/70">conservative</p>
             </div>
             <div className="bg-black/20 px-2 py-2">
-              <p className="text-lg font-display">$18K</p>
+              <p className="text-lg font-display">$18,000</p>
               <p className="text-[10px] text-white/70">investment</p>
             </div>
           </div>
           <div className="flex justify-center">
             <div className="bg-green-500/20 px-4 py-2 border-2 border-green-400/40 text-center">
               <p className="text-2xl font-display text-green-200">{roi}%</p>
-              <p className="text-base font-display text-green-200">(${roiDollars}K)</p>
+              <p className="text-base font-display text-green-200">(${roiDollars.toLocaleString()})</p>
               <p className="text-[10px] text-green-200/80">first-year ROI</p>
             </div>
           </div>
