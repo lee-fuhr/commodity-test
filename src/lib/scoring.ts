@@ -478,13 +478,14 @@ export function generateDiagnosis(
 }
 
 // Industry detection based on content keywords
-export type DetectedIndustry = 'manufacturing' | 'saas' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
+export type DetectedIndustry = 'manufacturing' | 'distribution' | 'saas' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
 
 const INDUSTRY_KEYWORDS: Record<DetectedIndustry, string[]> = {
-  manufacturing: ['manufacturing', 'manufacturer', 'machining', 'cnc', 'precision', 'fabrication', 'tooling', 'oem', 'supply chain', 'iso 9001', 'assembly', 'production', 'industrial'],
-  saas: ['software', 'saas', 'platform', 'cloud', 'api', 'integration', 'dashboard', 'subscription', 'deploy', 'onboarding', 'workflow', 'automation tool', 'work management', 'project management', 'crm', 'team collaboration', 'collaborate', 'workspace', 'app', 'sign up free', 'free trial', 'get started', 'pricing plans'],
+  manufacturing: ['manufacturing', 'manufacturer', 'machining', 'cnc', 'precision', 'fabrication', 'tooling', 'oem', 'supply chain', 'iso 9001', 'assembly', 'production', 'industrial', 'made in usa', 'made in the usa'],
+  distribution: ['distributor', 'distribution', 'wholesale', 'mro', 'maintenance repair', 'industrial supplies', 'safety supplies', 'fasteners', 'electrical supplies', 'plumbing supplies', 'hvac supplies', 'ppe', 'safety equipment', 'bulk orders', 'ship same day', 'next day delivery', 'will call', 'local branch', 'stock', 'in stock', 'catalog', 'skus', 'part number', 'sku'],
+  saas: ['software', 'saas', 'platform', 'cloud', 'api', 'integration', 'dashboard', 'subscription', 'deploy', 'onboarding', 'workflow', 'automation tool', 'work management', 'project management', 'crm', 'team collaboration', 'collaborate', 'workspace', 'app', 'sign up free', 'free trial', 'get started', 'pricing plans', 'per user', 'per month', 'per seat'],
   services: ['consulting', 'agency', 'service provider', 'professional services', 'advisory', 'consulting firm', 'managed services'],
-  construction: ['construction', 'contractor', 'builder', 'building', 'project management', 'site', 'renovation', 'commercial construction', 'general contractor'],
+  construction: ['construction', 'contractor', 'builder', 'building', 'jobsite', 'job site', 'renovation', 'commercial construction', 'general contractor', 'subcontractor', 'excavation', 'concrete', 'framing', 'roofing'],
   healthcare: ['healthcare', 'medical', 'patient', 'clinical', 'health', 'hospital', 'provider', 'hipaa', 'physician'],
   finance: ['financial', 'banking', 'investment', 'wealth', 'insurance', 'lending', 'mortgage', 'credit'],
   retail: ['shopping cart', 'add to cart', 'checkout', 'buy now', 'ecommerce', 'e-commerce', 'online store', 'free shipping', 'shop now', 'retail store', 'merchandise'],
@@ -493,6 +494,7 @@ const INDUSTRY_KEYWORDS: Record<DetectedIndustry, string[]> = {
 
 const INDUSTRY_COPY: Record<DetectedIndustry, { verticalNoun: string; verticalPlural: string; dealContext: string }> = {
   manufacturing: { verticalNoun: 'manufacturer', verticalPlural: 'manufacturers', dealContext: '$2M–$10M manufacturers' },
+  distribution: { verticalNoun: 'distributor', verticalPlural: 'distributors', dealContext: 'industrial distributors' },
   saas: { verticalNoun: 'software company', verticalPlural: 'software companies', dealContext: 'B2B SaaS companies' },
   services: { verticalNoun: 'service business', verticalPlural: 'service businesses', dealContext: 'professional service firms' },
   construction: { verticalNoun: 'contractor', verticalPlural: 'contractors', dealContext: 'commercial contractors' },
@@ -506,6 +508,7 @@ export function detectIndustry(text: string): DetectedIndustry {
   const lowerText = text.toLowerCase()
   const scores: Record<DetectedIndustry, number> = {
     manufacturing: 0,
+    distribution: 0,
     saas: 0,
     services: 0,
     construction: 0,

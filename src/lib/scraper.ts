@@ -54,6 +54,7 @@ export interface ExtractedContent {
   contentQuality: 'excellent' | 'good' | 'minimal' | 'failed'
   wordCount: number
   hasStructuredContent: boolean
+  isErrorPage?: boolean
 }
 
 function isPrivateUrl(url: string): boolean {
@@ -342,6 +343,28 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
   }
 }
 
+// Check if content looks like an error page
+function isErrorPage(text: string, headline: string): boolean {
+  const errorPatterns = [
+    /404\s*(error|not found|page)/i,
+    /page\s*(not|can't|cannot)\s*(be\s*)?found/i,
+    /sorry,?\s*(we\s*)?(couldn't|could not|can't)\s*find/i,
+    /this\s*page\s*(doesn't|does not)\s*exist/i,
+    /whoops|oops/i,
+    /something\s*went\s*wrong/i,
+    /error\s*\d{3}/i,
+    /access\s*denied/i,
+    /forbidden/i,
+    /we\s*(couldn't|could not)\s*find\s*(that|the)/i,
+    /page\s*you\s*(are|were)\s*looking\s*for/i,
+    /no\s*longer\s*(available|exists)/i,
+    /has\s*been\s*(removed|deleted|moved)/i,
+  ]
+
+  const combinedText = `${headline} ${text.slice(0, 1000)}`.toLowerCase()
+  return errorPatterns.some(pattern => pattern.test(combinedText))
+}
+
 // Extract meaningful content from HTML
 export function extractContent(html: string, url: string): ExtractedContent {
   const $ = cheerio.load(html)
@@ -405,15 +428,33 @@ export function extractContent(html: string, url: string): ExtractedContent {
   const hasLists = $('ul, ol').length > 0
   const hasStructuredContent = (hasH1 || hasH2) && hasParagraphs
 
-  // Extract company name
-  let companyName = $('title').text()
-    .split(/[|•–—\-]/)[0]
-    .replace(/\s+(Home|Homepage)\s*$/i, '')
-    .trim()
+  // Extract company name - prefer og:site_name over title (title often has taglines)
+  let companyName = $('meta[property="og:site_name"]').attr('content')?.trim() || ''
 
-  if (!companyName || companyName.length > 100) {
-    companyName = $('meta[property="og:site_name"]').attr('content') ||
-                  $('meta[name="application-name"]').attr('content') || ''
+  // Fallback to application-name
+  if (!companyName) {
+    companyName = $('meta[name="application-name"]').attr('content')?.trim() || ''
+  }
+
+  // Fallback to title tag (split on common separators to get just company name)
+  if (!companyName) {
+    companyName = $('title').text()
+      .split(/[|•–—\-:]/)[0]
+      .replace(/\s+(Home|Homepage|Welcome)\s*$/i, '')
+      .trim()
+  }
+
+  // If title is too long (probably a tagline), try the shorter part after split
+  if (companyName && companyName.length > 50) {
+    const titleParts = $('title').text().split(/[|•–—\-:]/)
+    // Look for the shortest reasonable part (likely company name)
+    const shortPart = titleParts
+      .map(p => p.trim())
+      .filter(p => p.length >= 2 && p.length <= 40)
+      .sort((a, b) => a.length - b.length)[0]
+    if (shortPart) {
+      companyName = shortPart
+    }
   }
 
   // Helper to check if company name looks like an error message or is invalid
@@ -440,10 +481,13 @@ export function extractContent(html: string, url: string): ExtractedContent {
     }
   }
 
+  // Check if this looks like an error page
+  const errorPage = isErrorPage(bodyText, headline)
+
   // Determine content quality
   let contentQuality: ExtractedContent['contentQuality']
 
-  if (wordCount < 50 || bodyText.length < 200) {
+  if (errorPage || wordCount < 50 || bodyText.length < 200) {
     contentQuality = 'failed'
   } else if (wordCount < 150 || !hasStructuredContent) {
     contentQuality = 'minimal'
@@ -461,5 +505,6 @@ export function extractContent(html: string, url: string): ExtractedContent {
     contentQuality,
     wordCount,
     hasStructuredContent,
+    isErrorPage: errorPage,
   }
 }

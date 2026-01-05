@@ -10,10 +10,11 @@ interface CostAssumptions {
   lossRateLabel: string
 }
 
-type DetectedIndustry = 'manufacturing' | 'saas' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
+type DetectedIndustry = 'manufacturing' | 'distribution' | 'saas' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
 
 const INDUSTRY_COPY: Record<DetectedIndustry, { verticalNoun: string; verticalPlural: string; dealContext: string }> = {
   manufacturing: { verticalNoun: 'manufacturer', verticalPlural: 'manufacturers', dealContext: '$2M–$10M manufacturers' },
+  distribution: { verticalNoun: 'distributor', verticalPlural: 'distributors', dealContext: 'industrial distributors' },
   saas: { verticalNoun: 'software company', verticalPlural: 'software companies', dealContext: 'B2B SaaS companies' },
   services: { verticalNoun: 'service business', verticalPlural: 'service businesses', dealContext: 'professional service firms' },
   construction: { verticalNoun: 'contractor', verticalPlural: 'contractors', dealContext: 'commercial contractors' },
@@ -414,7 +415,7 @@ export default async function ResultsPage({
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 px-6 relative">
         {/* Version number - subtle, for deployment verification */}
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.7.0</span>
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.8.0</span>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
             <p className="text-[var(--foreground)] font-semibold">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
