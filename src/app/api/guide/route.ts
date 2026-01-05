@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
   <p><em>5 more fixes (guarantee, story, metric, innovation, experience) in the full guide below...</em></p>
 
   <div class="cta">
-    <p style="margin: 0;"><a href="https://commodity.leefuhr.com/?utm_source=guide">Run The Commodity Test on your site (30 seconds, free)</a></p>
+    <p style="margin: 0;"><a href="https://areyougeneric.com/?utm_source=guide">Run The Commodity Test on your site (30 seconds, free)</a></p>
   </div>
 
   <h2>How to apply this</h2>
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
   </ul>
 
   <div class="cta">
-    <p style="margin: 0;"><a href="https://commodity.leefuhr.com/pricing">Or let me do it for you - from $18K</a></p>
+    <p style="margin: 0;"><a href="https://areyougeneric.com/pricing">Or let me do it for you - from $18K</a></p>
   </div>
 
   <div class="footer">
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
     <a href="https://leefuhr.com">leefuhr.com</a></p>
 
     <p style="font-size: 12px; color: #999; margin-top: 20px;">
-    You're receiving this because you requested the DIY guide at thecommoditytest.com.
+    You're receiving this because you requested the DIY guide at areyougeneric.com.
     <br><a href="{{unsubscribe_url}}" style="color: #999;">Unsubscribe</a>
     </p>
   </div>
