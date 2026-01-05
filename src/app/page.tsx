@@ -360,6 +360,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-label">
             <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> © 2025
+            <span className="text-[var(--muted-foreground)] ml-3">v0.10.0</span>
           </p>
 
           <nav className="flex gap-8">
