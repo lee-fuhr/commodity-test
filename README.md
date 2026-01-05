@@ -4,7 +4,7 @@
 
 Most B2B websites use the same tired phrases: "innovative solutions," "customer-centric approach," "best-in-class." This tool analyzes your homepage and tells you exactly where you sound generic—and what to do about it.
 
-🔗 **Live app:** [commodity-test.vercel.app](https://commodity-test.vercel.app)
+🔗 **Live app:** [thecommoditytest.com](https://thecommoditytest.com)
 
 ---
 
@@ -39,11 +39,13 @@ Most B2B websites use the same tired phrases: "innovative solutions," "customer-
 
 - 🎯 Industry-specific scoring (9 industries detected)
 - 📊 Bell curve distribution for realistic scores
-- 💰 Industry-aware cost estimates
+- 💰 Interactive cost calculator (customize your own deal values)
 - 📱 Fully responsive design
 - 🔗 Shareable result URLs with dynamic OG images
 - 🛡️ Rate limiting (10/hr, 50/day per IP)
 - 🤖 Anti-bot scraping with fallback chain
+- 📧 Lead capture (guide downloads, result emails, contact form)
+- 🔐 Admin dashboard with CSV export (`/admin`)
 
 ## Local development
 
@@ -66,11 +68,14 @@ npm run dev
 ## Environment variables
 
 ```
-ANTHROPIC_API_KEY=     # Required - Claude API
-KV_REST_API_URL=       # Vercel KV (auto-populated on Vercel)
-KV_REST_API_TOKEN=     # Vercel KV (auto-populated on Vercel)
-SCRAPINGBEE_API_KEY=   # Optional - fallback scraper
-RESEND_API_KEY=        # Optional - contact form emails
+ANTHROPIC_API_KEY=           # Required - Claude API
+KV_REST_API_URL=             # Vercel KV (auto-populated on Vercel)
+KV_REST_API_TOKEN=           # Vercel KV (auto-populated on Vercel)
+SCRAPINGBEE_API_KEY=         # Optional - fallback scraper
+RESEND_API_KEY=              # Optional - contact form emails
+ADMIN_API_KEY=               # Optional - admin dashboard password
+TODOIST_API_TOKEN=           # Optional - feedback to Todoist
+TODOIST_FEEDBACK_PROJECT_ID= # Optional - Todoist project for feedback
 ```
 
 ## Related tools
