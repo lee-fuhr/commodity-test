@@ -346,10 +346,11 @@ export default function SamplePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--border)] py-8 px-6">
+      <footer className="border-t border-[var(--border)] py-8 px-6 relative">
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--background)]">v0.12.0</span>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-label">
-            <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> © 2025
+            <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> © {new Date().getFullYear()}
           </p>
           <nav className="flex gap-6 text-sm">
             <Link href="/how-it-works" className="text-body hover:text-[var(--accent)]">How it works</Link>
