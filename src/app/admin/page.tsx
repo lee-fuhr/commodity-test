@@ -12,6 +12,7 @@ interface ScanEntry {
   ip?: string
   timestamp: string
   resultUrl?: string
+  ignored?: boolean
 }
 
 interface GuideEmail {
@@ -19,6 +20,7 @@ interface GuideEmail {
   firstName: string | null
   timestamp: string
   source: string
+  ignored?: boolean
 }
 
 interface ContactSubmission {
@@ -26,6 +28,7 @@ interface ContactSubmission {
   email: string
   message: string
   timestamp: string
+  ignored?: boolean
 }
 
 interface ResultEmail {
@@ -34,6 +37,7 @@ interface ResultEmail {
   companyName: string
   timestamp: string
   resultUrl?: string
+  ignored?: boolean
 }
 
 interface StatsData {
@@ -48,6 +52,7 @@ interface StatsData {
   guideEmails: GuideEmail[]
   resultEmails: ResultEmail[]
   contactSubmissions: ContactSubmission[]
+  ignoredIPs: string[]
 }
 
 function formatDate(iso: string): string {
@@ -69,7 +74,6 @@ function downloadCSV(data: Record<string, unknown>[], filename: string) {
     ...data.map(row =>
       headers.map(h => {
         const val = String(row[h] ?? '')
-        // Escape quotes and wrap in quotes if contains comma
         if (val.includes(',') || val.includes('"') || val.includes('\n')) {
           return `"${val.replace(/"/g, '""')}"`
         }
@@ -87,13 +91,34 @@ function downloadCSV(data: Record<string, unknown>[], filename: string) {
   URL.revokeObjectURL(url)
 }
 
+// Icons
+const IgnoreIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+  </svg>
+)
+
+const UnignoreIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+  </svg>
+)
+
+const TrashIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+  </svg>
+)
+
 export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [data, setData] = useState<StatsData | null>(null)
-  const [activeTab, setActiveTab] = useState<'scans' | 'guide' | 'resultEmails' | 'contacts'>('scans')
+  const [activeTab, setActiveTab] = useState<'scans' | 'guide' | 'resultEmails' | 'contacts' | 'settings'>('scans')
+  const [showIgnored, setShowIgnored] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -140,6 +165,38 @@ export default function AdminPage() {
     }
   }
 
+  const performAction = async (action: string, params: Record<string, string>) => {
+    try {
+      const res = await fetch('/api/admin/stats', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${password}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action, ...params })
+      })
+      if (res.ok) {
+        await refresh()
+      }
+    } catch (e) {
+      console.error('Action failed:', e)
+    }
+  }
+
+  const toggleIgnore = (type: string, timestamp: string, currentlyIgnored: boolean) => {
+    performAction(currentlyIgnored ? 'unignore' : 'ignore', { type, timestamp })
+  }
+
+  const toggleIgnoreIP = (ip: string, currentlyIgnored: boolean) => {
+    performAction(currentlyIgnored ? 'unignore-ip' : 'ignore-ip', { ip })
+  }
+
+  const deleteRecord = (type: string, timestamp: string) => {
+    if (confirm('Delete this record? (It will be hidden from stats)')) {
+      performAction('delete', { type, timestamp })
+    }
+  }
+
   if (!authenticated) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
@@ -173,6 +230,14 @@ export default function AdminPage() {
 
   if (!data) return null
 
+  const ignoredIPSet = new Set(data.ignoredIPs)
+
+  // Filter based on showIgnored toggle
+  const visibleScans = showIgnored ? data.recentScans : data.recentScans.filter(s => !s.ignored)
+  const visibleGuide = showIgnored ? data.guideEmails : data.guideEmails.filter(g => !g.ignored)
+  const visibleResults = showIgnored ? data.resultEmails : data.resultEmails.filter(r => !r.ignored)
+  const visibleContacts = showIgnored ? data.contactSubmissions : data.contactSubmissions.filter(c => !c.ignored)
+
   return (
     <main className="min-h-screen bg-[var(--background)] py-8 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
@@ -184,7 +249,16 @@ export default function AdminPage() {
               Last updated: {formatDate(data.summary.lastUpdated)}
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            <label className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showIgnored}
+                onChange={(e) => setShowIgnored(e.target.checked)}
+                className="w-4 h-4"
+              />
+              Show ignored
+            </label>
             <button
               onClick={refresh}
               disabled={loading}
@@ -219,47 +293,24 @@ export default function AdminPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-4 border-b border-[var(--border)]">
-          <button
-            onClick={() => setActiveTab('scans')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-              activeTab === 'scans'
-                ? 'border-[var(--accent)] text-[var(--foreground)]'
-                : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
-            }`}
-          >
-            Scans ({data.recentScans.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('guide')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-              activeTab === 'guide'
-                ? 'border-[var(--accent)] text-[var(--foreground)]'
-                : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
-            }`}
-          >
-            Guide ({data.guideEmails.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('resultEmails')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-              activeTab === 'resultEmails'
-                ? 'border-[var(--accent)] text-[var(--foreground)]'
-                : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
-            }`}
-          >
-            Saves ({data.resultEmails.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('contacts')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
-              activeTab === 'contacts'
-                ? 'border-[var(--accent)] text-[var(--foreground)]'
-                : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
-            }`}
-          >
-            Contacts ({data.contactSubmissions.length})
-          </button>
+        <div className="flex gap-1 mb-4 border-b border-[var(--border)] overflow-x-auto">
+          {(['scans', 'guide', 'resultEmails', 'contacts', 'settings'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px whitespace-nowrap ${
+                activeTab === tab
+                  ? 'border-[var(--accent)] text-[var(--foreground)]'
+                  : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
+              }`}
+            >
+              {tab === 'scans' && `Scans (${visibleScans.length})`}
+              {tab === 'guide' && `Guide (${visibleGuide.length})`}
+              {tab === 'resultEmails' && `Saves (${visibleResults.length})`}
+              {tab === 'contacts' && `Contacts (${visibleContacts.length})`}
+              {tab === 'settings' && `Settings`}
+            </button>
+          ))}
         </div>
 
         {/* Scans tab */}
@@ -268,7 +319,7 @@ export default function AdminPage() {
             <div className="flex justify-end mb-4">
               <button
                 onClick={() => downloadCSV(
-                  data.recentScans.map(s => ({
+                  visibleScans.filter(s => !s.ignored).map(s => ({
                     date: formatDate(s.timestamp),
                     company: s.companyName,
                     url: s.url,
@@ -293,15 +344,16 @@ export default function AdminPage() {
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Score</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">IP</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Result</th>
+                    <th className="text-right py-3 px-2 text-[var(--muted-foreground)] font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.recentScans.map((scan, i) => (
-                    <tr key={i} className="border-b border-[var(--border)] hover:bg-[var(--muted)]/50">
+                  {visibleScans.map((scan, i) => (
+                    <tr key={i} className={`border-b border-[var(--border)] hover:bg-[var(--muted)]/50 ${scan.ignored ? 'opacity-40' : ''}`}>
                       <td className="py-3 px-2 text-[var(--muted-foreground)]">{formatDate(scan.timestamp)}</td>
                       <td className="py-3 px-2 text-[var(--foreground)]">
                         <div className="flex items-center gap-2">
-                          <span>{scan.companyName}</span>
+                          <span className={scan.ignored ? 'line-through' : ''}>{scan.companyName}</span>
                           <span className={`text-xs px-1.5 py-0.5 rounded font-semibold ${
                             scan.score >= 70 ? 'bg-green-500/20 text-green-400' :
                             scan.score >= 55 ? 'bg-yellow-500/20 text-yellow-400' :
@@ -311,7 +363,23 @@ export default function AdminPage() {
                         <div className="text-xs text-[var(--muted-foreground)] truncate max-w-[250px]">{scan.url}</div>
                       </td>
                       <td className="py-3 px-2 text-[var(--muted-foreground)] capitalize">{scan.industry}</td>
-                      <td className="py-3 px-2 text-[var(--muted-foreground)] text-xs font-mono">{scan.ip || '—'}</td>
+                      <td className="py-3 px-2">
+                        {scan.ip && (
+                          <div className="flex items-center gap-1">
+                            <span className={`text-xs font-mono ${ignoredIPSet.has(scan.ip) ? 'text-red-400 line-through' : 'text-[var(--muted-foreground)]'}`}>
+                              {scan.ip}
+                            </span>
+                            <button
+                              onClick={() => toggleIgnoreIP(scan.ip!, ignoredIPSet.has(scan.ip!))}
+                              className={`p-1 rounded hover:bg-[var(--muted)] ${ignoredIPSet.has(scan.ip) ? 'text-green-400' : 'text-red-400'}`}
+                              title={ignoredIPSet.has(scan.ip) ? 'Unignore this IP' : 'Ignore this IP'}
+                            >
+                              {ignoredIPSet.has(scan.ip) ? <UnignoreIcon /> : <IgnoreIcon />}
+                            </button>
+                          </div>
+                        )}
+                        {!scan.ip && <span className="text-[var(--muted-foreground)]">—</span>}
+                      </td>
                       <td className="py-3 px-2">
                         {scan.resultUrl && (
                           <a
@@ -324,11 +392,29 @@ export default function AdminPage() {
                           </a>
                         )}
                       </td>
+                      <td className="py-3 px-2 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => toggleIgnore('scan', scan.timestamp, !!scan.ignored)}
+                            className={`p-1.5 rounded hover:bg-[var(--muted)] ${scan.ignored ? 'text-green-400' : 'text-yellow-400'}`}
+                            title={scan.ignored ? 'Unignore' : 'Ignore'}
+                          >
+                            {scan.ignored ? <UnignoreIcon /> : <IgnoreIcon />}
+                          </button>
+                          <button
+                            onClick={() => deleteRecord('scan', scan.timestamp)}
+                            className="p-1.5 rounded hover:bg-[var(--muted)] text-red-400"
+                            title="Delete"
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {data.recentScans.length === 0 && (
+              {visibleScans.length === 0 && (
                 <p className="text-[var(--muted-foreground)] text-center py-8">No scans yet</p>
               )}
             </div>
@@ -341,7 +427,7 @@ export default function AdminPage() {
             <div className="flex justify-end mb-4">
               <button
                 onClick={() => downloadCSV(
-                  data.guideEmails.map(g => ({
+                  visibleGuide.filter(g => !g.ignored).map(g => ({
                     date: formatDate(g.timestamp),
                     email: g.email,
                     firstName: g.firstName || '',
@@ -361,19 +447,38 @@ export default function AdminPage() {
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Date</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Email</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Name</th>
+                    <th className="text-right py-3 px-2 text-[var(--muted-foreground)] font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.guideEmails.map((lead, i) => (
-                    <tr key={i} className="border-b border-[var(--border)] hover:bg-[var(--muted)]/50">
+                  {visibleGuide.map((lead, i) => (
+                    <tr key={i} className={`border-b border-[var(--border)] hover:bg-[var(--muted)]/50 ${lead.ignored ? 'opacity-40' : ''}`}>
                       <td className="py-3 px-2 text-[var(--muted-foreground)]">{formatDate(lead.timestamp)}</td>
-                      <td className="py-3 px-2 text-[var(--foreground)]">{lead.email}</td>
+                      <td className={`py-3 px-2 text-[var(--foreground)] ${lead.ignored ? 'line-through' : ''}`}>{lead.email}</td>
                       <td className="py-3 px-2 text-[var(--muted-foreground)]">{lead.firstName || '—'}</td>
+                      <td className="py-3 px-2 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => toggleIgnore('guide', lead.timestamp, !!lead.ignored)}
+                            className={`p-1.5 rounded hover:bg-[var(--muted)] ${lead.ignored ? 'text-green-400' : 'text-yellow-400'}`}
+                            title={lead.ignored ? 'Unignore' : 'Ignore'}
+                          >
+                            {lead.ignored ? <UnignoreIcon /> : <IgnoreIcon />}
+                          </button>
+                          <button
+                            onClick={() => deleteRecord('guide', lead.timestamp)}
+                            className="p-1.5 rounded hover:bg-[var(--muted)] text-red-400"
+                            title="Delete"
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {data.guideEmails.length === 0 && (
+              {visibleGuide.length === 0 && (
                 <p className="text-[var(--muted-foreground)] text-center py-8">No guide downloads yet</p>
               )}
             </div>
@@ -386,7 +491,7 @@ export default function AdminPage() {
             <div className="flex justify-end mb-4">
               <button
                 onClick={() => downloadCSV(
-                  data.resultEmails.map(r => ({
+                  visibleResults.filter(r => !r.ignored).map(r => ({
                     date: formatDate(r.timestamp),
                     email: r.email,
                     company: r.companyName,
@@ -407,13 +512,14 @@ export default function AdminPage() {
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Email</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Company</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Result</th>
+                    <th className="text-right py-3 px-2 text-[var(--muted-foreground)] font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.resultEmails.map((re, i) => (
-                    <tr key={i} className="border-b border-[var(--border)] hover:bg-[var(--muted)]/50">
+                  {visibleResults.map((re, i) => (
+                    <tr key={i} className={`border-b border-[var(--border)] hover:bg-[var(--muted)]/50 ${re.ignored ? 'opacity-40' : ''}`}>
                       <td className="py-3 px-2 text-[var(--muted-foreground)]">{formatDate(re.timestamp)}</td>
-                      <td className="py-3 px-2 text-[var(--foreground)]">{re.email}</td>
+                      <td className={`py-3 px-2 text-[var(--foreground)] ${re.ignored ? 'line-through' : ''}`}>{re.email}</td>
                       <td className="py-3 px-2 text-[var(--muted-foreground)]">{re.companyName}</td>
                       <td className="py-3 px-2">
                         {re.resultUrl && (
@@ -427,11 +533,29 @@ export default function AdminPage() {
                           </a>
                         )}
                       </td>
+                      <td className="py-3 px-2 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => toggleIgnore('result', re.timestamp, !!re.ignored)}
+                            className={`p-1.5 rounded hover:bg-[var(--muted)] ${re.ignored ? 'text-green-400' : 'text-yellow-400'}`}
+                            title={re.ignored ? 'Unignore' : 'Ignore'}
+                          >
+                            {re.ignored ? <UnignoreIcon /> : <IgnoreIcon />}
+                          </button>
+                          <button
+                            onClick={() => deleteRecord('result', re.timestamp)}
+                            className="p-1.5 rounded hover:bg-[var(--muted)] text-red-400"
+                            title="Delete"
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {data.resultEmails.length === 0 && (
+              {visibleResults.length === 0 && (
                 <p className="text-[var(--muted-foreground)] text-center py-8">No result saves yet</p>
               )}
             </div>
@@ -444,7 +568,7 @@ export default function AdminPage() {
             <div className="flex justify-end mb-4">
               <button
                 onClick={() => downloadCSV(
-                  data.contactSubmissions.map(c => ({
+                  visibleContacts.filter(c => !c.ignored).map(c => ({
                     date: formatDate(c.timestamp),
                     name: c.name,
                     email: c.email,
@@ -458,21 +582,77 @@ export default function AdminPage() {
               </button>
             </div>
             <div className="space-y-4">
-              {data.contactSubmissions.map((contact, i) => (
-                <div key={i} className="bg-[var(--muted)] p-4">
+              {visibleContacts.map((contact, i) => (
+                <div key={i} className={`bg-[var(--muted)] p-4 ${contact.ignored ? 'opacity-40' : ''}`}>
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <p className="text-[var(--foreground)] font-medium">{contact.name}</p>
+                      <p className={`text-[var(--foreground)] font-medium ${contact.ignored ? 'line-through' : ''}`}>{contact.name}</p>
                       <p className="text-[var(--accent)] text-sm">{contact.email}</p>
                     </div>
-                    <p className="text-[var(--muted-foreground)] text-xs">{formatDate(contact.timestamp)}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[var(--muted-foreground)] text-xs">{formatDate(contact.timestamp)}</p>
+                      <button
+                        onClick={() => toggleIgnore('contact', contact.timestamp, !!contact.ignored)}
+                        className={`p-1.5 rounded hover:bg-[var(--background)] ${contact.ignored ? 'text-green-400' : 'text-yellow-400'}`}
+                        title={contact.ignored ? 'Unignore' : 'Ignore'}
+                      >
+                        {contact.ignored ? <UnignoreIcon /> : <IgnoreIcon />}
+                      </button>
+                      <button
+                        onClick={() => deleteRecord('contact', contact.timestamp)}
+                        className="p-1.5 rounded hover:bg-[var(--background)] text-red-400"
+                        title="Delete"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-[var(--foreground)] text-sm whitespace-pre-wrap">{contact.message}</p>
                 </div>
               ))}
-              {data.contactSubmissions.length === 0 && (
+              {visibleContacts.length === 0 && (
                 <p className="text-[var(--muted-foreground)] text-center py-8">No contact submissions yet</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Settings tab */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            <div className="bg-[var(--muted)] p-6">
+              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Ignored IPs</h3>
+              <p className="text-[var(--muted-foreground)] text-sm mb-4">
+                Records from these IPs are excluded from stats. Click the ignore icon next to any IP in the Scans tab to add it here.
+              </p>
+              {data.ignoredIPs.length > 0 ? (
+                <div className="space-y-2">
+                  {data.ignoredIPs.map((ip, i) => (
+                    <div key={i} className="flex items-center justify-between bg-[var(--background)] p-3">
+                      <code className="text-sm font-mono text-[var(--foreground)]">{ip}</code>
+                      <button
+                        onClick={() => toggleIgnoreIP(ip, true)}
+                        className="text-green-400 hover:text-green-300 text-sm"
+                      >
+                        Unignore
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[var(--muted-foreground)] text-sm">No IPs ignored yet</p>
+              )}
+            </div>
+
+            <div className="bg-[var(--muted)] p-6">
+              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">How ignoring works</h3>
+              <ul className="text-[var(--muted-foreground)] text-sm space-y-2">
+                <li>• <strong>Ignore</strong> hides a record from stats but keeps it in the database</li>
+                <li>• <strong>Ignore IP</strong> hides ALL records from that IP address</li>
+                <li>• <strong>Delete</strong> is the same as ignore (KV lists don't support true deletion)</li>
+                <li>• Toggle "Show ignored" to see hidden records (they appear faded)</li>
+                <li>• Click the eye icon to unignore any record</li>
+              </ul>
             </div>
           </div>
         )}

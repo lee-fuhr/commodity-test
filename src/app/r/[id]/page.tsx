@@ -139,7 +139,7 @@ function HighlightedContext({ context, phrase }: { context: string; phrase: stri
   const idx = lowerContext.indexOf(lowerPhrase)
 
   if (idx === -1) {
-    return <span className="text-[var(--muted-foreground)]">{context}</span>
+    return <span className="text-[var(--muted-foreground)] italic">{context}</span>
   }
 
   const before = context.slice(0, idx)
@@ -147,7 +147,7 @@ function HighlightedContext({ context, phrase }: { context: string; phrase: stri
   const after = context.slice(idx + phrase.length)
 
   return (
-    <span>
+    <span className="italic">
       <span className="text-[var(--muted-foreground)]">{before}</span>
       <span className="text-[var(--foreground)] font-semibold bg-[var(--accent)]/20 px-1">{match}</span>
       <span className="text-[var(--muted-foreground)]">{after}</span>
