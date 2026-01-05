@@ -35,3 +35,4 @@ Thumbs.db
 *.swo
 .env.prod
 test-analyze.js
+.env.prod
