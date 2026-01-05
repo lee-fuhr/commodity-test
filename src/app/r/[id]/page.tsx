@@ -10,6 +10,19 @@ interface CostAssumptions {
   lossRateLabel: string
 }
 
+type DetectedIndustry = 'manufacturing' | 'saas' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
+
+const INDUSTRY_COPY: Record<DetectedIndustry, { verticalNoun: string; verticalPlural: string; dealContext: string }> = {
+  manufacturing: { verticalNoun: 'manufacturer', verticalPlural: 'manufacturers', dealContext: '$2M–$10M manufacturers' },
+  saas: { verticalNoun: 'software company', verticalPlural: 'software companies', dealContext: 'B2B SaaS companies' },
+  services: { verticalNoun: 'service business', verticalPlural: 'service businesses', dealContext: 'professional service firms' },
+  construction: { verticalNoun: 'contractor', verticalPlural: 'contractors', dealContext: 'commercial contractors' },
+  healthcare: { verticalNoun: 'healthcare provider', verticalPlural: 'healthcare providers', dealContext: 'healthcare organizations' },
+  finance: { verticalNoun: 'financial firm', verticalPlural: 'financial firms', dealContext: 'financial services companies' },
+  retail: { verticalNoun: 'retailer', verticalPlural: 'retailers', dealContext: 'retail brands' },
+  general: { verticalNoun: 'business', verticalPlural: 'businesses', dealContext: 'B2B companies' }
+}
+
 interface AnalysisResult {
   id: string
   url: string
@@ -37,6 +50,7 @@ interface AnalysisResult {
     }>
     whyBetter: string
   }>
+  industry?: DetectedIndustry
   createdAt: string
 }
 
@@ -52,12 +66,12 @@ async function getAnalysis(id: string): Promise<AnalysisResult | null> {
 }
 
 // Differentiation score: 100 = highly differentiated (good), 0 = pure commodity (bad)
-function getScoreLabel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: 'Highly differentiated', color: 'text-green-400' }
-  if (score >= 60) return { label: 'Differentiated', color: 'text-lime-400' }
-  if (score >= 40) return { label: 'Moderate', color: 'text-yellow-400' }
-  if (score >= 20) return { label: 'Commodity risk', color: 'text-orange-400' }
-  return { label: 'Undifferentiated', color: 'text-red-400' }
+function getScoreLabel(score: number): { label: string; color: string; adjective: string } {
+  if (score >= 80) return { label: 'Highly differentiated', adjective: 'Strongly', color: 'text-green-400' }
+  if (score >= 60) return { label: 'Well differentiated', adjective: 'Clearly', color: 'text-lime-400' }
+  if (score >= 40) return { label: 'Somewhat differentiated', adjective: 'Moderately', color: 'text-yellow-400' }
+  if (score >= 20) return { label: 'Barely differentiated', adjective: 'Weakly', color: 'text-orange-400' }
+  return { label: 'Undifferentiated', adjective: 'Not', color: 'text-red-400' }
 }
 
 // Highlight the phrase within its context
@@ -120,6 +134,8 @@ export default async function ResultsPage({
   }
 
   const scoreInfo = getScoreLabel(result.commodityScore)
+  const industry = result.industry || 'general'
+  const industryCopy = INDUSTRY_COPY[industry]
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thecommoditytest.com'
   const resultUrl = `${siteUrl}/r/${result.id}`
 
@@ -188,13 +204,13 @@ export default async function ResultsPage({
             <h2 className="text-section text-2xl text-[var(--accent-foreground)] mb-4">
               What this is costing you
             </h2>
-            <p className="text-[var(--accent-foreground)]/70 text-sm mb-4 max-w-xl mx-auto">
-              Based on typical deal values for $2M–$10M manufacturers, mid-range deal volume, and a {Math.round((result.costAssumptions?.lossRate || 0.3) * 100)}% loss rate to "cheaper" competitors.
+            <p className="text-[var(--accent-foreground)] text-sm mb-4 max-w-xl mx-auto opacity-90">
+              Based on typical deal values for {industryCopy.dealContext}, mid-range deal volume, and a {Math.round((result.costAssumptions?.lossRate || 0.3) * 100)}% loss rate to "cheaper" competitors.
             </p>
             <p className="text-[5rem] md:text-[7rem] font-display text-[var(--accent-foreground)] leading-none mb-4">
               ${result.costEstimate.toLocaleString()}
             </p>
-            <p className="text-[var(--accent-foreground)]/80">
+            <p className="text-[var(--accent-foreground)] opacity-90">
               in lost deals annually (estimated)
             </p>
           </div>
@@ -256,6 +272,7 @@ export default async function ResultsPage({
                   <span className="text-2xl text-white/70">=</span>
                   <div className="bg-green-500/20 px-4 py-3 border-2 border-green-400/40">
                     <p className="text-2xl md:text-3xl font-display text-green-200">{Math.round((result.costEstimate / 2 / 18000) * 100)}%</p>
+                    <p className="text-lg font-display text-green-200">(${Math.round(result.costEstimate / 2 / 1000)}K)</p>
                     <p className="text-xs text-green-200/80">first-year ROI</p>
                   </div>
                 </div>
@@ -267,7 +284,7 @@ export default async function ResultsPage({
                     </>
                   ) : '—'}
                 </p>
-                <p className="text-sm text-[var(--accent-foreground)]/50 mt-4 text-center">
+                <p className="text-sm text-[var(--accent-foreground)] opacity-80 mt-4 text-center">
                   Core site rebuild: $18K. <a href="/pricing" className="underline hover:text-[var(--accent-foreground)]">See all options →</a>
                 </p>
               </div>
@@ -382,8 +399,8 @@ export default async function ResultsPage({
             {/* Done-for-you option */}
             <div className="bg-[var(--accent)] p-8">
               <h3 className="text-section text-xl text-[var(--accent-foreground)] mb-4">Let me do it for you</h3>
-              <p className="text-[var(--accent-foreground)]/80 text-lg mb-6">
-                I build messaging frameworks for manufacturers who are tired of competing
+              <p className="text-[var(--accent-foreground)] opacity-90 text-lg mb-6">
+                I build messaging frameworks for {industryCopy.verticalPlural} who are tired of competing
                 on price. $18K-$25K, 6-8 weeks.
               </p>
               <Link href="/pricing" className="btn-reversed w-full">
@@ -397,11 +414,11 @@ export default async function ResultsPage({
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 px-6 relative">
         {/* Version number - subtle, for deployment verification */}
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.6.0</span>
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.7.0</span>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
             <p className="text-[var(--foreground)] font-semibold">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
-            <p className="text-body text-sm">27 years helping manufacturers stop sounding like everyone else</p>
+            <p className="text-body text-sm">27 years helping {industryCopy.verticalPlural} stop sounding like everyone else</p>
           </div>
           <nav className="flex gap-6 text-sm">
             <Link href="/how-it-works" className="text-body hover:text-[var(--accent)]">How it works</Link>

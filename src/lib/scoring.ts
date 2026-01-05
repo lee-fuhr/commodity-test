@@ -176,34 +176,42 @@ export const commodityPhrases = [
 ]
 
 // Patterns that indicate differentiation (specific, provable claims)
+// NOTE: Patterns are intentionally broad to catch real-world variations
 const DIFFERENTIATION_PATTERNS = {
-  // Specific numbers with context
-  yearsInBusiness: /(?:since|founded|established|serving since)\s*(?:in\s*)?\b(19|20)\d{2}\b/i,
-  specificYears: /\b(\d{1,3})\+?\s*years?\s*(?:of|in)\s*(?:experience|business|operation|service)/i,
-  clientCount: /\b(\d{1,3}(?:,\d{3})*|\d+k)\+?\s*(?:clients?|customers?|companies|businesses)/i,
-  projectCount: /\b(\d{1,3}(?:,\d{3})*|\d+k)\+?\s*(?:projects?|installations?|implementations?)/i,
-  employeeCount: /\b(\d{1,3}(?:,\d{3})*)\+?\s*(?:employees?|team members?|associates?|professionals?)/i,
-  locationCount: /\b(\d{1,3})\+?\s*(?:locations?|offices?|facilities|warehouses?|distribution centers?)/i,
-  countryCount: /\b(\d{1,3})\+?\s*(?:countries?|nations?|states?|markets?)/i,
-  percentages: /\b(\d{1,3}(?:\.\d+)?)\s*%\s*(?:satisfaction|reduction|increase|improvement|savings?|faster|better|accuracy|uptime|on-time)/i,
-  dollarAmounts: /\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:million|billion|M|B)?\s*(?:saved|revenue|in sales|value)/i,
-  rankings: /#\s*\d+\s*(?:in|ranked|rated)|(?:top|largest|biggest)\s*\d+/i,
+  // Specific years - flexible matching
+  yearsInBusiness: /(?:since|founded|established|serving|started)\s*(?:in\s*)?\b(19|20)\d{2}\b/i,
+  specificYears: /\b(\d{2,3})\+?\s*years?\b/i, // Just "X years" - very broad
+  decadesInBusiness: /\b(?:over|more than)?\s*(\d+)\s*decades?\b/i,
 
-  // Proof points
-  namedClients: /(?:serving|trusted by|clients include|working with|partnered with)\s+[A-Z][a-zA-Z\s&]+(?:,\s*[A-Z][a-zA-Z\s&]+){2,}/i,
-  awards: /\b(?:winner|awarded|recognized|certified|accredited|ISO\s*\d+|finalist|honoree)\b/i,
-  patents: /\b(?:patented|proprietary|patent(?:ed)?-pending|\d+\s*patents?)\b/i,
+  // Counts - flexible matching
+  clientCount: /\b(\d{1,3}(?:,\d{3})*|\d+k|\d+\+)\s*(?:clients?|customers?|companies|businesses|partners?)/i,
+  projectCount: /\b(\d{1,3}(?:,\d{3})*|\d+k|\d+\+)\s*(?:projects?|installations?|implementations?|deployments?|builds?)/i,
+  employeeCount: /\b(\d{1,3}(?:,\d{3})*|\d+)\+?\s*(?:employees?|team members?|associates?|professionals?|people|staff)/i,
+  locationCount: /\b(\d{1,3})\+?\s*(?:locations?|offices?|facilities|warehouses?|distribution centers?|branches)/i,
+  countryCount: /\b(\d{1,3})\+?\s*(?:countries?|nations?|states?|markets?|regions?)/i,
+
+  // Statistics - more flexible
+  percentages: /\b(\d{1,3}(?:\.\d+)?)\s*%/i, // Any percentage
+  dollarAmounts: /\$\s*[\d,]+(?:\.\d{2})?\s*(?:million|billion|M|B|k|K|s|savings?)?/i, // $X, $Xk, $Xs, $X million, etc.
+  numbersWithContext: /\b(\d{1,3}(?:,\d{3})+)\b/i, // Large numbers with commas (1,000+)
+  rankings: /#\s*\d+|(?:top|largest|biggest|leading)\s*\d+|(?:ranked|rated)\s*(?:#\s*)?\d+/i,
+
+  // Proof points - broader matching
+  namedClients: /(?:serving|trusted by|clients include|working with|partnered with|used by)\s+[A-Z][a-zA-Z\s&]+/i,
+  awards: /\b(?:award|winner|awarded|recognized|certified|accredited|finalist|honoree|recipient)\b/i,
+  patents: /\b(?:patented|patent-pending|patent pending|\d+\s*patents?|proprietary technology)\b/i,
+  certifications: /\b(?:ISO|AS9100|IATF|FDA|CE|UL|CSA|NADCAP|API|SOC|HIPAA|PCI|CMMC)\s*\d*/i, // Just needs cert name
 
   // Unique claims
-  firstTo: /\bfirst\s+(?:to|in|company to)\s+[^.]{10,50}/i,
-  onlyCompany: /\b(?:only|sole)\s+(?:company|provider|manufacturer|supplier)\s+(?:to|that|in)\s+[^.]{10,50}/i,
-  uniqueProcess: /\b(?:proprietary|exclusive|our own|in-house)\s+(?:process|method|technology|system|approach)/i,
-  specialization: /\b(?:specialize|exclusively|dedicated to|focused exclusively on)\s+[^.]{10,40}/i,
+  firstTo: /\bfirst\s+(?:to|in|company|manufacturer|provider)/i,
+  onlyCompany: /\b(?:only|sole)\s+(?:company|provider|manufacturer|supplier)/i,
+  uniqueProcess: /\b(?:proprietary|exclusive|our own|in-house|custom-built)\s+(?:process|method|technology|system|approach|solution)/i,
+  specialization: /\b(?:specialize|exclusively|dedicated to|focused exclusively|focused on serving)/i,
 
   // Specific product/service details
-  tolerances: /±\s*[\d.]+\s*(?:mm|in|inches?|microns?|thou|%)/i,
-  specifications: /\b(?:up to|rated for|capacity of)\s*[\d,.]+\s*(?:lbs?|kg|tons?|psi|cfm|gpm|rpm|°[CF])/i,
-  certifications: /\b(?:ISO|AS9100|IATF|FDA|CE|UL|CSA|NADCAP|API)\s*\d*\s*(?:certified|compliant|registered)/i,
+  tolerances: /±\s*[\d.]+|(?:tolerance|precision)\s*(?:of|to)?\s*[\d.]+/i,
+  specifications: /\b(?:up to|rated for|capacity of|supporting)?\s*[\d,.]+\s*(?:lbs?|kg|tons?|psi|cfm|gpm|rpm|°[CF]|sq\s*ft|cubic)/i,
+  measurables: /\b\d+(?:\.\d+)?\s*(?:inch|inches|feet|ft|meters|mm|cm|microns?|mil)\b/i,
 }
 
 // Detect commodity phrases in text
@@ -255,16 +263,17 @@ export function detectDifferentiationSignals(text: string): DifferentiationSigna
       let strength = 5
 
       // Categorize and weight based on pattern type
-      if (name.includes('Count') || name.includes('years') || name.includes('percent') || name.includes('dollar')) {
+      if (name.includes('Count') || name.includes('years') || name.includes('decades') ||
+          name.includes('percent') || name.includes('dollar') || name.includes('numbers') || name.includes('ranking')) {
         type = 'stat'
         strength = 7
-      } else if (name.includes('Client') || name.includes('award') || name.includes('patent')) {
+      } else if (name.includes('Client') || name.includes('award') || name.includes('patent') || name.includes('cert')) {
         type = 'proof'
         strength = 8
       } else if (name.includes('first') || name.includes('only') || name.includes('unique')) {
         type = 'unique'
         strength = 9
-      } else if (name.includes('tolerance') || name.includes('spec') || name.includes('cert')) {
+      } else if (name.includes('tolerance') || name.includes('spec') || name.includes('measur')) {
         type = 'specific'
         strength = 6
       }
@@ -313,9 +322,14 @@ export function calculateScore(
   // Start at 50 (median - average B2B manufacturer)
   let baseScore = 50
 
-  // Adjust base score by content quality
-  if (contentQuality === 'minimal') {
-    baseScore = 45 // Slight penalty for thin content
+  // CRITICAL: If we have minimal content and no phrases detected,
+  // we can't confidently say the messaging is differentiated.
+  // This prevents score 100 when we just couldn't scrape the real content.
+  if (contentQuality === 'minimal' && commodityPhrases.length === 0) {
+    baseScore = 45 // Strong penalty - lack of data ≠ differentiation
+    // Also cap differentiation bonus since we can't verify claims
+  } else if (contentQuality === 'minimal') {
+    baseScore = 47 // Slight penalty for thin content
   } else if (contentQuality === 'excellent') {
     baseScore = 52 // Slight bonus for rich content
   }
@@ -341,8 +355,15 @@ export function calculateScore(
     differentiationBonus += signal.strength * multiplier
   })
 
-  // Cap bonus at 40 points (need to be truly exceptional for 90+)
-  differentiationBonus = Math.min(differentiationBonus, 40)
+  // Cap bonus based on content quality
+  // If content is minimal, we can't trust differentiation signals as much
+  if (contentQuality === 'minimal') {
+    differentiationBonus = Math.min(differentiationBonus, 15) // Strict cap for thin content
+  } else if (contentQuality === 'good') {
+    differentiationBonus = Math.min(differentiationBonus, 35) // Moderate cap
+  } else {
+    differentiationBonus = Math.min(differentiationBonus, 40) // Normal cap for excellent content
+  }
 
   // Calculate final score
   let score = baseScore - commodityPenalty + differentiationBonus
@@ -408,33 +429,121 @@ export function calculateScore(
 export function generateDiagnosis(
   score: number,
   commodityCount: number,
-  differentiationCount: number
+  differentiationCount: number,
+  contentQuality: 'excellent' | 'good' | 'minimal' | 'failed' = 'good'
 ): string {
   if (score === -1) {
     return 'We couldn\'t extract enough content to analyze this site. The page may use heavy JavaScript rendering or have restricted access.'
   }
 
+  // Add caveat for minimal content - we can't be confident in high scores
+  const contentCaveat = contentQuality === 'minimal'
+    ? ' Note: We had limited content to analyze, so this score may not fully reflect your actual messaging.'
+    : ''
+
   if (score >= 90) {
+    if (contentQuality === 'minimal') {
+      // Can't get 90+ with minimal content anymore, but just in case
+      return `We couldn't extract enough marketing content to give you an accurate score. The visible text appears clean, but we'd need to see more of your actual messaging.${contentCaveat}`
+    }
     return `Exceptional differentiation. Your messaging is in the top 5% of B2B manufacturers. You use specific, provable language that competitors can't copy.`
   }
 
   if (score >= 75) {
-    return `Strong differentiation. Your messaging stands out with ${differentiationCount} specific proof point${differentiationCount === 1 ? '' : 's'}. ${commodityCount > 0 ? `Cleaning up ${commodityCount} commodity phrase${commodityCount === 1 ? '' : 's'} would push you higher.` : 'Keep strengthening with more specifics.'}`
+    return `Strong differentiation. Your messaging stands out with ${differentiationCount} specific proof point${differentiationCount === 1 ? '' : 's'}. ${commodityCount > 0 ? `Cleaning up ${commodityCount} commodity phrase${commodityCount === 1 ? '' : 's'} would push you higher.` : 'Keep strengthening with more specifics.'}${contentCaveat}`
   }
 
   if (score >= 60) {
-    return `Above average. Your messaging is better than most competitors, but ${commodityCount} generic phrase${commodityCount === 1 ? '' : 's'} and limited proof points are holding you back. Buyers can distinguish you, but there's room to stand out more.`
+    if (contentQuality === 'minimal' && commodityCount === 0) {
+      return `Limited content extracted. Based on what we could see, no obvious commodity language detected, but we'd need more of your marketing copy to give you a complete picture.${contentCaveat}`
+    }
+    return `Above average. Your messaging is better than most competitors, but ${commodityCount} generic phrase${commodityCount === 1 ? '' : 's'} and limited proof points are holding you back. Buyers can distinguish you, but there's room to stand out more.${contentCaveat}`
   }
 
   if (score >= 45) {
-    return `Average. Your messaging sounds like most B2B manufacturers. ${commodityCount} commodity phrase${commodityCount === 1 ? '' : 's'} make${commodityCount === 1 ? 's' : ''} you blend in. When buyers can't tell you apart, they default to price.`
+    if (contentQuality === 'minimal' && commodityCount === 0) {
+      return `We extracted limited content from this page. Without more text to analyze, we're giving you an average score. Try analyzing a page with more marketing copy for a more accurate assessment.`
+    }
+    return `Average. Your messaging sounds like most B2B manufacturers. ${commodityCount} commodity phrase${commodityCount === 1 ? '' : 's'} make${commodityCount === 1 ? 's' : ''} you blend in. When buyers can't tell you apart, they default to price.${contentCaveat}`
   }
 
   if (score >= 30) {
-    return `Below average. Heavy use of generic language (${commodityCount} commodity phrase${commodityCount === 1 ? '' : 's'}) makes you nearly indistinguishable from competitors. You're competing on price whether you want to or not.`
+    return `Below average. Heavy use of generic language (${commodityCount} commodity phrase${commodityCount === 1 ? '' : 's'}) makes you nearly indistinguishable from competitors. You're competing on price whether you want to or not.${contentCaveat}`
   }
 
-  return `Highly commoditized. Your messaging is almost entirely generic corporate speak. Buyers see no difference between you and the lowest-priced alternative. This is costing you deals.`
+  return `Highly commoditized. Your messaging is almost entirely generic corporate speak. Buyers see no difference between you and the lowest-priced alternative. This is costing you deals.${contentCaveat}`
+}
+
+// Industry detection based on content keywords
+export type DetectedIndustry = 'manufacturing' | 'saas' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
+
+const INDUSTRY_KEYWORDS: Record<DetectedIndustry, string[]> = {
+  manufacturing: ['manufacturing', 'manufacturer', 'machining', 'cnc', 'precision', 'fabrication', 'tooling', 'oem', 'supply chain', 'iso 9001', 'assembly', 'production', 'industrial'],
+  saas: ['software', 'saas', 'platform', 'cloud', 'api', 'integration', 'dashboard', 'subscription', 'user', 'deploy', 'onboarding', 'workflow', 'automation tool'],
+  services: ['consulting', 'agency', 'service provider', 'professional services', 'advisory', 'consulting firm', 'managed services'],
+  construction: ['construction', 'contractor', 'builder', 'building', 'project management', 'site', 'renovation', 'commercial construction', 'general contractor'],
+  healthcare: ['healthcare', 'medical', 'patient', 'clinical', 'health', 'hospital', 'provider', 'hipaa', 'physician'],
+  finance: ['financial', 'banking', 'investment', 'wealth', 'insurance', 'lending', 'mortgage', 'credit'],
+  retail: ['retail', 'ecommerce', 'store', 'shopping', 'product', 'consumer', 'brand', 'merchandise'],
+  general: []
+}
+
+const INDUSTRY_COPY: Record<DetectedIndustry, { verticalNoun: string; verticalPlural: string; dealContext: string }> = {
+  manufacturing: { verticalNoun: 'manufacturer', verticalPlural: 'manufacturers', dealContext: '$2M–$10M manufacturers' },
+  saas: { verticalNoun: 'software company', verticalPlural: 'software companies', dealContext: 'B2B SaaS companies' },
+  services: { verticalNoun: 'service business', verticalPlural: 'service businesses', dealContext: 'professional service firms' },
+  construction: { verticalNoun: 'contractor', verticalPlural: 'contractors', dealContext: 'commercial contractors' },
+  healthcare: { verticalNoun: 'healthcare provider', verticalPlural: 'healthcare providers', dealContext: 'healthcare organizations' },
+  finance: { verticalNoun: 'financial firm', verticalPlural: 'financial firms', dealContext: 'financial services companies' },
+  retail: { verticalNoun: 'retailer', verticalPlural: 'retailers', dealContext: 'retail brands' },
+  general: { verticalNoun: 'business', verticalPlural: 'businesses', dealContext: 'B2B companies' }
+}
+
+export function detectIndustry(text: string): DetectedIndustry {
+  const lowerText = text.toLowerCase()
+  const scores: Record<DetectedIndustry, number> = {
+    manufacturing: 0,
+    saas: 0,
+    services: 0,
+    construction: 0,
+    healthcare: 0,
+    finance: 0,
+    retail: 0,
+    general: 0
+  }
+
+  for (const [industry, keywords] of Object.entries(INDUSTRY_KEYWORDS)) {
+    for (const keyword of keywords) {
+      // Count occurrences
+      const regex = new RegExp(keyword, 'gi')
+      const matches = lowerText.match(regex)
+      if (matches) {
+        scores[industry as DetectedIndustry] += matches.length
+      }
+    }
+  }
+
+  // Find highest scoring industry
+  let maxScore = 0
+  let detectedIndustry: DetectedIndustry = 'general'
+
+  for (const [industry, score] of Object.entries(scores)) {
+    if (score > maxScore) {
+      maxScore = score
+      detectedIndustry = industry as DetectedIndustry
+    }
+  }
+
+  // Require minimum confidence
+  if (maxScore < 2) {
+    return 'general'
+  }
+
+  return detectedIndustry
+}
+
+export function getIndustryCopy(industry: DetectedIndustry): { verticalNoun: string; verticalPlural: string; dealContext: string } {
+  return INDUSTRY_COPY[industry]
 }
 
 // Calculate cost estimate based on score
