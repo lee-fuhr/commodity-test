@@ -482,12 +482,12 @@ export type DetectedIndustry = 'manufacturing' | 'saas' | 'services' | 'construc
 
 const INDUSTRY_KEYWORDS: Record<DetectedIndustry, string[]> = {
   manufacturing: ['manufacturing', 'manufacturer', 'machining', 'cnc', 'precision', 'fabrication', 'tooling', 'oem', 'supply chain', 'iso 9001', 'assembly', 'production', 'industrial'],
-  saas: ['software', 'saas', 'platform', 'cloud', 'api', 'integration', 'dashboard', 'subscription', 'user', 'deploy', 'onboarding', 'workflow', 'automation tool'],
+  saas: ['software', 'saas', 'platform', 'cloud', 'api', 'integration', 'dashboard', 'subscription', 'deploy', 'onboarding', 'workflow', 'automation tool', 'work management', 'project management', 'crm', 'team collaboration', 'collaborate', 'workspace', 'app', 'sign up free', 'free trial', 'get started', 'pricing plans'],
   services: ['consulting', 'agency', 'service provider', 'professional services', 'advisory', 'consulting firm', 'managed services'],
   construction: ['construction', 'contractor', 'builder', 'building', 'project management', 'site', 'renovation', 'commercial construction', 'general contractor'],
   healthcare: ['healthcare', 'medical', 'patient', 'clinical', 'health', 'hospital', 'provider', 'hipaa', 'physician'],
   finance: ['financial', 'banking', 'investment', 'wealth', 'insurance', 'lending', 'mortgage', 'credit'],
-  retail: ['retail', 'ecommerce', 'store', 'shopping', 'product', 'consumer', 'brand', 'merchandise'],
+  retail: ['shopping cart', 'add to cart', 'checkout', 'buy now', 'ecommerce', 'e-commerce', 'online store', 'free shipping', 'shop now', 'retail store', 'merchandise'],
   general: []
 }
 
