@@ -67,11 +67,12 @@ async function getAnalysis(id: string): Promise<AnalysisResult | null> {
 }
 
 // Differentiation score: 100 = highly differentiated (good), 0 = pure commodity (bad)
+// Be pessimistic - 61 shouldn't feel "well done"
 function getScoreLabel(score: number): { label: string; color: string; adjective: string } {
-  if (score >= 80) return { label: 'Highly differentiated', adjective: 'Strongly', color: 'text-green-400' }
-  if (score >= 60) return { label: 'Well differentiated', adjective: 'Clearly', color: 'text-lime-400' }
-  if (score >= 40) return { label: 'Somewhat differentiated', adjective: 'Moderately', color: 'text-yellow-400' }
-  if (score >= 20) return { label: 'Barely differentiated', adjective: 'Weakly', color: 'text-orange-400' }
+  if (score >= 85) return { label: 'Highly differentiated', adjective: 'Strongly', color: 'text-green-400' }
+  if (score >= 70) return { label: 'Well differentiated', adjective: 'Clearly', color: 'text-lime-400' }
+  if (score >= 55) return { label: 'Moderately differentiated', adjective: 'Somewhat', color: 'text-yellow-400' }
+  if (score >= 40) return { label: 'Weakly differentiated', adjective: 'Barely', color: 'text-orange-400' }
   return { label: 'Undifferentiated', adjective: 'Not', color: 'text-red-400' }
 }
 
@@ -415,7 +416,7 @@ export default async function ResultsPage({
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 px-6 relative">
         {/* Version number - subtle, for deployment verification */}
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.8.0</span>
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.9.0</span>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
             <p className="text-[var(--foreground)] font-semibold">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
