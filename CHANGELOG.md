@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.11.0 - Interactive calculator + polish
+- Interactive cost calculator: Click any number to customize your deal value, volume, and loss rate
+- Quotemark graphic on quote blocks (visual clarity for "found on your site")
+- CTA copy: "Hire me to do it for you" + "websites that win deals"
+
 ## v0.10.0 - Hardening for soft release
 - Rate limiting: 10 req/hr, 50/day per IP via Vercel KV
 - Dynamic OG images: `/api/og` generates social previews with company name + score
