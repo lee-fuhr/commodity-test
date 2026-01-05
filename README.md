@@ -16,9 +16,16 @@ Most B2B websites use the same tired phrases: "innovative solutions," "customer-
 4. **Identifies specific fixes** with before/after suggestions
 5. **Estimates the cost** of generic messaging based on your industry
 
-## Screenshot
+## Screenshots
 
-![The Commodity Test homepage](./public/screenshot-home.png)
+### Homepage
+![Enter any URL to analyze](./public/screenshot-home.png)
+
+### Results with score and cost estimate
+![Your differentiation score and what generic messaging costs you](./public/screenshot-results.png)
+
+### Specific fixes with before/after suggestions
+![Actionable recommendations to fix commodity language](./public/screenshot-fixes.png)
 
 ## Tech stack
 
