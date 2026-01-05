@@ -3,6 +3,7 @@ import { kv } from '@vercel/kv'
 import { Metadata } from 'next'
 import { ShareButtons } from './ShareButtons'
 import { CopyButton } from './CopyButton'
+import { InteractiveCostCalculator } from './InteractiveCostCalculator'
 
 interface CostAssumptions {
   averageDealValue: number
@@ -279,129 +280,12 @@ export default async function ResultsPage({
             </p>
           </div>
 
-          {/* Methodology breakdown */}
+          {/* Methodology breakdown - interactive */}
           {result.costAssumptions && (
-            <div className="bg-black/20 p-4 sm:p-6 md:p-8 mt-8 max-w-2xl mx-auto">
-              <h3 className="text-lg sm:text-xl font-semibold text-blue-200 mb-2">Show your work</h3>
-              <p className="text-white/80 text-xs sm:text-sm mb-6">
-                How much revenue walks out the door when prospects can&apos;t tell you apart from competitors?
-              </p>
-
-              {/* The calculation as a readable equation */}
-              <div className="text-white mb-6">
-                {/* Desktop: horizontal flow */}
-                <div className="hidden sm:flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center">
-                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[80px] sm:min-w-[100px]">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${(result.costAssumptions.averageDealValue / 1000).toFixed(0)}K</p>
-                    <p className="text-[10px] sm:text-xs text-white/70">avg deal</p>
-                  </div>
-                  <span className="text-xl sm:text-2xl text-white/70">×</span>
-                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[60px] sm:min-w-[80px]">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">{result.costAssumptions.annualDeals}</p>
-                    <p className="text-[10px] sm:text-xs text-white/70">deals/yr</p>
-                  </div>
-                  <span className="text-xl sm:text-2xl text-white/70">×</span>
-                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[60px] sm:min-w-[80px]">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">{Math.round(result.costAssumptions.lossRate * 100)}%</p>
-                    <p className="text-[10px] sm:text-xs text-white/70">loss rate</p>
-                  </div>
-                  <span className="text-xl sm:text-2xl text-white/70">=</span>
-                  <div className="bg-white/10 px-3 sm:px-4 py-2 sm:py-3 min-w-[100px] sm:min-w-[120px] border-2 border-white/30">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
-                    <p className="text-[10px] sm:text-xs text-white/70">annual loss</p>
-                  </div>
-                </div>
-                {/* Mobile: stacked layout */}
-                <div className="sm:hidden space-y-3">
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-black/20 px-2 py-2">
-                      <p className="text-lg font-display text-white">${(result.costAssumptions.averageDealValue / 1000).toFixed(0)}K</p>
-                      <p className="text-[10px] text-white/70">avg deal</p>
-                    </div>
-                    <div className="bg-black/20 px-2 py-2">
-                      <p className="text-lg font-display text-white">{result.costAssumptions.annualDeals}</p>
-                      <p className="text-[10px] text-white/70">deals/yr</p>
-                    </div>
-                    <div className="bg-black/20 px-2 py-2">
-                      <p className="text-lg font-display text-white">{Math.round(result.costAssumptions.lossRate * 100)}%</p>
-                      <p className="text-[10px] text-white/70">loss rate</p>
-                    </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <div className="bg-white/10 px-4 py-2 border-2 border-white/30 text-center">
-                      <p className="text-2xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
-                      <p className="text-[10px] text-white/70">annual loss</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* ROI calculation - now more visual */}
-              <div className="border-t border-white/20 pt-6">
-                <h3 className="text-lg sm:text-xl font-semibold text-blue-200 mb-2">If you fix it</h3>
-                <p className="text-white/80 text-xs sm:text-sm mb-4">
-                  A Core Site rebuild runs $18K. Keep just half the deals you&apos;d otherwise lose, and here&apos;s your return:
-                </p>
-                {/* Desktop: horizontal flow */}
-                <div className="hidden sm:flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-white mb-4">
-                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
-                    <p className="text-[10px] sm:text-xs text-white/70">annual loss</p>
-                  </div>
-                  <span className="text-xl sm:text-2xl text-white/70">×</span>
-                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">50%</p>
-                    <p className="text-[10px] sm:text-xs text-white/70">conservative</p>
-                  </div>
-                  <span className="text-xl sm:text-2xl text-white/70">÷</span>
-                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">$18K</p>
-                    <p className="text-[10px] sm:text-xs text-white/70">investment</p>
-                  </div>
-                  <span className="text-xl sm:text-2xl text-white/70">=</span>
-                  <div className="bg-green-500/20 px-3 sm:px-4 py-2 sm:py-3 border-2 border-green-400/40">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-green-200">{Math.round((result.costEstimate / 2 / 18000) * 100)}%</p>
-                    <p className="text-sm sm:text-lg font-display text-green-200">(${Math.round(result.costEstimate / 2 / 1000)}K)</p>
-                    <p className="text-[10px] sm:text-xs text-green-200/80">first-year ROI</p>
-                  </div>
-                </div>
-                {/* Mobile: stacked layout */}
-                <div className="sm:hidden space-y-3 mb-4">
-                  <div className="grid grid-cols-3 gap-2 text-center text-white">
-                    <div className="bg-black/20 px-2 py-2">
-                      <p className="text-lg font-display">${(result.costEstimate / 1000).toFixed(0)}K</p>
-                      <p className="text-[10px] text-white/70">annual loss</p>
-                    </div>
-                    <div className="bg-black/20 px-2 py-2">
-                      <p className="text-lg font-display">50%</p>
-                      <p className="text-[10px] text-white/70">conservative</p>
-                    </div>
-                    <div className="bg-black/20 px-2 py-2">
-                      <p className="text-lg font-display">$18K</p>
-                      <p className="text-[10px] text-white/70">investment</p>
-                    </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <div className="bg-green-500/20 px-4 py-2 border-2 border-green-400/40 text-center">
-                      <p className="text-2xl font-display text-green-200">{Math.round((result.costEstimate / 2 / 18000) * 100)}%</p>
-                      <p className="text-base font-display text-green-200">(${Math.round(result.costEstimate / 2 / 1000)}K)</p>
-                      <p className="text-[10px] text-green-200/80">first-year ROI</p>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-center text-white text-sm sm:text-base">
-                  <strong>Payback period:</strong>{' '}
-                  {result.costEstimate > 0 ? (
-                    <>
-                      {Math.ceil(18000 / (result.costEstimate / 2 / 12))} {Math.ceil(18000 / (result.costEstimate / 2 / 12)) === 1 ? 'month' : 'months'}
-                    </>
-                  ) : '—'}
-                </p>
-                <p className="text-xs sm:text-sm text-[var(--accent-foreground)] opacity-80 mt-4 text-center">
-                  Core site rebuild: $18K. <a href="/pricing" className="underline hover:text-[var(--accent-foreground)]">See all options →</a>
-                </p>
-              </div>
-            </div>
+            <InteractiveCostCalculator
+              initialAssumptions={result.costAssumptions}
+              industryContext={industryCopy.dealContext}
+            />
           )}
         </div>
       </section>
@@ -429,8 +313,12 @@ export default async function ResultsPage({
                     {/* Original phrase with context */}
                     <div>
                       <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 sm:mb-3">Found on your site</p>
-                      <div className="bg-[var(--muted)] p-3 sm:p-4 text-base sm:text-lg leading-relaxed overflow-x-auto">
-                        <HighlightedContext context={fix.context} phrase={fix.originalPhrase} />
+                      <div className="bg-[var(--muted)] p-3 sm:p-4 text-base sm:text-lg leading-relaxed overflow-x-auto relative">
+                        {/* Quotemark graphic */}
+                        <span className="absolute -top-2 -left-1 text-[3rem] sm:text-[4rem] text-[var(--accent)]/20 font-serif leading-none select-none pointer-events-none">&ldquo;</span>
+                        <div className="pl-4 sm:pl-6">
+                          <HighlightedContext context={fix.context} phrase={fix.originalPhrase} />
+                        </div>
                       </div>
                       <p className="text-body text-xs sm:text-sm mt-2">Location: {fix.location}</p>
                     </div>
@@ -513,9 +401,9 @@ export default async function ResultsPage({
 
             {/* Done-for-you option */}
             <div className="bg-[var(--accent)] p-5 sm:p-8">
-              <h3 className="text-section text-lg sm:text-xl text-[var(--accent-foreground)] mb-3 sm:mb-4">Let me do it for you</h3>
+              <h3 className="text-section text-lg sm:text-xl text-[var(--accent-foreground)] mb-3 sm:mb-4">Hire me to do it for you</h3>
               <p className="text-[var(--accent-foreground)] opacity-90 text-base sm:text-lg mb-4 sm:mb-6">
-                I build messaging frameworks for {industryCopy.verticalPlural} who are tired of competing
+                I build websites that win deals for {industryCopy.verticalPlural} who are tired of competing
                 on price. $18K-$25K, 6-8 weeks.
               </p>
               <Link href="/pricing" className="btn-reversed w-full min-h-[44px]">
@@ -529,7 +417,7 @@ export default async function ResultsPage({
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-6 sm:py-8 px-4 sm:px-6 relative">
         {/* Version number - subtle, for deployment verification */}
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.9.0</span>
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.11.0</span>
         <div className="max-w-4xl mx-auto flex flex-col gap-4 sm:gap-6 md:flex-row md:justify-between md:items-center">
           <div className="text-center md:text-left">
             <p className="text-[var(--foreground)] font-semibold text-sm sm:text-base">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
