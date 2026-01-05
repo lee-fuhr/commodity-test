@@ -9,6 +9,7 @@ interface ScanEntry {
   companyName: string
   score: number
   industry: string
+  ip?: string
   timestamp: string
   resultUrl?: string
 }
@@ -273,6 +274,7 @@ export default function AdminPage() {
                     url: s.url,
                     score: s.score,
                     industry: s.industry,
+                    ip: s.ip || '',
                     resultUrl: s.resultUrl || ''
                   })),
                   `commodity-test-scans-${new Date().toISOString().slice(0, 10)}.csv`
@@ -289,7 +291,7 @@ export default function AdminPage() {
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Date</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Company</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Score</th>
-                    <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Industry</th>
+                    <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">IP</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Result</th>
                   </tr>
                 </thead>
@@ -298,17 +300,18 @@ export default function AdminPage() {
                     <tr key={i} className="border-b border-[var(--border)] hover:bg-[var(--muted)]/50">
                       <td className="py-3 px-2 text-[var(--muted-foreground)]">{formatDate(scan.timestamp)}</td>
                       <td className="py-3 px-2 text-[var(--foreground)]">
-                        <div>{scan.companyName}</div>
-                        <div className="text-xs text-[var(--muted-foreground)] truncate max-w-[200px]">{scan.url}</div>
-                      </td>
-                      <td className="py-3 px-2">
-                        <span className={`font-semibold ${
-                          scan.score >= 70 ? 'text-green-400' :
-                          scan.score >= 55 ? 'text-yellow-400' :
-                          scan.score >= 40 ? 'text-orange-400' : 'text-red-400'
-                        }`}>{scan.score}</span>
+                        <div className="flex items-center gap-2">
+                          <span>{scan.companyName}</span>
+                          <span className={`text-xs px-1.5 py-0.5 rounded font-semibold ${
+                            scan.score >= 70 ? 'bg-green-500/20 text-green-400' :
+                            scan.score >= 55 ? 'bg-yellow-500/20 text-yellow-400' :
+                            scan.score >= 40 ? 'bg-orange-500/20 text-orange-400' : 'bg-red-500/20 text-red-400'
+                          }`}>{scan.score}</span>
+                        </div>
+                        <div className="text-xs text-[var(--muted-foreground)] truncate max-w-[250px]">{scan.url}</div>
                       </td>
                       <td className="py-3 px-2 text-[var(--muted-foreground)] capitalize">{scan.industry}</td>
+                      <td className="py-3 px-2 text-[var(--muted-foreground)] text-xs font-mono">{scan.ip || '—'}</td>
                       <td className="py-3 px-2">
                         {scan.resultUrl && (
                           <a

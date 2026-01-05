@@ -314,9 +314,9 @@ export default async function ResultsPage({
                     {/* Original phrase with context */}
                     <div>
                       <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 sm:mb-3">Found on your site</p>
-                      <div className="bg-[var(--muted)] p-3 sm:p-4 text-base sm:text-lg leading-relaxed overflow-x-auto relative">
+                      <div className="bg-[var(--muted)] p-3 sm:p-4 text-base sm:text-lg leading-relaxed relative">
                         {/* Quotemark graphic - decorative, anchored top-left inside box */}
-                        <span className="absolute top-2 left-2 sm:top-3 sm:left-3 text-[2.5rem] sm:text-[3rem] text-white/15 font-serif leading-none select-none pointer-events-none">&ldquo;</span>
+                        <span className="absolute top-2 left-2 sm:top-3 sm:left-3 text-[2.5rem] sm:text-[3rem] text-[var(--foreground)]/10 font-serif leading-none select-none pointer-events-none">&ldquo;</span>
                         <div className="pl-8 sm:pl-10 relative">
                           <HighlightedContext context={fix.context} phrase={fix.originalPhrase} />
                         </div>
