@@ -359,7 +359,7 @@ export default function HomePage() {
       <footer className="px-4 md:px-8 lg:px-12 py-8 bg-[var(--muted)]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-label">
-            <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> © 2025
+            <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> © {new Date().getFullYear()}
             <span className="text-transparent ml-3 select-none" aria-hidden="true">v0.12.0</span>
           </p>
 
