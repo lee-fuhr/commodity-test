@@ -416,7 +416,16 @@ export function extractContent(html: string, url: string): ExtractedContent {
                   $('meta[name="application-name"]').attr('content') || ''
   }
 
-  if (!companyName) {
+  // Helper to check if company name looks like an error message or is invalid
+  const isInvalidCompanyName = (name: string): boolean => {
+    if (!name || name.length < 2) return true
+    // Include "Jina Extracted Content" which comes from Jina fallback's fake HTML wrapper
+    const errorPatterns = /whoops|error|not found|page not|404|500|403|oops|sorry|couldn't|could not|can't|cannot|unavailable|problem|went wrong|jina extracted content/i
+    return errorPatterns.test(name)
+  }
+
+  // Fallback to domain if company name is missing or looks like an error
+  if (!companyName || isInvalidCompanyName(companyName)) {
     try {
       const domain = new URL(url).hostname
       companyName = domain
