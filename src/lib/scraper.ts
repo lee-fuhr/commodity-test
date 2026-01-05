@@ -372,6 +372,13 @@ export function extractContent(html: string, url: string): ExtractedContent {
   // Remove script, style, nav, footer, header (common noise)
   $('script, style, noscript, iframe, nav, footer, header').remove()
 
+  // Remove testimonial/quote content - we don't want to analyze or suggest fixing these
+  // They're typically client quotes that shouldn't be edited
+  $('blockquote').remove()
+  $('[class*="testimonial"], [class*="quote"], [class*="review"]').remove()
+  $('[class*="client-quote"], [class*="customer-quote"], [class*="feedback"]').remove()
+  $('[id*="testimonial"], [id*="quote"], [id*="review"]').remove()
+
   // Extract headline
   let headline = ''
   const headlineSelectors = [
