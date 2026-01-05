@@ -22,7 +22,7 @@ export default function TestPage() {
             QA <span className="text-[var(--accent)]">dashboard</span>
           </h1>
           <p className="text-body text-lg mb-6">
-            Test all pages and flows · Port 3001
+            Test all pages and flows
           </p>
           <Link href="/" className="text-[var(--accent)] hover:underline">
             ← Back to landing page
@@ -214,7 +214,7 @@ export default function TestPage() {
       {/* Footer */}
       <footer className="px-4 md:px-8 lg:px-12 py-8 border-t border-[var(--border)]">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-label">Commodity Test v1.0 · Port 3001</p>
+          <p className="text-label">Commodity Test <span className="text-transparent select-none" aria-hidden="true">v0.12.0</span></p>
         </div>
       </footer>
     </main>
