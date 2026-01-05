@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.12.0 - Lead capture + admin tools
+- Lead capture: Guide emails now stored in KV for future marketing
+- Scan logging: Full URLs + result IDs logged so Lee can see exact reports
+- Email results: "Save this report" lets visitors email themselves the link
+- Admin endpoint: `/api/admin/stats` shows all leads, scans, and contacts
+- Calculator UX: True inline editing (no layout shift)
+- Quotemark: Inside gray box, white, faded (subtle decoration)
+- Version invisible: Still in source for deploy verification
+
 ## v0.11.0 - Interactive calculator + polish
 - Interactive cost calculator: Click any number to customize your deal value, volume, and loss rate
 - Quotemark graphic on quote blocks (visual clarity for "found on your site")

@@ -590,7 +590,23 @@ export async function POST(request: NextRequest) {
     // Store result in Vercel KV
     await kv.set(`result:${id}`, result, { ex: RESULT_TTL_SECONDS })
 
-    // Store anonymized analytics
+    // Store scan log with full URL and result ID (so Lee can see exact reports)
+    try {
+      await kv.lpush('analytics:scans', {
+        url: validUrl,
+        resultId: id,
+        companyName,
+        score: commodityScore,
+        industry,
+        timestamp: new Date().toISOString(),
+      })
+      // Keep last 500 scans (30 days of results stored, scan log for visibility)
+      await kv.ltrim('analytics:scans', 0, 499)
+    } catch {
+      // Silent fail - scan log shouldn't break the main flow
+    }
+
+    // Store anonymized analytics (aggregate stats)
     try {
       const analyticsData = {
         timestamp: new Date().toISOString(),

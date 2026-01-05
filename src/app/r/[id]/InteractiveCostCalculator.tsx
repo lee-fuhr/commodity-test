@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 interface CostAssumptions {
   averageDealValue: number
@@ -14,77 +14,104 @@ interface Props {
   industryContext: string
 }
 
+// Truly inline editable number - no layout shift
 function EditableNumber({
   value,
   onChange,
   prefix = '',
   suffix = '',
-  label
+  label,
+  formatAsK = true
 }: {
   value: number
   onChange: (val: number) => void
   prefix?: string
   suffix?: string
   label: string
+  formatAsK?: boolean
 }) {
   const [isEditing, setIsEditing] = useState(false)
-  const [inputValue, setInputValue] = useState(value.toString())
+  const spanRef = useRef<HTMLSpanElement>(null)
 
-  const displayValue = prefix + (value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value.toString()) + suffix
+  const displayNumber = formatAsK && value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value.toString()
 
   const handleClick = () => {
-    setInputValue(value.toString())
     setIsEditing(true)
   }
 
+  useEffect(() => {
+    if (isEditing && spanRef.current) {
+      // Select all text in the editable span
+      const range = document.createRange()
+      range.selectNodeContents(spanRef.current)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+      spanRef.current.focus()
+    }
+  }, [isEditing])
+
   const handleBlur = () => {
-    const parsed = parseInt(inputValue.replace(/[^0-9]/g, ''), 10)
-    if (!isNaN(parsed) && parsed > 0) {
-      onChange(parsed)
+    if (spanRef.current) {
+      const text = spanRef.current.innerText.replace(/[^0-9kK]/g, '')
+      let parsed: number
+
+      // Handle "12K" or "12k" format
+      if (text.toLowerCase().endsWith('k')) {
+        parsed = parseInt(text.slice(0, -1), 10) * 1000
+      } else {
+        parsed = parseInt(text, 10)
+      }
+
+      if (!isNaN(parsed) && parsed > 0) {
+        onChange(parsed)
+      } else {
+        // Reset to original value if invalid
+        spanRef.current.innerText = displayNumber
+      }
     }
     setIsEditing(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleBlur()
+      e.preventDefault()
+      spanRef.current?.blur()
     } else if (e.key === 'Escape') {
+      if (spanRef.current) {
+        spanRef.current.innerText = displayNumber
+      }
       setIsEditing(false)
     }
-  }
-
-  if (isEditing) {
-    return (
-      <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[80px] sm:min-w-[100px]">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          autoFocus
-          className="text-xl sm:text-2xl md:text-3xl font-display text-white bg-transparent border-b-2 border-white/50 outline-none w-full text-center"
-          style={{ minWidth: '60px' }}
-        />
-        <p className="text-[10px] sm:text-xs text-white/70">{label}</p>
-      </div>
-    )
   }
 
   return (
     <div
       className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[80px] sm:min-w-[100px] cursor-pointer hover:bg-black/30 transition-colors group"
-      onClick={handleClick}
+      onClick={!isEditing ? handleClick : undefined}
       title="Click to edit"
     >
       <p className="text-xl sm:text-2xl md:text-3xl font-display text-white group-hover:text-blue-200 transition-colors">
-        {displayValue}
+        {prefix}
+        <span
+          ref={spanRef}
+          contentEditable={isEditing}
+          suppressContentEditableWarning
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className={`outline-none ${isEditing ? 'bg-white/10 px-1 rounded' : ''}`}
+          style={{ minWidth: '2ch', display: 'inline-block' }}
+        >
+          {displayNumber}
+        </span>
+        {suffix}
       </p>
       <p className="text-[10px] sm:text-xs text-white/70">{label}</p>
     </div>
   )
 }
 
+// Truly inline editable percent
 function EditablePercent({
   value,
   onChange,
@@ -95,62 +122,77 @@ function EditablePercent({
   label: string
 }) {
   const [isEditing, setIsEditing] = useState(false)
-  const [inputValue, setInputValue] = useState((value * 100).toString())
+  const spanRef = useRef<HTMLSpanElement>(null)
+
+  const displayNumber = Math.round(value * 100).toString()
 
   const handleClick = () => {
-    setInputValue((value * 100).toString())
     setIsEditing(true)
   }
 
+  useEffect(() => {
+    if (isEditing && spanRef.current) {
+      const range = document.createRange()
+      range.selectNodeContents(spanRef.current)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+      spanRef.current.focus()
+    }
+  }, [isEditing])
+
   const handleBlur = () => {
-    const parsed = parseInt(inputValue.replace(/[^0-9]/g, ''), 10)
-    if (!isNaN(parsed) && parsed > 0 && parsed <= 100) {
-      onChange(parsed / 100)
+    if (spanRef.current) {
+      const text = spanRef.current.innerText.replace(/[^0-9]/g, '')
+      const parsed = parseInt(text, 10)
+
+      if (!isNaN(parsed) && parsed > 0 && parsed <= 100) {
+        onChange(parsed / 100)
+      } else {
+        spanRef.current.innerText = displayNumber
+      }
     }
     setIsEditing(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleBlur()
+      e.preventDefault()
+      spanRef.current?.blur()
     } else if (e.key === 'Escape') {
+      if (spanRef.current) {
+        spanRef.current.innerText = displayNumber
+      }
       setIsEditing(false)
     }
-  }
-
-  if (isEditing) {
-    return (
-      <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[60px] sm:min-w-[80px]">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          autoFocus
-          className="text-xl sm:text-2xl md:text-3xl font-display text-white bg-transparent border-b-2 border-white/50 outline-none w-full text-center"
-          style={{ minWidth: '40px' }}
-        />
-        <p className="text-[10px] sm:text-xs text-white/70">{label}</p>
-      </div>
-    )
   }
 
   return (
     <div
       className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[60px] sm:min-w-[80px] cursor-pointer hover:bg-black/30 transition-colors group"
-      onClick={handleClick}
+      onClick={!isEditing ? handleClick : undefined}
       title="Click to edit"
     >
       <p className="text-xl sm:text-2xl md:text-3xl font-display text-white group-hover:text-blue-200 transition-colors">
-        {Math.round(value * 100)}%
+        <span
+          ref={spanRef}
+          contentEditable={isEditing}
+          suppressContentEditableWarning
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className={`outline-none ${isEditing ? 'bg-white/10 px-1 rounded' : ''}`}
+          style={{ minWidth: '1ch', display: 'inline-block' }}
+        >
+          {displayNumber}
+        </span>
+        %
       </p>
       <p className="text-[10px] sm:text-xs text-white/70">{label}</p>
     </div>
   )
 }
 
-export function InteractiveCostCalculator({ initialAssumptions, industryContext }: Props) {
+export function InteractiveCostCalculator({ initialAssumptions }: Props) {
   const [dealValue, setDealValue] = useState(initialAssumptions.averageDealValue)
   const [deals, setDeals] = useState(initialAssumptions.annualDeals)
   const [lossRate, setLossRate] = useState(initialAssumptions.lossRate)
@@ -182,6 +224,7 @@ export function InteractiveCostCalculator({ initialAssumptions, industryContext 
             value={deals}
             onChange={setDeals}
             label="deals/yr"
+            formatAsK={false}
           />
           <span className="text-xl sm:text-2xl text-white/70">×</span>
           <EditablePercent
@@ -195,48 +238,26 @@ export function InteractiveCostCalculator({ initialAssumptions, industryContext 
             <p className="text-[10px] sm:text-xs text-white/70">annual loss</p>
           </div>
         </div>
-        {/* Mobile: stacked layout */}
+        {/* Mobile: stacked layout with tap-to-edit */}
         <div className="sm:hidden space-y-3">
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div
-              className="bg-black/20 px-2 py-2 cursor-pointer hover:bg-black/30"
-              onClick={() => {
-                const val = prompt('Average deal value ($):', dealValue.toString())
-                if (val) {
-                  const parsed = parseInt(val.replace(/[^0-9]/g, ''), 10)
-                  if (!isNaN(parsed) && parsed > 0) setDealValue(parsed)
-                }
-              }}
-            >
-              <p className="text-lg font-display text-white">${(dealValue / 1000).toFixed(0)}K</p>
-              <p className="text-[10px] text-white/70">avg deal</p>
-            </div>
-            <div
-              className="bg-black/20 px-2 py-2 cursor-pointer hover:bg-black/30"
-              onClick={() => {
-                const val = prompt('Deals per year:', deals.toString())
-                if (val) {
-                  const parsed = parseInt(val.replace(/[^0-9]/g, ''), 10)
-                  if (!isNaN(parsed) && parsed > 0) setDeals(parsed)
-                }
-              }}
-            >
-              <p className="text-lg font-display text-white">{deals}</p>
-              <p className="text-[10px] text-white/70">deals/yr</p>
-            </div>
-            <div
-              className="bg-black/20 px-2 py-2 cursor-pointer hover:bg-black/30"
-              onClick={() => {
-                const val = prompt('Loss rate (%):', Math.round(lossRate * 100).toString())
-                if (val) {
-                  const parsed = parseInt(val.replace(/[^0-9]/g, ''), 10)
-                  if (!isNaN(parsed) && parsed > 0 && parsed <= 100) setLossRate(parsed / 100)
-                }
-              }}
-            >
-              <p className="text-lg font-display text-white">{Math.round(lossRate * 100)}%</p>
-              <p className="text-[10px] text-white/70">loss rate</p>
-            </div>
+            <EditableNumber
+              value={dealValue}
+              onChange={setDealValue}
+              prefix="$"
+              label="avg deal"
+            />
+            <EditableNumber
+              value={deals}
+              onChange={setDeals}
+              label="deals/yr"
+              formatAsK={false}
+            />
+            <EditablePercent
+              value={lossRate}
+              onChange={setLossRate}
+              label="loss rate"
+            />
           </div>
           <div className="flex justify-center">
             <div className="bg-white/10 px-4 py-2 border-2 border-white/30 text-center">

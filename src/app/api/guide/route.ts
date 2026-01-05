@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { kv } from '@vercel/kv'
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -19,6 +20,19 @@ export async function POST(request: NextRequest) {
         { error: 'Email service not configured. Please contact support.' },
         { status: 500 }
       )
+    }
+
+    // Store the lead for future marketing campaigns
+    try {
+      await kv.lpush('guide:emails', {
+        email,
+        firstName: firstName || null,
+        timestamp: new Date().toISOString(),
+        source: 'commodity-test-guide'
+      })
+    } catch (kvError) {
+      // Don't fail the request if KV storage fails - still send the email
+      console.error('Failed to store guide email in KV:', kvError)
     }
 
     // Send the guide via Resend

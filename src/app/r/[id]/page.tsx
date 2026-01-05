@@ -4,6 +4,7 @@ import { Metadata } from 'next'
 import { ShareButtons } from './ShareButtons'
 import { CopyButton } from './CopyButton'
 import { InteractiveCostCalculator } from './InteractiveCostCalculator'
+import { EmailCapture } from './EmailCapture'
 
 interface CostAssumptions {
   averageDealValue: number
@@ -314,9 +315,9 @@ export default async function ResultsPage({
                     <div>
                       <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 sm:mb-3">Found on your site</p>
                       <div className="bg-[var(--muted)] p-3 sm:p-4 text-base sm:text-lg leading-relaxed overflow-x-auto relative">
-                        {/* Quotemark graphic */}
-                        <span className="absolute -top-2 -left-1 text-[3rem] sm:text-[4rem] text-[var(--accent)]/20 font-serif leading-none select-none pointer-events-none">&ldquo;</span>
-                        <div className="pl-4 sm:pl-6">
+                        {/* Quotemark graphic - decorative, anchored top-left inside box */}
+                        <span className="absolute top-2 left-2 sm:top-3 sm:left-3 text-[2.5rem] sm:text-[3rem] text-white/15 font-serif leading-none select-none pointer-events-none">&ldquo;</span>
+                        <div className="pl-8 sm:pl-10 relative">
                           <HighlightedContext context={fix.context} phrase={fix.originalPhrase} />
                         </div>
                       </div>
@@ -367,15 +368,20 @@ export default async function ResultsPage({
 
       {/* Share section */}
       <section className="bg-[var(--muted)] py-10 sm:py-12 px-4 sm:px-6 border-t border-[var(--border)]">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-section text-xl sm:text-2xl text-[var(--foreground)] mb-4 sm:mb-6">
-            Share these results
-          </h2>
-          <ShareButtons
-            resultUrl={resultUrl}
-            companyName={result.companyName}
-            score={result.commodityScore}
-          />
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-section text-xl sm:text-2xl text-[var(--foreground)] mb-4 sm:mb-6">
+              Share these results
+            </h2>
+            <ShareButtons
+              resultUrl={resultUrl}
+              companyName={result.companyName}
+              score={result.commodityScore}
+            />
+          </div>
+          <div className="mt-8">
+            <EmailCapture resultId={result.id} companyName={result.companyName} />
+          </div>
         </div>
       </section>
 
@@ -416,8 +422,8 @@ export default async function ResultsPage({
 
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-6 sm:py-8 px-4 sm:px-6 relative">
-        {/* Version number - subtle, for deployment verification */}
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.11.0</span>
+        {/* Version number - invisible but in source for deployment verification */}
+        <span className="absolute bottom-2 right-2 text-[10px] text-transparent select-none" aria-hidden="true">v0.12.0</span>
         <div className="max-w-4xl mx-auto flex flex-col gap-4 sm:gap-6 md:flex-row md:justify-between md:items-center">
           <div className="text-center md:text-left">
             <p className="text-[var(--foreground)] font-semibold text-sm sm:text-base">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
