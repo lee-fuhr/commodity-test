@@ -15,6 +15,7 @@ import {
   type DifferentiationSignal,
   type DetectedIndustry,
 } from '@/lib/scoring'
+import { checkRateLimit, getClientIP } from '@/lib/rate-limit'
 
 // TTL for stored results (30 days in seconds for Vercel KV)
 const RESULT_TTL_SECONDS = 30 * 24 * 60 * 60
@@ -425,10 +426,33 @@ Only return the JSON, no other text.`
 
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit before doing any expensive work
+    const clientIP = getClientIP(request)
+    const rateLimitResult = await checkRateLimit(clientIP, {
+      hourlyLimit: 10,
+      dailyLimit: 50,
+    })
+
+    if (!rateLimitResult.allowed) {
+      console.log(`[Analyze] Rate limited: ${clientIP} - ${rateLimitResult.message}`)
+      const response = NextResponse.json(
+        {
+          error: rateLimitResult.message,
+          rateLimited: true,
+          retryAfterSeconds: rateLimitResult.retryAfterSeconds,
+        },
+        { status: 429 }
+      )
+      if (rateLimitResult.retryAfterSeconds) {
+        response.headers.set('Retry-After', String(rateLimitResult.retryAfterSeconds))
+      }
+      return response
+    }
+
     const { url } = await request.json()
 
     if (!url) {
-      return NextResponse.json({ error: 'URL is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Please enter a website URL to analyze.' }, { status: 400 })
     }
 
     // Basic URL validation
@@ -437,7 +461,7 @@ export async function POST(request: NextRequest) {
       const urlWithProtocol = url.startsWith('http') ? url : `https://${url}`
       validUrl = new URL(urlWithProtocol).toString()
     } catch {
-      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 })
+      return NextResponse.json({ error: 'That doesn\'t look like a valid website address. Try something like "example.com" or "https://example.com".' }, { status: 400 })
     }
 
     console.log(`[Analyze] Starting analysis for: ${validUrl}`)
@@ -449,8 +473,8 @@ export async function POST(request: NextRequest) {
     if (scrapeResult.method === 'failed' || scrapeResult.contentLength < 100) {
       console.log(`[Analyze] Scraping failed: ${scrapeResult.error}`)
       return NextResponse.json({
-        error: scrapeResult.error || 'Failed to fetch website content',
-        hint: 'The site may be using bot protection, heavy JavaScript rendering, or may be unreachable.',
+        error: 'We couldn\'t read that website.',
+        hint: 'The site may be blocking our request, taking too long to load, or temporarily unavailable. Double-check the URL and try again.',
       }, { status: 400 })
     }
 
@@ -463,8 +487,8 @@ export async function POST(request: NextRequest) {
     // Check for minimal content
     if (contentQuality === 'failed') {
       return NextResponse.json({
-        error: 'Insufficient content to analyze',
-        hint: 'We extracted the page but found very little text content. The site may rely heavily on images or JavaScript-rendered content.',
+        error: 'Not enough text to analyze.',
+        hint: 'We loaded the page but couldn\'t find much written content. This sometimes happens with image-heavy sites or pages that load content dynamically. Try a different page on the same site.',
       }, { status: 400 })
     }
 
@@ -487,8 +511,8 @@ export async function POST(request: NextRequest) {
     // Handle unscoreable content
     if (commodityScore === -1) {
       return NextResponse.json({
-        error: 'Unable to score this content',
-        hint: 'We extracted text but couldn\'t analyze it meaningfully. Try a different page or URL.',
+        error: 'We couldn\'t analyze this page.',
+        hint: 'The content we found wasn\'t what we expected. Try your homepage or a main services page instead.',
       }, { status: 400 })
     }
 
@@ -614,7 +638,7 @@ export async function POST(request: NextRequest) {
 
       if (errorMsg.includes('certificate') || errorMsg.includes('ssl') || errorMsg.includes('tls')) {
         return NextResponse.json({
-          error: 'SSL certificate error. The website may have security configuration issues.'
+          error: 'We couldn\'t connect securely to that website. The site may be having technical issues. Try again later or contact the site owner.'
         }, { status: 400 })
       }
 
@@ -661,7 +685,7 @@ export async function GET(request: NextRequest) {
   const result = await kv.get<AnalysisResult>(`result:${id}`)
 
   if (!result) {
-    return NextResponse.json({ error: 'Result not found or expired' }, { status: 404 })
+    return NextResponse.json({ error: 'We couldn\'t find that analysis. Results expire after 30 days — run a new test to get fresh results.' }, { status: 404 })
   }
 
   return NextResponse.json(result)

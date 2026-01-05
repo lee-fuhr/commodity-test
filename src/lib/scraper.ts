@@ -281,7 +281,7 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
     return {
       html: '',
       method: 'failed',
-      error: 'Invalid URL: Private or internal addresses not allowed',
+      error: 'That URL doesn\'t look like a public website. Enter a regular website address like "example.com".',
       contentLength: 0,
     }
   }

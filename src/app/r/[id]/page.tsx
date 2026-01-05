@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { kv } from '@vercel/kv'
+import { Metadata } from 'next'
 import { ShareButtons } from './ShareButtons'
 import { CopyButton } from './CopyButton'
 
@@ -66,6 +67,59 @@ async function getAnalysis(id: string): Promise<AnalysisResult | null> {
   }
 }
 
+// Generate dynamic metadata for social sharing
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const result = await getAnalysis(id)
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thecommoditytest.com'
+
+  if (!result) {
+    return {
+      title: 'Result not found | The Commodity Test',
+      description: 'This analysis may have expired or doesn\'t exist.',
+    }
+  }
+
+  const scoreLabel = result.commodityScore >= 70 ? 'well differentiated' :
+                     result.commodityScore >= 55 ? 'moderately differentiated' :
+                     result.commodityScore >= 40 ? 'weakly differentiated' : 'undifferentiated'
+
+  const title = `${result.companyName} scored ${result.commodityScore} | The Commodity Test`
+  const description = `${result.companyName}'s messaging is ${scoreLabel}. See their full analysis with specific fixes.`
+  const url = `${siteUrl}/r/${id}`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url,
+      siteName: 'The Commodity Test',
+      images: [
+        {
+          url: `${siteUrl}/api/og?company=${encodeURIComponent(result.companyName)}&score=${result.commodityScore}`,
+          width: 1200,
+          height: 630,
+          alt: `${result.companyName} Commodity Test Results - Score: ${result.commodityScore}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${siteUrl}/api/og?company=${encodeURIComponent(result.companyName)}&score=${result.commodityScore}`],
+    },
+  }
+}
+
 // Differentiation score: 100 = highly differentiated (good), 0 = pure commodity (bad)
 // Be pessimistic - 61 shouldn't feel "well done"
 function getScoreLabel(score: number): { label: string; color: string; adjective: string } {
@@ -124,12 +178,20 @@ export default async function ResultsPage({
   if (!result) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
-        <div className="text-center space-y-6">
-          <h1 className="text-section text-3xl text-[var(--foreground)]">Result not found</h1>
-          <p className="text-body text-lg">This analysis may have expired or doesn&apos;t exist.</p>
-          <Link href="/" className="btn-kinetic inline-flex">
-            Run a new test
-          </Link>
+        <div className="text-center space-y-6 max-w-md">
+          <div className="w-16 h-16 bg-[var(--muted)] rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-[var(--muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h1 className="text-section text-3xl text-[var(--foreground)]">Analysis not found</h1>
+          <p className="text-body text-lg">This result has expired or the link is incorrect. Results are kept for 30 days.</p>
+          <p className="text-body text-sm text-[var(--muted-foreground)]">Good news: running a new test only takes about 30 seconds.</p>
+          <div className="pt-2">
+            <Link href="/" className="btn-kinetic inline-flex">
+              Run a new test
+            </Link>
+          </div>
         </div>
       </main>
     )
@@ -144,39 +206,39 @@ export default async function ResultsPage({
   return (
     <main className="min-h-screen bg-[var(--background)]">
       {/* Header */}
-      <header className="border-b border-[var(--border)] py-4 px-6">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <Link href="/" className="text-section text-lg text-[var(--foreground)]">
+      <header className="border-b border-[var(--border)] py-3 sm:py-4 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto flex justify-between items-center gap-4">
+          <Link href="/" className="text-section text-base sm:text-lg text-[var(--foreground)]">
             The Commodity Test
           </Link>
-          <Link href="/" className="btn-outline text-sm py-2 px-4">
+          <Link href="/" className="btn-outline text-xs sm:text-sm py-2 px-3 sm:px-4 min-h-[44px] flex items-center">
             Test another site
           </Link>
         </div>
       </header>
 
       {/* Results header */}
-      <section className="bg-[var(--muted)] py-8 px-6 border-b border-[var(--border)]">
+      <section className="bg-[var(--muted)] py-6 sm:py-8 px-4 sm:px-6 border-b border-[var(--border)]">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-label mb-2">Results for</p>
-          <h1 className="text-section text-3xl md:text-4xl text-[var(--foreground)] mb-2">
+          <h1 className="text-section text-2xl sm:text-3xl md:text-4xl text-[var(--foreground)] mb-2 break-words">
             {result.companyName}
           </h1>
-          <p className="text-body text-sm">{result.url}</p>
+          <p className="text-body text-xs sm:text-sm break-all">{result.url}</p>
         </div>
       </section>
 
       {/* Score section */}
-      <section className="py-16 px-6">
+      <section className="py-12 sm:py-16 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center">
           {/* Big score */}
           <div className="mb-8">
             <p className="text-label mb-4">Your commodity score</p>
-            <p className={`text-[8rem] md:text-[12rem] font-display leading-none ${scoreInfo.color}`}>
+            <p className={`text-[5rem] sm:text-[6rem] md:text-[8rem] lg:text-[12rem] font-display leading-none ${scoreInfo.color}`}>
               {result.commodityScore}
             </p>
-            <p className={`text-section text-2xl ${scoreInfo.color}`}>{scoreInfo.label}</p>
-            <p className="text-body text-sm mt-2 opacity-70">
+            <p className={`text-section text-xl sm:text-2xl ${scoreInfo.color}`}>{scoreInfo.label}</p>
+            <p className="text-body text-xs sm:text-sm mt-2 opacity-70">
               (Higher is better. 100 = highly differentiated. 0 = pure commodity.)
             </p>
           </div>
@@ -195,90 +257,139 @@ export default async function ResultsPage({
           </div>
 
           {/* Diagnosis */}
-          <p className="text-body text-xl max-w-2xl mx-auto">{result.diagnosis}</p>
+          <p className="text-body text-lg sm:text-xl max-w-2xl mx-auto">{result.diagnosis}</p>
         </div>
       </section>
 
       {/* Cost section with methodology */}
-      <section className="bg-[var(--accent)] py-12 px-6">
+      <section className="bg-[var(--accent)] py-10 sm:py-12 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-section text-2xl text-[var(--accent-foreground)] mb-4">
+            <h2 className="text-section text-xl sm:text-2xl text-[var(--accent-foreground)] mb-4">
               What this is costing you
             </h2>
-            <p className="text-[var(--accent-foreground)] text-sm mb-4 max-w-xl mx-auto opacity-90">
-              Based on typical deal values for {industryCopy.dealContext}, mid-range deal volume, and a {Math.round((result.costAssumptions?.lossRate || 0.3) * 100)}% loss rate to "cheaper" competitors.
+            <p className="text-[var(--accent-foreground)] text-xs sm:text-sm mb-4 max-w-xl mx-auto opacity-90 px-2">
+              Based on typical deal values for {industryCopy.dealContext}, mid-range deal volume, and a {Math.round((result.costAssumptions?.lossRate || 0.3) * 100)}% loss rate to &quot;cheaper&quot; competitors.
             </p>
-            <p className="text-[5rem] md:text-[7rem] font-display text-[var(--accent-foreground)] leading-none mb-4">
+            <p className="text-[3rem] sm:text-[4rem] md:text-[5rem] lg:text-[7rem] font-display text-[var(--accent-foreground)] leading-none mb-4">
               ${result.costEstimate.toLocaleString()}
             </p>
-            <p className="text-[var(--accent-foreground)] opacity-90">
+            <p className="text-[var(--accent-foreground)] opacity-90 text-sm sm:text-base">
               in lost deals annually (estimated)
             </p>
           </div>
 
           {/* Methodology breakdown */}
           {result.costAssumptions && (
-            <div className="bg-black/20 p-8 mt-8 max-w-2xl mx-auto">
-              <h3 className="text-xl font-semibold text-blue-200 mb-2">Show your work</h3>
-              <p className="text-white/80 text-sm mb-6">
-                How much revenue walks out the door when prospects can't tell you apart from competitors?
+            <div className="bg-black/20 p-4 sm:p-6 md:p-8 mt-8 max-w-2xl mx-auto">
+              <h3 className="text-lg sm:text-xl font-semibold text-blue-200 mb-2">Show your work</h3>
+              <p className="text-white/80 text-xs sm:text-sm mb-6">
+                How much revenue walks out the door when prospects can&apos;t tell you apart from competitors?
               </p>
 
               {/* The calculation as a readable equation */}
               <div className="text-white mb-6">
-                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center">
-                  <div className="bg-black/20 px-4 py-3 min-w-[100px]">
-                    <p className="text-2xl md:text-3xl font-display text-white">${(result.costAssumptions.averageDealValue / 1000).toFixed(0)}K</p>
-                    <p className="text-xs text-white/70">avg deal</p>
+                {/* Desktop: horizontal flow */}
+                <div className="hidden sm:flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center">
+                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[80px] sm:min-w-[100px]">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${(result.costAssumptions.averageDealValue / 1000).toFixed(0)}K</p>
+                    <p className="text-[10px] sm:text-xs text-white/70">avg deal</p>
                   </div>
-                  <span className="text-2xl text-white/70">×</span>
-                  <div className="bg-black/20 px-4 py-3 min-w-[80px]">
-                    <p className="text-2xl md:text-3xl font-display text-white">{result.costAssumptions.annualDeals}</p>
-                    <p className="text-xs text-white/70">deals/yr</p>
+                  <span className="text-xl sm:text-2xl text-white/70">×</span>
+                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[60px] sm:min-w-[80px]">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">{result.costAssumptions.annualDeals}</p>
+                    <p className="text-[10px] sm:text-xs text-white/70">deals/yr</p>
                   </div>
-                  <span className="text-2xl text-white/70">×</span>
-                  <div className="bg-black/20 px-4 py-3 min-w-[80px]">
-                    <p className="text-2xl md:text-3xl font-display text-white">{Math.round(result.costAssumptions.lossRate * 100)}%</p>
-                    <p className="text-xs text-white/70">loss rate</p>
+                  <span className="text-xl sm:text-2xl text-white/70">×</span>
+                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3 min-w-[60px] sm:min-w-[80px]">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">{Math.round(result.costAssumptions.lossRate * 100)}%</p>
+                    <p className="text-[10px] sm:text-xs text-white/70">loss rate</p>
                   </div>
-                  <span className="text-2xl text-white/70">=</span>
-                  <div className="bg-white/10 px-4 py-3 min-w-[120px] border-2 border-white/30">
-                    <p className="text-2xl md:text-3xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
-                    <p className="text-xs text-white/70">annual loss</p>
+                  <span className="text-xl sm:text-2xl text-white/70">=</span>
+                  <div className="bg-white/10 px-3 sm:px-4 py-2 sm:py-3 min-w-[100px] sm:min-w-[120px] border-2 border-white/30">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
+                    <p className="text-[10px] sm:text-xs text-white/70">annual loss</p>
+                  </div>
+                </div>
+                {/* Mobile: stacked layout */}
+                <div className="sm:hidden space-y-3">
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-black/20 px-2 py-2">
+                      <p className="text-lg font-display text-white">${(result.costAssumptions.averageDealValue / 1000).toFixed(0)}K</p>
+                      <p className="text-[10px] text-white/70">avg deal</p>
+                    </div>
+                    <div className="bg-black/20 px-2 py-2">
+                      <p className="text-lg font-display text-white">{result.costAssumptions.annualDeals}</p>
+                      <p className="text-[10px] text-white/70">deals/yr</p>
+                    </div>
+                    <div className="bg-black/20 px-2 py-2">
+                      <p className="text-lg font-display text-white">{Math.round(result.costAssumptions.lossRate * 100)}%</p>
+                      <p className="text-[10px] text-white/70">loss rate</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <div className="bg-white/10 px-4 py-2 border-2 border-white/30 text-center">
+                      <p className="text-2xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
+                      <p className="text-[10px] text-white/70">annual loss</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* ROI calculation - now more visual */}
               <div className="border-t border-white/20 pt-6">
-                <h3 className="text-xl font-semibold text-blue-200 mb-2">If you fix it</h3>
-                <p className="text-white/80 text-sm mb-4">
-                  A Core Site rebuild runs $18K. Keep just half the deals you'd otherwise lose, and here's your return:
+                <h3 className="text-lg sm:text-xl font-semibold text-blue-200 mb-2">If you fix it</h3>
+                <p className="text-white/80 text-xs sm:text-sm mb-4">
+                  A Core Site rebuild runs $18K. Keep just half the deals you&apos;d otherwise lose, and here&apos;s your return:
                 </p>
-                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-white mb-4">
-                  <div className="bg-black/20 px-4 py-3">
-                    <p className="text-2xl md:text-3xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
-                    <p className="text-xs text-white/70">annual loss</p>
+                {/* Desktop: horizontal flow */}
+                <div className="hidden sm:flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-white mb-4">
+                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${(result.costEstimate / 1000).toFixed(0)}K</p>
+                    <p className="text-[10px] sm:text-xs text-white/70">annual loss</p>
                   </div>
-                  <span className="text-2xl text-white/70">×</span>
-                  <div className="bg-black/20 px-4 py-3">
-                    <p className="text-2xl md:text-3xl font-display text-white">50%</p>
-                    <p className="text-xs text-white/70">conservative</p>
+                  <span className="text-xl sm:text-2xl text-white/70">×</span>
+                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">50%</p>
+                    <p className="text-[10px] sm:text-xs text-white/70">conservative</p>
                   </div>
-                  <span className="text-2xl text-white/70">÷</span>
-                  <div className="bg-black/20 px-4 py-3">
-                    <p className="text-2xl md:text-3xl font-display text-white">$18K</p>
-                    <p className="text-xs text-white/70">investment</p>
+                  <span className="text-xl sm:text-2xl text-white/70">÷</span>
+                  <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">$18K</p>
+                    <p className="text-[10px] sm:text-xs text-white/70">investment</p>
                   </div>
-                  <span className="text-2xl text-white/70">=</span>
-                  <div className="bg-green-500/20 px-4 py-3 border-2 border-green-400/40">
-                    <p className="text-2xl md:text-3xl font-display text-green-200">{Math.round((result.costEstimate / 2 / 18000) * 100)}%</p>
-                    <p className="text-lg font-display text-green-200">(${Math.round(result.costEstimate / 2 / 1000)}K)</p>
-                    <p className="text-xs text-green-200/80">first-year ROI</p>
+                  <span className="text-xl sm:text-2xl text-white/70">=</span>
+                  <div className="bg-green-500/20 px-3 sm:px-4 py-2 sm:py-3 border-2 border-green-400/40">
+                    <p className="text-xl sm:text-2xl md:text-3xl font-display text-green-200">{Math.round((result.costEstimate / 2 / 18000) * 100)}%</p>
+                    <p className="text-sm sm:text-lg font-display text-green-200">(${Math.round(result.costEstimate / 2 / 1000)}K)</p>
+                    <p className="text-[10px] sm:text-xs text-green-200/80">first-year ROI</p>
                   </div>
                 </div>
-                <p className="text-center text-white">
+                {/* Mobile: stacked layout */}
+                <div className="sm:hidden space-y-3 mb-4">
+                  <div className="grid grid-cols-3 gap-2 text-center text-white">
+                    <div className="bg-black/20 px-2 py-2">
+                      <p className="text-lg font-display">${(result.costEstimate / 1000).toFixed(0)}K</p>
+                      <p className="text-[10px] text-white/70">annual loss</p>
+                    </div>
+                    <div className="bg-black/20 px-2 py-2">
+                      <p className="text-lg font-display">50%</p>
+                      <p className="text-[10px] text-white/70">conservative</p>
+                    </div>
+                    <div className="bg-black/20 px-2 py-2">
+                      <p className="text-lg font-display">$18K</p>
+                      <p className="text-[10px] text-white/70">investment</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <div className="bg-green-500/20 px-4 py-2 border-2 border-green-400/40 text-center">
+                      <p className="text-2xl font-display text-green-200">{Math.round((result.costEstimate / 2 / 18000) * 100)}%</p>
+                      <p className="text-base font-display text-green-200">(${Math.round(result.costEstimate / 2 / 1000)}K)</p>
+                      <p className="text-[10px] text-green-200/80">first-year ROI</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-center text-white text-sm sm:text-base">
                   <strong>Payback period:</strong>{' '}
                   {result.costEstimate > 0 ? (
                     <>
@@ -286,7 +397,7 @@ export default async function ResultsPage({
                     </>
                   ) : '—'}
                 </p>
-                <p className="text-sm text-[var(--accent-foreground)] opacity-80 mt-4 text-center">
+                <p className="text-xs sm:text-sm text-[var(--accent-foreground)] opacity-80 mt-4 text-center">
                   Core site rebuild: $18K. <a href="/pricing" className="underline hover:text-[var(--accent-foreground)]">See all options →</a>
                 </p>
               </div>
@@ -296,53 +407,55 @@ export default async function ResultsPage({
       </section>
 
       {/* Fixes section */}
-      <section className="py-16 px-6">
+      <section className="py-12 sm:py-16 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-display text-4xl md:text-5xl text-[var(--foreground)] mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-display text-3xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
               5 things to fix
             </h2>
-            <p className="text-body text-xl">
+            <p className="text-body text-lg sm:text-xl">
               Specific to YOUR homepage. Not generic advice.
             </p>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-8 sm:space-y-12">
             {result.fixes.map((fix) => (
-              <div key={fix.number} className="border-2 border-[var(--border)] p-8">
-                <div className="flex items-start gap-6">
-                  <span className="text-[var(--accent)] text-4xl font-display shrink-0">
+              <div key={fix.number} className="border-2 border-[var(--border)] p-4 sm:p-6 md:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-6">
+                  <span className="text-[var(--accent)] text-2xl sm:text-4xl font-display shrink-0">
                     {String(fix.number).padStart(2, '0')}
                   </span>
-                  <div className="space-y-6 flex-1">
+                  <div className="space-y-4 sm:space-y-6 flex-1 min-w-0">
                     {/* Original phrase with context */}
                     <div>
-                      <p className="text-blue-300 font-semibold text-sm uppercase tracking-wider mb-3">Found on your site</p>
-                      <div className="bg-[var(--muted)] p-4 text-lg leading-relaxed">
+                      <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 sm:mb-3">Found on your site</p>
+                      <div className="bg-[var(--muted)] p-3 sm:p-4 text-base sm:text-lg leading-relaxed overflow-x-auto">
                         <HighlightedContext context={fix.context} phrase={fix.originalPhrase} />
                       </div>
-                      <p className="text-body text-sm mt-2">Location: {fix.location}</p>
+                      <p className="text-body text-xs sm:text-sm mt-2">Location: {fix.location}</p>
                     </div>
 
                     {/* Why it hurts */}
                     <div>
-                      <p className="text-blue-300 font-semibold text-sm uppercase tracking-wider mb-2">Why it hurts you</p>
-                      <p className="text-body text-lg">{fix.whyBad}</p>
+                      <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2">Why it hurts you</p>
+                      <p className="text-body text-base sm:text-lg">{fix.whyBad}</p>
                     </div>
 
                     {/* Drop-in replacements */}
                     <div>
-                      <p className="text-blue-300 font-semibold text-sm uppercase tracking-wider mb-3">Replace with</p>
+                      <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 sm:mb-3">Replace with</p>
                       <div className="space-y-3">
                         {fix.suggestions.map((suggestion, idx) => (
                           <div
                             key={idx}
-                            className="bg-[var(--accent)]/10 border-l-4 border-[var(--accent)] p-4"
+                            className="bg-[var(--accent)]/10 border-l-4 border-[var(--accent)] p-3 sm:p-4"
                           >
-                            <div className="flex items-start gap-3">
-                              <CopyButton text={suggestion.text} />
-                              <p className="text-[var(--foreground)] text-lg flex-1">{suggestion.text}</p>
-                              <span className={`text-xs uppercase tracking-wider px-2 py-1 border shrink-0 ${getApproachStyle(suggestion.approach)}`}>
+                            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                              <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                <CopyButton text={suggestion.text} />
+                                <p className="text-[var(--foreground)] text-base sm:text-lg flex-1">{suggestion.text}</p>
+                              </div>
+                              <span className={`text-[10px] sm:text-xs uppercase tracking-wider px-2 py-1 border shrink-0 self-start ${getApproachStyle(suggestion.approach)}`}>
                                 {suggestion.approach}
                               </span>
                             </div>
@@ -352,9 +465,9 @@ export default async function ResultsPage({
                     </div>
 
                     {/* Key insight - the most important takeaway */}
-                    <div className="bg-blue-500/90 p-4 mt-2">
-                      <p className="text-blue-100 text-xs uppercase tracking-wider font-semibold mb-1">The key insight</p>
-                      <p className="text-white text-lg font-medium">{fix.whyBetter}</p>
+                    <div className="bg-blue-500/90 p-3 sm:p-4 mt-2">
+                      <p className="text-blue-100 text-[10px] sm:text-xs uppercase tracking-wider font-semibold mb-1">The key insight</p>
+                      <p className="text-white text-base sm:text-lg font-medium">{fix.whyBetter}</p>
                     </div>
                   </div>
                 </div>
@@ -365,9 +478,9 @@ export default async function ResultsPage({
       </section>
 
       {/* Share section */}
-      <section className="bg-[var(--muted)] py-12 px-6 border-t border-[var(--border)]">
+      <section className="bg-[var(--muted)] py-10 sm:py-12 px-4 sm:px-6 border-t border-[var(--border)]">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-section text-2xl text-[var(--foreground)] mb-6">
+          <h2 className="text-section text-xl sm:text-2xl text-[var(--foreground)] mb-4 sm:mb-6">
             Share these results
           </h2>
           <ShareButtons
@@ -379,33 +492,33 @@ export default async function ResultsPage({
       </section>
 
       {/* CTAs section */}
-      <section className="py-16 px-6">
+      <section className="py-12 sm:py-16 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-display text-4xl text-[var(--foreground)] text-center mb-12">
+          <h2 className="text-display text-3xl sm:text-4xl text-[var(--foreground)] text-center mb-8 sm:mb-12">
             What&apos;s next?
           </h2>
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* DIY option */}
-            <div className="border-2 border-[var(--border)] p-8">
-              <h3 className="text-section text-xl text-[var(--foreground)] mb-4">Fix it yourself</h3>
-              <p className="text-body text-lg mb-6">
+            <div className="border-2 border-[var(--border)] p-5 sm:p-8">
+              <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-3 sm:mb-4">Fix it yourself</h3>
+              <p className="text-body text-base sm:text-lg mb-4 sm:mb-6">
                 Want the full methodology? Download the guide that walks you through
                 de-commodifying your entire site.
               </p>
-              <Link href="/guide" className="btn-outline w-full">
+              <Link href="/guide" className="btn-outline w-full min-h-[44px]">
                 Get the DIY guide
               </Link>
             </div>
 
             {/* Done-for-you option */}
-            <div className="bg-[var(--accent)] p-8">
-              <h3 className="text-section text-xl text-[var(--accent-foreground)] mb-4">Let me do it for you</h3>
-              <p className="text-[var(--accent-foreground)] opacity-90 text-lg mb-6">
+            <div className="bg-[var(--accent)] p-5 sm:p-8">
+              <h3 className="text-section text-lg sm:text-xl text-[var(--accent-foreground)] mb-3 sm:mb-4">Let me do it for you</h3>
+              <p className="text-[var(--accent-foreground)] opacity-90 text-base sm:text-lg mb-4 sm:mb-6">
                 I build messaging frameworks for {industryCopy.verticalPlural} who are tired of competing
                 on price. $18K-$25K, 6-8 weeks.
               </p>
-              <Link href="/pricing" className="btn-reversed w-full">
+              <Link href="/pricing" className="btn-reversed w-full min-h-[44px]">
                 See pricing & process
               </Link>
             </div>
@@ -414,20 +527,20 @@ export default async function ResultsPage({
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--border)] py-8 px-6 relative">
+      <footer className="border-t border-[var(--border)] py-6 sm:py-8 px-4 sm:px-6 relative">
         {/* Version number - subtle, for deployment verification */}
         <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)]/30 select-none">v0.9.0</span>
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="max-w-4xl mx-auto flex flex-col gap-4 sm:gap-6 md:flex-row md:justify-between md:items-center">
           <div className="text-center md:text-left">
-            <p className="text-[var(--foreground)] font-semibold">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
-            <p className="text-body text-sm">27 years helping {industryCopy.verticalPlural} stop sounding like everyone else</p>
+            <p className="text-[var(--foreground)] font-semibold text-sm sm:text-base">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
+            <p className="text-body text-xs sm:text-sm">27 years helping {industryCopy.verticalPlural} stop sounding like everyone else</p>
           </div>
-          <nav className="flex gap-6 text-sm">
-            <Link href="/how-it-works" className="text-body hover:text-[var(--accent)]">How it works</Link>
-            <Link href="/privacy" className="text-body hover:text-[var(--accent)]">Privacy</Link>
-            <Link href="/contact" className="text-body hover:text-[var(--accent)]">Contact</Link>
+          <nav className="flex justify-center gap-4 sm:gap-6 text-xs sm:text-sm">
+            <Link href="/how-it-works" className="text-body hover:text-[var(--accent)] min-h-[44px] flex items-center">How it works</Link>
+            <Link href="/privacy" className="text-body hover:text-[var(--accent)] min-h-[44px] flex items-center">Privacy</Link>
+            <Link href="/contact" className="text-body hover:text-[var(--accent)] min-h-[44px] flex items-center">Contact</Link>
           </nav>
-          <Link href="/" className="text-[var(--accent)] hover:underline">
+          <Link href="/" className="text-[var(--accent)] hover:underline text-center md:text-right min-h-[44px] flex items-center justify-center md:justify-end">
             Run another test →
           </Link>
         </div>

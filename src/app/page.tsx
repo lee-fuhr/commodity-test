@@ -130,7 +130,8 @@ export default function HomePage() {
       {/* Stakes strip */}
       <section className="bg-[var(--accent)] py-6">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8">
+          {/* Mobile: stacked list, Desktop: horizontal flow */}
+          <div className="hidden md:flex flex-wrap items-center justify-center gap-4 md:gap-8">
             <span className="text-section text-base md:text-lg text-white">Can&apos;t tell you apart</span>
             <span className="text-white">→</span>
             <span className="text-section text-base md:text-lg text-white">Compare on price</span>
@@ -139,6 +140,10 @@ export default function HomePage() {
             <span className="text-white">→</span>
             <span className="text-section text-base md:text-lg text-white">Margins erode</span>
             <span className="text-white text-xl">★</span>
+          </div>
+          <div className="md:hidden flex flex-col items-center gap-2 text-center">
+            <span className="text-section text-base text-white">Can&apos;t tell you apart → Compare on price</span>
+            <span className="text-section text-base text-white">→ 3-bid territory → Margins erode ★</span>
           </div>
         </div>
       </section>
@@ -222,10 +227,10 @@ export default function HomePage() {
 
             <div className="flex items-center justify-center">
               <div className="text-center">
-                <span className="number-massive text-[7rem] md:text-[10rem] text-[var(--border)] block leading-none">
+                <span className="number-massive text-[4rem] sm:text-[5rem] md:text-[7rem] lg:text-[10rem] text-[var(--border)] block leading-none">
                   73%
                 </span>
-                <span className="text-body text-lg text-[var(--muted-foreground)]">
+                <span className="text-body text-base sm:text-lg text-[var(--muted-foreground)]">
                   of manufacturing and industrial websites use the same 50 phrases
                 </span>
               </div>
