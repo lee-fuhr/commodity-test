@@ -430,8 +430,11 @@ export function generateDiagnosis(
   score: number,
   commodityCount: number,
   differentiationCount: number,
-  contentQuality: 'excellent' | 'good' | 'minimal' | 'failed' = 'good'
+  contentQuality: 'excellent' | 'good' | 'minimal' | 'failed' = 'good',
+  industry: DetectedIndustry = 'general'
 ): string {
+  const industryCopy = INDUSTRY_COPY[industry]
+
   if (score === -1) {
     return 'We couldn\'t extract enough content to analyze this site. The page may use heavy JavaScript rendering or have restricted access.'
   }
@@ -446,7 +449,7 @@ export function generateDiagnosis(
       // Can't get 90+ with minimal content anymore, but just in case
       return `We couldn't extract enough marketing content to give you an accurate score. The visible text appears clean, but we'd need to see more of your actual messaging.${contentCaveat}`
     }
-    return `Exceptional differentiation. Your messaging is in the top 5% of B2B manufacturers. You use specific, provable language that competitors can't copy.`
+    return `Exceptional differentiation. Your messaging is in the top 5% of ${industryCopy.verticalPlural}. You use specific, provable language that competitors can't copy.`
   }
 
   if (score >= 75) {
@@ -464,7 +467,7 @@ export function generateDiagnosis(
     if (contentQuality === 'minimal' && commodityCount === 0) {
       return `We extracted limited content from this page. Without more text to analyze, we're giving you an average score. Try analyzing a page with more marketing copy for a more accurate assessment.`
     }
-    return `Average. Your messaging sounds like most B2B manufacturers. ${commodityCount} commodity phrase${commodityCount === 1 ? '' : 's'} make${commodityCount === 1 ? 's' : ''} you blend in. When buyers can't tell you apart, they default to price.${contentCaveat}`
+    return `Average. Your messaging sounds like most ${industryCopy.verticalPlural}. ${commodityCount} commodity phrase${commodityCount === 1 ? '' : 's'} make${commodityCount === 1 ? 's' : ''} you blend in. When buyers can't tell you apart, they default to price.${contentCaveat}`
   }
 
   if (score >= 30) {
