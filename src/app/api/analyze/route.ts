@@ -32,6 +32,32 @@ function calculateSimilarity(text1: string, text2: string): number {
   return intersection.size / union.size
 }
 
+// Select diverse phrases - one from each category first, then fill remaining
+// This ensures we don't get 5 variations of "quality" when there are other issues
+function selectDiversePhrases(phrases: DetectedPhrase[], count: number): DetectedPhrase[] {
+  if (phrases.length <= count) return phrases
+
+  const selected: DetectedPhrase[] = []
+  const usedCategories = new Set<string>()
+
+  // First pass: one phrase per category (highest weight first since input is sorted)
+  for (const phrase of phrases) {
+    if (!usedCategories.has(phrase.category) && selected.length < count) {
+      selected.push(phrase)
+      usedCategories.add(phrase.category)
+    }
+  }
+
+  // Second pass: fill remaining slots with next highest weight phrases
+  for (const phrase of phrases) {
+    if (!selected.includes(phrase) && selected.length < count) {
+      selected.push(phrase)
+    }
+  }
+
+  return selected
+}
+
 interface CostAssumptions {
   averageDealValue: number
   annualDeals: number
@@ -204,7 +230,8 @@ async function generateFixesWithClaude(
     throw new Error('ANTHROPIC_API_KEY is required. Cannot generate fixes without Claude API.')
   }
 
-  const topPhrases = detectedPhrases.slice(0, 5)
+  // Select diverse phrases - one from each category first, then fill remaining
+  const topPhrases = selectDiversePhrases(detectedPhrases, 5)
 
   // If no commodity phrases detected but we have content, provide specific feedback
   if (topPhrases.length === 0) {
@@ -274,6 +301,13 @@ HOMEPAGE EXCERPT:
 ${bodyText.slice(0, 1500)}
 
 Provide EXACTLY 5 fixes. Use the ${topPhrases.length} detected commodity phrases first, then add ${5 - topPhrases.length} more fixes for other weak spots (vague claims, missed opportunities, generic language).
+
+CRITICAL REQUIREMENTS:
+1. Each fix must address a DIFFERENT sentence/phrase - never flag variations of the same phrase twice
+2. NEVER suggest fixing testimonials, quotes, or attributed statements (text in quotation marks with a name/title)
+3. If you see "..." - Name, Title format, that's a testimonial - SKIP IT
+4. Find 5 DISTINCT issues from different parts of the page
+5. If you can't find 5 truly different issues, provide fewer rather than duplicate
 
 For additional fixes, pull ACTUAL TEXT from the homepage excerpt - quote their real words.
 
@@ -413,6 +447,10 @@ Only return the JSON, no other text.`
       })
 
       if (dedupedFixes.length > 0) {
+        // Log warning if deduplication removed too many fixes
+        if (validatedFixes.length >= 4 && dedupedFixes.length < 3) {
+          console.warn(`[Analysis] Deduplication reduced fixes from ${validatedFixes.length} to ${dedupedFixes.length} - Claude may have returned duplicates`)
+        }
         return dedupedFixes
       }
     }
