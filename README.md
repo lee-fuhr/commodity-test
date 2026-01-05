@@ -18,7 +18,7 @@ Most B2B websites use the same tired phrases: "innovative solutions," "customer-
 
 ## Screenshot
 
-![The Commodity Test results page](https://commodity-test.vercel.app/api/og?company=Your%20Company&score=61)
+![The Commodity Test homepage](./public/screenshot-home.png)
 
 ## Tech stack
 
