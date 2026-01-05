@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
   <p><em>5 more fixes (guarantee, story, metric, innovation, experience) in the full guide below...</em></p>
 
   <div class="cta">
-    <p style="margin: 0;"><a href="https://commodity-test-app.vercel.app/?utm_source=guide">Run The Commodity Test on your site (30 seconds, free)</a></p>
+    <p style="margin: 0;"><a href="https://commodity.leefuhr.com/?utm_source=guide">Run The Commodity Test on your site (30 seconds, free)</a></p>
   </div>
 
   <h2>How to apply this</h2>
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
   </ul>
 
   <div class="cta">
-    <p style="margin: 0;"><a href="https://commodity-test-app.vercel.app/pricing">Or let me do it for you - from $18K</a></p>
+    <p style="margin: 0;"><a href="https://commodity.leefuhr.com/pricing">Or let me do it for you - from $18K</a></p>
   </div>
 
   <div class="footer">
