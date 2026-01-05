@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 
 interface ScanEntry {
@@ -67,7 +67,6 @@ function formatDate(iso: string): string {
 
 function downloadCSV(data: Record<string, unknown>[], filename: string) {
   if (data.length === 0) return
-
   const headers = Object.keys(data[0])
   const csvRows = [
     headers.join(','),
@@ -81,7 +80,6 @@ function downloadCSV(data: Record<string, unknown>[], filename: string) {
       }).join(',')
     )
   ]
-
   const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -89,6 +87,19 @@ function downloadCSV(data: Record<string, unknown>[], filename: string) {
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+// Industry colors for charts
+const INDUSTRY_COLORS: Record<string, string> = {
+  manufacturing: '#3b82f6', // blue
+  saas: '#8b5cf6', // purple
+  services: '#10b981', // green
+  construction: '#f59e0b', // amber
+  distribution: '#06b6d4', // cyan
+  healthcare: '#ec4899', // pink
+  finance: '#6366f1', // indigo
+  retail: '#f97316', // orange
+  general: '#6b7280', // gray
 }
 
 // Icons
@@ -111,6 +122,122 @@ const TrashIcon = () => (
   </svg>
 )
 
+const CopyIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  </svg>
+)
+
+const RerunIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+)
+
+const CheckIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+  </svg>
+)
+
+// Industry breakdown bar chart
+function IndustryBreakdown({ scans }: { scans: ScanEntry[] }) {
+  const counts: Record<string, number> = {}
+  scans.forEach(s => {
+    const ind = s.industry || 'general'
+    counts[ind] = (counts[ind] || 0) + 1
+  })
+
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
+  const max = Math.max(...sorted.map(([, c]) => c), 1)
+
+  if (sorted.length === 0) return null
+
+  return (
+    <div className="bg-[var(--muted)] p-4 mb-6">
+      <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">Industry breakdown</h3>
+      <div className="space-y-2">
+        {sorted.map(([industry, count]) => (
+          <div key={industry} className="flex items-center gap-2">
+            <span className="text-xs text-[var(--muted-foreground)] w-24 capitalize truncate">{industry}</span>
+            <div className="flex-1 h-4 bg-[var(--background)] rounded overflow-hidden">
+              <div
+                className="h-full rounded transition-all duration-300"
+                style={{
+                  width: `${(count / max) * 100}%`,
+                  backgroundColor: INDUSTRY_COLORS[industry] || INDUSTRY_COLORS.general
+                }}
+              />
+            </div>
+            <span className="text-xs text-[var(--muted-foreground)] w-8 text-right">{count}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Score distribution chart (bell curve visualization)
+function ScoreDistribution({ scans }: { scans: ScanEntry[] }) {
+  if (scans.length < 3) return null
+
+  // Group scores into buckets of 10 (0-9, 10-19, ..., 90-100)
+  const buckets: Record<number, { count: number; industries: Record<string, number> }> = {}
+  for (let i = 0; i <= 90; i += 10) {
+    buckets[i] = { count: 0, industries: {} }
+  }
+
+  scans.forEach(s => {
+    const bucket = Math.min(90, Math.floor(s.score / 10) * 10)
+    buckets[bucket].count++
+    const ind = s.industry || 'general'
+    buckets[bucket].industries[ind] = (buckets[bucket].industries[ind] || 0) + 1
+  })
+
+  const maxCount = Math.max(...Object.values(buckets).map(b => b.count), 1)
+
+  return (
+    <div className="bg-[var(--muted)] p-4 mb-6">
+      <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">Score distribution</h3>
+      <div className="flex items-end gap-1 h-24">
+        {Object.entries(buckets).map(([bucket, data]) => {
+          const height = (data.count / maxCount) * 100
+          // Stack industries within each bar
+          const industries = Object.entries(data.industries).sort((a, b) => b[1] - a[1])
+
+          return (
+            <div key={bucket} className="flex-1 flex flex-col items-center group relative">
+              <div className="w-full flex flex-col-reverse rounded-t overflow-hidden" style={{ height: `${height}%`, minHeight: data.count > 0 ? '4px' : '0' }}>
+                {industries.map(([ind, count], idx) => (
+                  <div
+                    key={ind}
+                    className="w-full"
+                    style={{
+                      height: `${(count / data.count) * 100}%`,
+                      backgroundColor: INDUSTRY_COLORS[ind] || INDUSTRY_COLORS.general,
+                      opacity: 0.8
+                    }}
+                  />
+                ))}
+              </div>
+              <span className="text-[10px] text-[var(--muted-foreground)] mt-1">{bucket}</span>
+              {data.count > 0 && (
+                <div className="absolute bottom-full mb-1 bg-[var(--background)] border border-[var(--border)] px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  {data.count} scan{data.count !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] mt-2">
+        <span>← Undifferentiated</span>
+        <span>Differentiated →</span>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
@@ -119,6 +246,7 @@ export default function AdminPage() {
   const [data, setData] = useState<StatsData | null>(null)
   const [activeTab, setActiveTab] = useState<'scans' | 'guide' | 'resultEmails' | 'contacts' | 'settings'>('scans')
   const [showIgnored, setShowIgnored] = useState(false)
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -197,6 +325,17 @@ export default function AdminPage() {
     }
   }
 
+  const copyUrl = async (url: string) => {
+    await navigator.clipboard.writeText(url)
+    setCopiedUrl(url)
+    setTimeout(() => setCopiedUrl(null), 2000)
+  }
+
+  const rerunScan = (url: string) => {
+    // Open homepage with the URL pre-filled (using URL param)
+    window.open(`/?url=${encodeURIComponent(url)}`, '_blank')
+  }
+
   if (!authenticated) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
@@ -238,6 +377,9 @@ export default function AdminPage() {
   const visibleResults = showIgnored ? data.resultEmails : data.resultEmails.filter(r => !r.ignored)
   const visibleContacts = showIgnored ? data.contactSubmissions : data.contactSubmissions.filter(c => !c.ignored)
 
+  // Stats for charts (non-ignored only)
+  const chartScans = data.recentScans.filter(s => !s.ignored)
+
   return (
     <main className="min-h-screen bg-[var(--background)] py-8 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
@@ -273,7 +415,7 @@ export default function AdminPage() {
         </div>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <div className="bg-[var(--muted)] p-4">
             <p className="text-3xl font-semibold text-[var(--foreground)]">{data.summary.totalScans}</p>
             <p className="text-[var(--muted-foreground)] text-sm">Sites analyzed</p>
@@ -290,6 +432,12 @@ export default function AdminPage() {
             <p className="text-3xl font-semibold text-[var(--foreground)]">{data.summary.totalContacts}</p>
             <p className="text-[var(--muted-foreground)] text-sm">Contact forms</p>
           </div>
+        </div>
+
+        {/* Charts row */}
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <IndustryBreakdown scans={chartScans} />
+          <ScoreDistribution scans={chartScans} />
         </div>
 
         {/* Tabs */}
@@ -341,7 +489,7 @@ export default function AdminPage() {
                   <tr className="border-b border-[var(--border)]">
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Date</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Company</th>
-                    <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Score</th>
+                    <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Industry</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">IP</th>
                     <th className="text-left py-3 px-2 text-[var(--muted-foreground)] font-medium">Result</th>
                     <th className="text-right py-3 px-2 text-[var(--muted-foreground)] font-medium">Actions</th>
@@ -360,9 +508,35 @@ export default function AdminPage() {
                             scan.score >= 40 ? 'bg-orange-500/20 text-orange-400' : 'bg-red-500/20 text-red-400'
                           }`}>{scan.score}</span>
                         </div>
-                        <div className="text-xs text-[var(--muted-foreground)] truncate max-w-[250px]">{scan.url}</div>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span className="text-xs text-[var(--muted-foreground)] truncate max-w-[200px]">{scan.url}</span>
+                          <button
+                            onClick={() => copyUrl(scan.url)}
+                            className="p-0.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                            title="Copy URL"
+                          >
+                            {copiedUrl === scan.url ? <CheckIcon /> : <CopyIcon />}
+                          </button>
+                          <button
+                            onClick={() => rerunScan(scan.url)}
+                            className="p-0.5 text-[var(--muted-foreground)] hover:text-[var(--accent)]"
+                            title="Rerun analysis"
+                          >
+                            <RerunIcon />
+                          </button>
+                        </div>
                       </td>
-                      <td className="py-3 px-2 text-[var(--muted-foreground)] capitalize">{scan.industry}</td>
+                      <td className="py-3 px-2">
+                        <span
+                          className="text-xs px-2 py-0.5 rounded capitalize"
+                          style={{
+                            backgroundColor: `${INDUSTRY_COLORS[scan.industry] || INDUSTRY_COLORS.general}20`,
+                            color: INDUSTRY_COLORS[scan.industry] || INDUSTRY_COLORS.general
+                          }}
+                        >
+                          {scan.industry}
+                        </span>
+                      </td>
                       <td className="py-3 px-2">
                         {scan.ip && (
                           <div className="flex items-center gap-1">
@@ -653,6 +827,18 @@ export default function AdminPage() {
                 <li>• Toggle "Show ignored" to see hidden records (they appear faded)</li>
                 <li>• Click the eye icon to unignore any record</li>
               </ul>
+            </div>
+
+            <div className="bg-[var(--muted)] p-6">
+              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Industry color legend</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(INDUSTRY_COLORS).map(([industry, color]) => (
+                  <div key={industry} className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded" style={{ backgroundColor: color }} />
+                    <span className="text-sm text-[var(--muted-foreground)] capitalize">{industry}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
