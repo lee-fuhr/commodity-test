@@ -552,8 +552,21 @@ export function getIndustryCopy(industry: DetectedIndustry): { verticalNoun: str
   return INDUSTRY_COPY[industry]
 }
 
-// Calculate cost estimate based on score
-export function calculateCostEstimate(score: number): {
+// Industry-specific deal assumptions
+const INDUSTRY_DEAL_ASSUMPTIONS: Record<DetectedIndustry, { dealValue: number; annualDeals: number }> = {
+  manufacturing: { dealValue: 50000, annualDeals: 30 },      // B2B manufacturing: bigger deals, fewer of them
+  distribution: { dealValue: 25000, annualDeals: 50 },       // Industrial distribution: mid-size, moderate volume
+  saas: { dealValue: 12000, annualDeals: 200 },              // SaaS: smaller ARR per deal, high volume
+  services: { dealValue: 75000, annualDeals: 20 },           // Professional services: big projects, few clients
+  construction: { dealValue: 150000, annualDeals: 15 },      // Construction: large projects, few per year
+  healthcare: { dealValue: 80000, annualDeals: 25 },         // Healthcare: substantial contracts
+  finance: { dealValue: 100000, annualDeals: 20 },           // Finance: high-value relationships
+  retail: { dealValue: 5000, annualDeals: 500 },             // Retail: low AOV, high volume
+  general: { dealValue: 50000, annualDeals: 30 }             // Default
+}
+
+// Calculate cost estimate based on score and industry
+export function calculateCostEstimate(score: number, industry: DetectedIndustry = 'general'): {
   estimate: number
   assumptions: {
     averageDealValue: number
@@ -574,8 +587,9 @@ export function calculateCostEstimate(score: number): {
     }
   }
 
-  const baseDealValue = 50000
-  const annualDeals = 30
+  const industryAssumptions = INDUSTRY_DEAL_ASSUMPTIONS[industry] || INDUSTRY_DEAL_ASSUMPTIONS.general
+  const baseDealValue = industryAssumptions.dealValue
+  const annualDeals = industryAssumptions.annualDeals
 
   let lossRate: number
   let lossRateLabel: string

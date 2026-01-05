@@ -498,7 +498,7 @@ export async function POST(request: NextRequest) {
 
     // Generate diagnosis and cost (pass contentQuality and industry for honest diagnosis)
     const diagnosis = generateDiagnosis(commodityScore, detectedPhrases.length, differentiationSignals.length, contentQuality, industry)
-    const costResult = calculateCostEstimate(commodityScore)
+    const costResult = calculateCostEstimate(commodityScore, industry)
 
     // Fetch additional pages for more context (if direct scrape worked)
     const allStats: string[] = []
