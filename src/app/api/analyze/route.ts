@@ -10,8 +10,10 @@ import {
   calculateScore,
   generateDiagnosis,
   calculateCostEstimate,
+  detectIndustry,
   type DetectedPhrase,
   type DifferentiationSignal,
+  type DetectedIndustry,
 } from '@/lib/scoring'
 
 // TTL for stored results (30 days in seconds for Vercel KV)
@@ -73,6 +75,7 @@ interface AnalysisResult {
   }>
   scrapeMethod: 'direct' | 'scrapingbee' | 'jina' | 'failed'
   contentQuality: 'excellent' | 'good' | 'minimal' | 'failed'
+  industry: DetectedIndustry
   createdAt: string
 }
 
@@ -489,10 +492,12 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log(`[Analyze] Score: ${commodityScore} (penalty: ${scoringResult.commodityPenalty}, bonus: ${scoringResult.differentiationBonus})`)
+    // Detect industry from content
+    const industry = detectIndustry(allText)
+    console.log(`[Analyze] Score: ${commodityScore} (penalty: ${scoringResult.commodityPenalty}, bonus: ${scoringResult.differentiationBonus}), industry: ${industry}`)
 
-    // Generate diagnosis and cost
-    const diagnosis = generateDiagnosis(commodityScore, detectedPhrases.length, differentiationSignals.length)
+    // Generate diagnosis and cost (pass contentQuality for honest diagnosis)
+    const diagnosis = generateDiagnosis(commodityScore, detectedPhrases.length, differentiationSignals.length, contentQuality)
     const costResult = calculateCostEstimate(commodityScore)
 
     // Fetch additional pages for more context (if direct scrape worked)
@@ -554,6 +559,7 @@ export async function POST(request: NextRequest) {
       fixes,
       scrapeMethod: scrapeResult.method,
       contentQuality,
+      industry,
       createdAt: new Date().toISOString(),
     }
 
@@ -622,6 +628,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           error: 'Page not found. Check the URL and try again.'
         }, { status: 404 })
+      }
+
+      if (errorMsg.includes('508') || errorMsg.includes('loop')) {
+        return NextResponse.json({
+          error: 'The website has a redirect loop. This is a site configuration issue - try a different URL.'
+        }, { status: 508 })
       }
 
       if (process.env.NODE_ENV === 'development') {
