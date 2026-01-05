@@ -20,6 +20,8 @@ function ProcessingContent() {
   const [progress, setProgress] = useState(0)
   const [stageIndex, setStageIndex] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [errorHint, setErrorHint] = useState<string | null>(null)
+  const [isRateLimited, setIsRateLimited] = useState(false)
 
   // Use ref to track if component is mounted and to store abort controller
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -67,7 +69,13 @@ function ProcessingContent() {
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({}))
-          throw new Error(data.error || 'Analysis failed')
+          if (data.hint) {
+            setErrorHint(data.hint)
+          }
+          if (data.rateLimited) {
+            setIsRateLimited(true)
+          }
+          throw new Error(data.error || 'Something went wrong while analyzing that site.')
         }
 
         const data = await response.json()
@@ -115,20 +123,40 @@ function ProcessingContent() {
   if (error) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-6">
-        <div className="text-center space-y-6 max-w-md">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
-            <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+        <div className="text-center space-y-6 max-w-lg">
+          <div className={`w-16 h-16 ${isRateLimited ? 'bg-amber-500/20' : 'bg-red-500/20'} rounded-full flex items-center justify-center mx-auto`}>
+            {isRateLimited ? (
+              <svg className="w-8 h-8 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ) : (
+              <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            )}
           </div>
-          <h1 className="text-section text-2xl text-[var(--foreground)]">Couldn&apos;t analyze that URL</h1>
+          <h1 className="text-section text-2xl text-[var(--foreground)]">
+            {isRateLimited ? 'Slow down there' : 'Couldn\'t analyze that site'}
+          </h1>
           <p className="text-body text-lg">{error}</p>
-          <button
-            onClick={() => router.push('/')}
-            className="btn-kinetic"
-          >
-            Try again
-          </button>
+          {errorHint && (
+            <p className="text-body text-sm text-[var(--muted-foreground)] bg-[var(--muted)] p-4 rounded">
+              {errorHint}
+            </p>
+          )}
+          {isRateLimited && (
+            <p className="text-body text-sm text-[var(--muted-foreground)]">
+              This tool is free, but we limit usage to keep it that way. Come back soon.
+            </p>
+          )}
+          <div className="pt-2">
+            <button
+              onClick={() => router.push('/')}
+              className="btn-kinetic"
+            >
+              {isRateLimited ? 'Back to home' : 'Try a different URL'}
+            </button>
+          </div>
         </div>
       </main>
     )

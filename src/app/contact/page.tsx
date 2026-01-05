@@ -91,8 +91,9 @@ function ContactFormContent() {
       return
     }
 
-    // Basic email validation
-    if (formData.email && !formData.email.includes('@')) {
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (formData.email && !emailRegex.test(formData.email)) {
       setError('Please enter a valid email address')
       setIsSubmitting(false)
       return
@@ -270,6 +271,17 @@ function ContactFormContent() {
                 {error}
               </div>
             )}
+
+            {/* Honeypot field - hidden from humans, catches bots */}
+            <input
+              type="text"
+              name="_honeypot"
+              value={formData._honeypot || ''}
+              onChange={(e) => handleChange('_honeypot', e.target.value)}
+              style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, width: 0 }}
+              tabIndex={-1}
+              autoComplete="off"
+            />
 
             <button
               type="submit"
