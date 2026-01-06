@@ -245,6 +245,72 @@ function ScoreDistribution({ scans }: { scans: ScanEntry[] }) {
   )
 }
 
+// Scans per day chart (last 14 days)
+function ScansPerDay({ scans }: { scans: ScanEntry[] }) {
+  // Group scans by date (last 14 days)
+  const today = new Date()
+  const days: { date: string; label: string; count: number }[] = []
+
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const dateStr = d.toISOString().slice(0, 10)
+    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    days.push({ date: dateStr, label, count: 0 })
+  }
+
+  // Count scans per day
+  scans.forEach(s => {
+    const scanDate = s.timestamp.slice(0, 10)
+    const day = days.find(d => d.date === scanDate)
+    if (day) day.count++
+  })
+
+  const maxCount = Math.max(...days.map(d => d.count), 1)
+  const totalScans = days.reduce((sum, d) => sum + d.count, 0)
+
+  if (totalScans === 0) {
+    return (
+      <div className="bg-[var(--muted)] p-4 mb-6">
+        <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">Scans per day</h3>
+        <p className="text-xs text-[var(--muted-foreground)]">No scans in the last 14 days</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-[var(--muted)] p-4 mb-6">
+      <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">
+        Scans per day <span className="text-[var(--muted-foreground)] font-normal">({totalScans} total)</span>
+      </h3>
+      <div className="flex items-end gap-1 h-20">
+        {days.map((day) => {
+          const height = (day.count / maxCount) * 100
+          return (
+            <div key={day.date} className="flex-1 flex flex-col items-center group relative">
+              <div
+                className="w-full bg-[var(--accent)] rounded-t transition-all"
+                style={{ height: `${height}%`, minHeight: day.count > 0 ? '4px' : '0' }}
+              />
+              {day.count > 0 && (
+                <div className="absolute bottom-full mb-1 bg-[var(--background)] border border-[var(--border)] px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  {day.count} scan{day.count !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      {/* X-axis labels - show every other day to reduce clutter */}
+      <div className="flex justify-between text-[9px] text-[var(--muted-foreground)] mt-1">
+        {days.filter((_, i) => i % 2 === 0).map(day => (
+          <span key={day.date} className="flex-1 text-center">{day.label}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
@@ -326,6 +392,15 @@ export default function AdminPage() {
       setLoading(false)
     }
   }
+
+  // Auto-refresh every 10 minutes when authenticated
+  useEffect(() => {
+    if (!authenticated || !password) return
+    const interval = setInterval(() => {
+      refresh()
+    }, 10 * 60 * 1000) // 10 minutes
+    return () => clearInterval(interval)
+  }, [authenticated, password])
 
   const performAction = async (action: string, params: Record<string, string>) => {
     try {
@@ -471,7 +546,8 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Charts row */}
+        {/* Charts */}
+        <ScansPerDay scans={chartScans} />
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           <IndustryBreakdown scans={chartScans} />
           <ScoreDistribution scans={chartScans} />
