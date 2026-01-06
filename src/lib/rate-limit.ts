@@ -52,7 +52,7 @@ export async function checkRateLimit(
         hourlyRemaining: Math.max(0, config.hourlyLimit - currentHourly),
         dailyRemaining: 0,
         retryAfterSeconds: secondsUntilMidnight,
-        message: `Daily limit reached (${config.dailyLimit} analyses per day). Try again tomorrow.`,
+        message: `You've hit the daily limit (${config.dailyLimit} free tests). Come back tomorrow—or reach out if you want to run more.`,
       }
     }
 
@@ -66,7 +66,7 @@ export async function checkRateLimit(
         hourlyRemaining: 0,
         dailyRemaining: Math.max(0, config.dailyLimit - currentDaily),
         retryAfterSeconds: secondsUntilHourReset,
-        message: `Hourly limit reached (${config.hourlyLimit} analyses per hour). Try again in about an hour.`,
+        message: `Slow down there—${config.hourlyLimit} tests is the limit for now. Try again in a bit.`,
       }
     }
 

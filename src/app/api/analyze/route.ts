@@ -467,8 +467,8 @@ export async function POST(request: NextRequest) {
     // Check rate limit before doing any expensive work
     const clientIP = getClientIP(request)
     const rateLimitResult = await checkRateLimit(clientIP, {
-      hourlyLimit: 10,
-      dailyLimit: 50,
+      hourlyLimit: 3,
+      dailyLimit: 3,
     })
 
     if (!rateLimitResult.allowed) {
