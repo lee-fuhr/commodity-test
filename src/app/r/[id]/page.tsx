@@ -5,7 +5,7 @@ import { ShareButtons } from './ShareButtons'
 import { CopyButton } from './CopyButton'
 import { InteractiveCostCalculator } from './InteractiveCostCalculator'
 import { EmailCapture } from './EmailCapture'
-import { SuggestionVote } from './SuggestionVote'
+// import { SuggestionVote } from './SuggestionVote'  // Temporarily disabled to debug
 import { Footer } from '@/components/Footer'
 
 interface CostAssumptions {
@@ -338,27 +338,20 @@ export default async function ResultsPage({
                       <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 sm:mb-3">Replace with</p>
                       <div className="space-y-3">
                         {fix.suggestions.map((suggestion, idx) => (
-                          <SuggestionVote
+                          <div
                             key={idx}
-                            resultId={result.id}
-                            fixNumber={fix.number}
-                            suggestionIndex={idx}
-                            approach={suggestion.approach}
-                            originalPhrase={fix.originalPhrase}
-                            suggestionText={suggestion.text}
+                            className="bg-[var(--accent)]/10 border-l-4 border-[var(--accent)] p-3 sm:p-4"
                           >
-                            <div className="bg-[var(--accent)]/10 border-l-4 border-[var(--accent)] p-3 sm:p-4">
-                              <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
-                                <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                                  <CopyButton text={suggestion.text} />
-                                  <p className="text-[var(--foreground)] text-base sm:text-lg flex-1">{suggestion.text}</p>
-                                </div>
-                                <span className={`text-[10px] sm:text-xs uppercase tracking-wider px-2 py-1 border shrink-0 self-start ${getApproachStyle(suggestion.approach)}`}>
-                                  {suggestion.approach}
-                                </span>
+                            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                              <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                <CopyButton text={suggestion.text} />
+                                <p className="text-[var(--foreground)] text-base sm:text-lg flex-1">{suggestion.text}</p>
                               </div>
+                              <span className={`text-[10px] sm:text-xs uppercase tracking-wider px-2 py-1 border shrink-0 self-start ${getApproachStyle(suggestion.approach)}`}>
+                                {suggestion.approach}
+                              </span>
                             </div>
-                          </SuggestionVote>
+                          </div>
                         ))}
                       </div>
                     </div>
