@@ -554,9 +554,11 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Detect industry from content
-    const industry = detectIndustry(allText)
-    console.log(`[Analyze] Score: ${commodityScore} (penalty: ${scoringResult.commodityPenalty}, bonus: ${scoringResult.differentiationBonus}), industry: ${industry}`)
+    // Detect industry - check learned overrides first, then auto-detect
+    const domain = new URL(validUrl).hostname.replace(/^www\./, '')
+    const learnedIndustry = await kv.get<string>(`industry:learned:${domain}`)
+    const industry = (learnedIndustry as DetectedIndustry) || detectIndustry(allText)
+    console.log(`[Analyze] Score: ${commodityScore} (penalty: ${scoringResult.commodityPenalty}, bonus: ${scoringResult.differentiationBonus}), industry: ${industry}${learnedIndustry ? ' (learned)' : ''}`)
 
     // Generate diagnosis and cost (pass contentQuality and industry for honest diagnosis)
     const diagnosis = generateDiagnosis(commodityScore, detectedPhrases.length, differentiationSignals.length, contentQuality, industry)

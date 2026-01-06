@@ -206,6 +206,17 @@ export async function POST(request: NextRequest) {
         const result = await kv.get<Record<string, unknown>>(`result:${resultId}`)
         if (result) {
           await kv.set(`result:${resultId}`, { ...result, industry: newIndustry })
+
+          // Learn from this override - store domain → industry mapping for future scans
+          const url = result.url as string | undefined
+          if (url) {
+            try {
+              const domain = new URL(url).hostname.replace(/^www\./, '')
+              await kv.set(`industry:learned:${domain}`, newIndustry)
+            } catch {
+              // Invalid URL, skip learning
+            }
+          }
         }
 
         // Update scan log entries with this resultId
