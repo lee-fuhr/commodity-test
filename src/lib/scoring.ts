@@ -524,10 +524,21 @@ export function detectIndustry(text: string): DetectedIndustry {
   // Strong self-declarations that should override other signals
   // These are explicit "we are X" statements that trump counting client verticals
   const strongDeclarations: Array<{ pattern: RegExp; industry: DetectedIndustry; bonus: number }> = [
+    // Explicit agency mentions
     { pattern: /\b(we are|we're|as) an? agency\b/i, industry: 'agency', bonus: 20 },
     { pattern: /\b(digital|creative|marketing|design|branding|web|advertising|full-service) agency\b/i, industry: 'agency', bonus: 15 },
     { pattern: /\bagency (for|serving|helping)\b/i, industry: 'agency', bonus: 15 },
-    { pattern: /\b(creative|design|digital) studio\b/i, industry: 'agency', bonus: 10 },
+    { pattern: /\b(creative|design|digital) studio\b/i, industry: 'agency', bonus: 12 },
+
+    // Service-based agency patterns (agencies that avoid the word "agency")
+    { pattern: /\bteam of.{0,20}(developers?|designers?|engineers?)\b/i, industry: 'agency', bonus: 12 },
+    { pattern: /\b(design|development|strategy).{0,10}(design|development|strategy).{0,10}(design|development|strategy)\b/i, industry: 'agency', bonus: 15 }, // trifecta
+    { pattern: /\bwe (build|create|design|develop).{0,30}(for|with) (clients?|companies|organizations|teams|brands)\b/i, industry: 'agency', bonus: 15 },
+    { pattern: /\bwe partner with.{0,30}(to|and) (build|create|design|develop|solve|craft)\b/i, industry: 'agency', bonus: 12 },
+    { pattern: /\b(discover|strategy),?\s*(design|create),?\s*(develop|build|deliver)\b/i, industry: 'agency', bonus: 15 },
+    { pattern: /\bfractional (cto|cmo|cdo|designer|developer)\b/i, industry: 'agency', bonus: 12 },
+    { pattern: /\b(web|digital|front-?end|ux|ui).{0,10}(design|development).{0,10}(services?|specialists?|experts?|consultants?)\b/i, industry: 'agency', bonus: 10 },
+    { pattern: /\bsolve.{0,20}(challenges?|problems?).{0,20}for.{0,20}(clients?|companies|organizations|brands)\b/i, industry: 'agency', bonus: 10 },
   ]
 
   for (const { pattern, industry, bonus } of strongDeclarations) {
