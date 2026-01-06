@@ -1,10 +1,24 @@
 import Link from 'next/link'
 
+// Industry colors (matches admin dashboard)
+const INDUSTRY_COLORS: Record<string, string> = {
+  manufacturing: '#3b82f6',
+  saas: '#8b5cf6',
+  services: '#10b981',
+  construction: '#f59e0b',
+  distribution: '#06b6d4',
+  healthcare: '#ec4899',
+  finance: '#6366f1',
+  retail: '#f97316',
+  general: '#6b7280',
+}
+
 // Sample data using Caterpillar as a recognizable example
 // Note: These are illustrative phrases typical of the industry, demonstrating what the tool finds
 const sampleResult = {
   companyName: 'Caterpillar Inc.',
   url: 'caterpillar.com',
+  industry: 'manufacturing' as const,
   differentiationScore: 29, // 100 = fully differentiated, 0 = pure commodity
   costEstimate: 180000,
   costAssumptions: {
@@ -13,7 +27,7 @@ const sampleResult = {
     lossRate: 0.18,
     lossRateLabel: 'improvement potential at score 29',
   },
-  diagnosis: 'Even industry giants have room to differentiate. Your homepage has 8 phrases that sound like every competitor. Here\'s how to stand out.',
+  diagnosis: 'Even industry giants have room to differentiate. Your homepage relies on phrases that appear on thousands of competitor sites. Here are 5 specific fixes.',
   fixes: [
     {
       number: 1,
@@ -150,8 +164,8 @@ export default function SamplePage() {
       {/* Sample banner */}
       <div className="bg-yellow-500 py-3 px-6">
         <div className="max-w-4xl mx-auto text-center text-yellow-950">
-          <span className="font-semibold uppercase tracking-wider text-sm">Sample report using Caterpillar as an example</span>
-          <span className="block text-xs mt-1 opacity-80">Phrases shown are illustrative of industry patterns. Even giants have room to differentiate.</span>
+          <span className="font-semibold uppercase tracking-wider text-sm">Sample report</span>
+          <span className="block text-xs mt-1 opacity-80">Illustrative analysis showing how the tool identifies commodity messaging patterns</span>
         </div>
       </div>
 
@@ -170,11 +184,29 @@ export default function SamplePage() {
       {/* Results header */}
       <section className="bg-[var(--muted)] py-8 px-6 border-b border-[var(--border)]">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-label mb-2">Sample results for</p>
+          <p className="text-label mb-2">Results for</p>
           <h1 className="text-section text-3xl md:text-4xl text-[var(--foreground)] mb-2">
-            <span className="blur-sm select-none">{sampleResult.companyName}</span>
+            {sampleResult.companyName}
           </h1>
-          <p className="text-body text-sm blur-sm select-none">{sampleResult.url}</p>
+          <div className="flex items-center justify-center gap-3">
+            <a
+              href={`https://${sampleResult.url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-body text-sm text-[var(--accent)] hover:underline"
+            >
+              {sampleResult.url} →
+            </a>
+            <span
+              className="text-xs px-2 py-0.5 rounded capitalize"
+              style={{
+                backgroundColor: `${INDUSTRY_COLORS[sampleResult.industry]}20`,
+                color: INDUSTRY_COLORS[sampleResult.industry]
+              }}
+            >
+              {sampleResult.industry}
+            </span>
+          </div>
         </div>
       </section>
 
@@ -347,7 +379,7 @@ export default function SamplePage() {
 
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 px-6 relative">
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--background)]">v0.12.0</span>
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)] opacity-30">v0.14.0</span>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-label">
             <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> © {new Date().getFullYear()}
