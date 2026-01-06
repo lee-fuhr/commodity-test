@@ -5,12 +5,12 @@ import FeedbackWidget from '@/components/FeedbackWidget'
 export const metadata: Metadata = {
   title: 'The Commodity Test - Does your website sound like everyone else\'s?',
   description: 'Free tool that analyzes your homepage messaging, shows how you compare to competitors, and gives you 3 specific fixes. 30 seconds, no email required.',
-  metadataBase: new URL('https://thecommoditytest.com'),
+  metadataBase: new URL('https://areyougeneric.com'),
   openGraph: {
     title: 'The Commodity Test',
     description: 'Does your website sound like everyone else\'s? Find out in 30 seconds.',
     type: 'website',
-    url: 'https://thecommoditytest.com',
+    url: 'https://areyougeneric.com',
     siteName: 'The Commodity Test',
     images: [
       {

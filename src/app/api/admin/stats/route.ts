@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     const rawResultEmails = await kv.lrange<ResultEmail>('result:emails', 0, 99)
 
     // Mark ignored records and filter for counts
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thecommoditytest.com'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://areyougeneric.com'
 
     const scans = rawScans.map(scan => ({
       ...scan,

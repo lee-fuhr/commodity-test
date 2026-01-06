@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
                 color: '#64748b',
               }}
             >
-              thecommoditytest.com
+              areyougeneric.com
             </span>
             <span
               style={{
@@ -253,7 +253,7 @@ export async function GET(request: NextRequest) {
               color: '#64748b',
             }}
           >
-            thecommoditytest.com
+            areyougeneric.com
           </span>
           <span
             style={{
