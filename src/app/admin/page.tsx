@@ -110,13 +110,13 @@ function downloadCSV(data: Record<string, unknown>[], filename: string) {
 // Industry colors for charts
 const INDUSTRY_COLORS: Record<string, string> = {
   manufacturing: '#3b82f6', // blue
-  saas: '#8b5cf6', // purple
-  agency: '#a855f7', // purple-500 (distinct from saas)
-  services: '#10b981', // green
-  construction: '#f59e0b', // amber
+  saas: '#8b5cf6', // violet
+  agency: '#f43f5e', // rose (red-pink)
+  services: '#10b981', // emerald
+  construction: '#eab308', // yellow
   distribution: '#06b6d4', // cyan
   healthcare: '#ec4899', // pink
-  finance: '#6366f1', // indigo
+  finance: '#14b8a6', // teal
   retail: '#f97316', // orange
   general: '#6b7280', // gray
 }
