@@ -14,12 +14,13 @@ interface CostAssumptions {
   lossRateLabel: string
 }
 
-type DetectedIndustry = 'manufacturing' | 'distribution' | 'saas' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
+type DetectedIndustry = 'manufacturing' | 'distribution' | 'saas' | 'agency' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
 
 const INDUSTRY_COPY: Record<DetectedIndustry, { verticalNoun: string; verticalPlural: string; dealContext: string }> = {
   manufacturing: { verticalNoun: 'manufacturer', verticalPlural: 'manufacturers', dealContext: '$2M–$10M manufacturers' },
   distribution: { verticalNoun: 'distributor', verticalPlural: 'distributors', dealContext: 'industrial distributors' },
   saas: { verticalNoun: 'software company', verticalPlural: 'software companies', dealContext: 'B2B SaaS companies' },
+  agency: { verticalNoun: 'agency', verticalPlural: 'agencies', dealContext: 'creative and digital agencies' },
   services: { verticalNoun: 'service business', verticalPlural: 'service businesses', dealContext: 'professional service firms' },
   construction: { verticalNoun: 'contractor', verticalPlural: 'contractors', dealContext: 'commercial contractors' },
   healthcare: { verticalNoun: 'healthcare provider', verticalPlural: 'healthcare providers', dealContext: 'healthcare organizations' },

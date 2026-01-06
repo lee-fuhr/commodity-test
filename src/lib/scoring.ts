@@ -560,6 +560,13 @@ export function detectIndustry(text: string): DetectedIndustry {
     { pattern: /\blet'?s?.{0,10}work together\b/i, industry: 'agency', bonus: 8 },
     { pattern: /\b(i work with|working with).{0,15}(clients?|companies|brands|startups)\b/i, industry: 'agency', bonus: 10 },
     { pattern: /\b(ux|ui|product|web|digital).{0,10}(designer|developer|strategist|consultant)\b/i, industry: 'agency', bonus: 8 },
+
+    // Service-language patterns (what agencies DO vs what they ARE)
+    { pattern: /\bwe build.{0,20}(websites?|sites|web).{0,15}(for|with)\b/i, industry: 'agency', bonus: 12 },
+    { pattern: /\bdesign.{0,5}(and|&).{0,5}(build|development)\b/i, industry: 'agency', bonus: 10 },
+    { pattern: /\b(cms|website|web).{0,10}(setup|platforms?).{0,15}(for|with).{0,10}(companies|clients|teams|businesses)\b/i, industry: 'agency', bonus: 10 },
+    { pattern: /\bmarketing teams?\b.{0,20}(move|grow|scale)\b/i, industry: 'agency', bonus: 8 },
+    { pattern: /\bnext-?generation.{0,10}(websites?|web|digital)\b/i, industry: 'agency', bonus: 8 },
   ]
 
   for (const { pattern, industry, bonus } of strongDeclarations) {

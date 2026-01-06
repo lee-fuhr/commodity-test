@@ -240,7 +240,8 @@ async function recategorizeResults() {
         }
 
         const extracted = extractContent(scrapeResult.html, fullUrl)
-        const textForDetection = `${extracted.headline} ${extracted.subheadline} ${extracted.bodyText}`
+        // Include schema and meta descriptions for better industry detection
+        const textForDetection = `${extracted.headline} ${extracted.subheadline} ${extracted.schemaDescription || ''} ${extracted.metaDescription || ''} ${extracted.bodyText}`
 
         const newIndustry = detectIndustry(textForDetection)
 
