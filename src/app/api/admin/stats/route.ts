@@ -188,6 +188,43 @@ export async function POST(request: NextRequest) {
         // Re-run industry detection on all stored results
         return await recategorizeResults()
 
+      case 'set-industry': {
+        // Manually override industry for a specific result
+        const { resultId, newIndustry } = body
+        if (!resultId || !newIndustry) {
+          return NextResponse.json({ error: 'Missing resultId or newIndustry' }, { status: 400 })
+        }
+
+        // Validate industry
+        const validIndustries = ['manufacturing', 'distribution', 'saas', 'agency', 'services', 'construction', 'healthcare', 'finance', 'retail', 'general']
+        if (!validIndustries.includes(newIndustry)) {
+          return NextResponse.json({ error: 'Invalid industry' }, { status: 400 })
+        }
+
+        // Update stored result
+        const result = await kv.get<Record<string, unknown>>(`result:${resultId}`)
+        if (result) {
+          await kv.set(`result:${resultId}`, { ...result, industry: newIndustry })
+        }
+
+        // Update scan log entries with this resultId
+        const scans = await kv.lrange<ScanEntry>('analytics:scans', 0, 499)
+        const updatedScans = scans.map(scan =>
+          scan.resultId === resultId ? { ...scan, industry: newIndustry } : scan
+        )
+
+        // Check if any actually changed
+        const changed = scans.some((scan, i) => scan.resultId === resultId && scan.industry !== newIndustry)
+        if (changed) {
+          await kv.del('analytics:scans')
+          for (const scan of updatedScans.reverse()) {
+            await kv.lpush('analytics:scans', scan)
+          }
+        }
+
+        return NextResponse.json({ success: true, message: `Set industry to ${newIndustry} for result ${resultId}` })
+      }
+
       default:
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
     }

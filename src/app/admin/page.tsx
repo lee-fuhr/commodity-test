@@ -104,6 +104,20 @@ const INDUSTRY_COLORS: Record<string, string> = {
   general: '#6b7280', // gray
 }
 
+// Industry options for manual override dropdown
+const INDUSTRY_OPTIONS = [
+  'manufacturing',
+  'distribution',
+  'saas',
+  'agency',
+  'services',
+  'construction',
+  'healthcare',
+  'finance',
+  'retail',
+  'general',
+] as const
+
 // Icons
 const IgnoreIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -454,6 +468,24 @@ export default function AdminPage() {
     window.open(`/processing?url=${encodeURIComponent(url)}`, '_blank')
   }
 
+  const setIndustry = async (resultId: string, newIndustry: string) => {
+    try {
+      const res = await fetch('/api/admin/stats', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${password}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'set-industry', resultId, newIndustry })
+      })
+      if (res.ok) {
+        refresh() // Refresh data to show updated industry
+      }
+    } catch (err) {
+      console.error('Failed to set industry:', err)
+    }
+  }
+
   if (!authenticated) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
@@ -658,15 +690,21 @@ export default function AdminPage() {
                         </div>
                       </td>
                       <td className="py-3 px-2">
-                        <span
-                          className="text-xs px-2 py-0.5 rounded capitalize"
+                        <select
+                          value={scan.industry}
+                          onChange={(e) => setIndustry(scan.resultId, e.target.value)}
+                          className="text-xs px-2 py-1 rounded capitalize cursor-pointer border-0 outline-none"
                           style={{
                             backgroundColor: `${INDUSTRY_COLORS[scan.industry] || INDUSTRY_COLORS.general}20`,
                             color: INDUSTRY_COLORS[scan.industry] || INDUSTRY_COLORS.general
                           }}
                         >
-                          {scan.industry}
-                        </span>
+                          {INDUSTRY_OPTIONS.map(ind => (
+                            <option key={ind} value={ind} className="bg-[var(--background)] text-[var(--foreground)]">
+                              {ind}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="py-3 px-2">
                         {scan.ip && (
