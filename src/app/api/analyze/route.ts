@@ -511,8 +511,8 @@ export async function POST(request: NextRequest) {
     if (scrapeResult.method === 'failed' || scrapeResult.contentLength < 100) {
       console.log(`[Analyze] Scraping failed: ${scrapeResult.error}`)
       return NextResponse.json({
-        error: 'That site blocked us.',
-        hint: 'Some websites have security that blocks analysis tools—usually bigger companies. Nothing\'s wrong on your end. Try a different site.',
+        error: 'That site won\'t let anyone look.',
+        hint: 'Some companies are... protective about their messaging. Their security blocks outside analysis. Make of that what you will. Try a competitor instead.',
       }, { status: 400 })
     }
 
@@ -525,8 +525,8 @@ export async function POST(request: NextRequest) {
     // Check for minimal content
     if (contentQuality === 'failed') {
       return NextResponse.json({
-        error: 'Not much text to work with.',
-        hint: 'We loaded the page, but it\'s mostly images or dynamically-loaded content. Try a different page on the same site—maybe an About or Services page.',
+        error: 'Can\'t find the text on this one.',
+        hint: 'The way this site was built hides its content from analysis tools—usually JavaScript frameworks or text baked into images. Not great for their SEO either. Try another page or a different site.',
       }, { status: 400 })
     }
 
