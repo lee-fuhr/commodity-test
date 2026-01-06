@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { VERSION } from '@/lib/version'
 
 export default function TestPage() {
   const [testId] = useState('test-demo-123')
@@ -214,7 +215,7 @@ export default function TestPage() {
       {/* Footer */}
       <footer className="px-4 md:px-8 lg:px-12 py-8 border-t border-[var(--border)]">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-label">Commodity Test <span className="text-[var(--background)]">v0.14.0</span></p>
+          <p className="text-label">Commodity Test <span className="text-[var(--background)]">v{VERSION}</span></p>
         </div>
       </footer>
     </main>

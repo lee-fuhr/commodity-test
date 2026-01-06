@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { VERSION } from '@/lib/version'
 
 // Industry colors (matches admin dashboard)
 const INDUSTRY_COLORS: Record<string, string> = {
@@ -379,7 +380,7 @@ export default function SamplePage() {
 
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 px-6 relative">
-        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)] opacity-30">v0.14.0</span>
+        <span className="absolute bottom-2 right-2 text-[10px] text-[var(--muted-foreground)] opacity-30">v{VERSION}</span>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-label">
             <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> © {new Date().getFullYear()}
