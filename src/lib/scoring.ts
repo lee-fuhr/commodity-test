@@ -521,6 +521,21 @@ export function detectIndustry(text: string): DetectedIndustry {
     general: 0
   }
 
+  // Strong self-declarations that should override other signals
+  // These are explicit "we are X" statements that trump counting client verticals
+  const strongDeclarations: Array<{ pattern: RegExp; industry: DetectedIndustry; bonus: number }> = [
+    { pattern: /\b(we are|we're|as) an? agency\b/i, industry: 'agency', bonus: 20 },
+    { pattern: /\b(digital|creative|marketing|design|branding|web|advertising|full-service) agency\b/i, industry: 'agency', bonus: 15 },
+    { pattern: /\bagency (for|serving|helping)\b/i, industry: 'agency', bonus: 15 },
+    { pattern: /\b(creative|design|digital) studio\b/i, industry: 'agency', bonus: 10 },
+  ]
+
+  for (const { pattern, industry, bonus } of strongDeclarations) {
+    if (pattern.test(lowerText)) {
+      scores[industry] += bonus
+    }
+  }
+
   for (const [industry, keywords] of Object.entries(INDUSTRY_KEYWORDS)) {
     for (const keyword of keywords) {
       // Count occurrences
