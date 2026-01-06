@@ -530,7 +530,7 @@ export default function AdminPage() {
           <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-6 text-center">Admin</h1>
           <form onSubmit={handleLogin} className="space-y-4">
             <input
-              type="password"
+              type="text"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"

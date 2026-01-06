@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { kv } from '@vercel/kv'
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null
-
 export async function POST(request: NextRequest) {
   try {
     const { email, firstName } = await request.json()
@@ -14,13 +10,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 })
     }
 
-    if (!resend) {
+    // Initialize Resend inside the handler to ensure env var is read at request time
+    const resendApiKey = process.env.RESEND_API_KEY
+    if (!resendApiKey) {
       console.error('RESEND_API_KEY not configured')
       return NextResponse.json(
         { error: 'Email service not configured. Please contact support.' },
         { status: 500 }
       )
     }
+    const resend = new Resend(resendApiKey)
 
     // Store the lead for future marketing campaigns
     try {

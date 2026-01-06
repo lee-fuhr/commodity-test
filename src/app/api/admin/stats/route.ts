@@ -4,7 +4,7 @@ import { detectIndustry, type DetectedIndustry } from '@/lib/scoring'
 import { scrapeUrl, extractContent } from '@/lib/scraper'
 
 // Simple API key protection - set ADMIN_API_KEY in env
-const ADMIN_API_KEY = process.env.ADMIN_API_KEY
+// Read inside function to ensure env var is available at request time (not module load)
 
 interface ScanEntry {
   url: string
@@ -46,7 +46,8 @@ function checkAuth(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization')
   const apiKey = authHeader?.replace('Bearer ', '')
   const isDev = process.env.NODE_ENV === 'development'
-  const hasValidKey = !!(ADMIN_API_KEY && apiKey === ADMIN_API_KEY)
+  const adminApiKey = process.env.ADMIN_API_KEY
+  const hasValidKey = !!(adminApiKey && apiKey === adminApiKey)
   return isDev || hasValidKey
 }
 
