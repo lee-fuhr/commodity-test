@@ -239,8 +239,8 @@ async function recategorizeResults() {
           continue
         }
 
-        const extracted = extractContent(scrapeResult.html)
-        const textForDetection = `${extracted.title} ${extracted.metaDescription} ${extracted.bodyText}`
+        const extracted = extractContent(scrapeResult.html, fullUrl)
+        const textForDetection = `${extracted.headline} ${extracted.subheadline} ${extracted.bodyText}`
 
         const newIndustry = detectIndustry(textForDetection)
 
