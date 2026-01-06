@@ -511,8 +511,8 @@ export async function POST(request: NextRequest) {
     if (scrapeResult.method === 'failed' || scrapeResult.contentLength < 100) {
       console.log(`[Analyze] Scraping failed: ${scrapeResult.error}`)
       return NextResponse.json({
-        error: 'We couldn\'t read that website.',
-        hint: 'The site may be blocking our request, taking too long to load, or temporarily unavailable. Double-check the URL and try again.',
+        error: 'That site blocked us.',
+        hint: 'Some websites have security that blocks analysis tools—usually bigger companies. Nothing\'s wrong on your end. Try a different site.',
       }, { status: 400 })
     }
 
@@ -525,8 +525,8 @@ export async function POST(request: NextRequest) {
     // Check for minimal content
     if (contentQuality === 'failed') {
       return NextResponse.json({
-        error: 'Not enough text to analyze.',
-        hint: 'We loaded the page but couldn\'t find much written content. This sometimes happens with image-heavy sites or pages that load content dynamically. Try a different page on the same site.',
+        error: 'Not much text to work with.',
+        hint: 'We loaded the page, but it\'s mostly images or dynamically-loaded content. Try a different page on the same site—maybe an About or Services page.',
       }, { status: 400 })
     }
 
