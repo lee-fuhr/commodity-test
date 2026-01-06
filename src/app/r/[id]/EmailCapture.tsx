@@ -44,9 +44,9 @@ export function EmailCapture({ resultId, companyName }: Props) {
 
   if (status === 'success') {
     return (
-      <div className="bg-green-500/10 border border-green-500/30 p-4 text-center">
-        <p className="text-green-300 font-medium">Check your inbox.</p>
-        <p className="text-green-300/70 text-sm mt-1">We sent a link to this report to {email}</p>
+      <div className="bg-green-900/30 border border-green-700/50 p-4 text-center">
+        <p className="text-green-400 font-medium">Check your inbox.</p>
+        <p className="text-green-400/80 text-sm mt-1">We sent a link to this report to {email}</p>
       </div>
     )
   }
