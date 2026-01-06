@@ -2,6 +2,8 @@
 
 import { useEffect, useState, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { VERSION } from '@/lib/version'
 
 const STAGES = [
   { label: 'Fetching your homepage', tease: null },
@@ -163,6 +165,20 @@ function ProcessingContent() {
   }
 
   const currentStage = STAGES[stageIndex]
+  const [displayedLabel, setDisplayedLabel] = useState(currentStage.label)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  // Crossfade effect when stage changes
+  useEffect(() => {
+    if (currentStage.label !== displayedLabel) {
+      setIsTransitioning(true)
+      const timeout = setTimeout(() => {
+        setDisplayedLabel(currentStage.label)
+        setIsTransitioning(false)
+      }, 250) // Half of 500ms - fade out, then fade in
+      return () => clearTimeout(timeout)
+    }
+  }, [currentStage.label, displayedLabel])
 
   return (
     <main className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-6">
@@ -170,8 +186,12 @@ function ProcessingContent() {
         {/* Stage indicator */}
         <div className="text-center space-y-4">
           <p className="text-label text-[var(--accent)]">Analyzing</p>
-          <h1 className="text-section text-3xl md:text-4xl text-[var(--foreground)]">
-            {currentStage.label}
+          <h1
+            className={`text-section text-3xl md:text-4xl text-[var(--foreground)] transition-opacity duration-[250ms] ${
+              isTransitioning ? 'opacity-0' : 'opacity-100'
+            }`}
+          >
+            {displayedLabel}
           </h1>
         </div>
 
@@ -216,10 +236,14 @@ function ProcessingContent() {
         </div>
       </div>
 
-      {/* Footer */}
-      <p className="absolute bottom-8 text-label">
-        <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> · No email required
-      </p>
+      {/* Footer - minimal for processing page */}
+      <div className="absolute bottom-6 flex items-center gap-4 text-sm">
+        <span className="text-[var(--background)] text-xs select-none">v{VERSION}</span>
+        <span className="text-[var(--muted-foreground)]">
+          <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> · No email required
+        </span>
+        <Link href="/privacy" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Privacy</Link>
+      </div>
     </main>
   )
 }

@@ -5,7 +5,7 @@ import { ShareButtons } from './ShareButtons'
 import { CopyButton } from './CopyButton'
 import { InteractiveCostCalculator } from './InteractiveCostCalculator'
 import { EmailCapture } from './EmailCapture'
-import { VERSION } from '@/lib/version'
+import { Footer } from '@/components/Footer'
 
 interface CostAssumptions {
   averageDealValue: number
@@ -421,36 +421,7 @@ export default async function ResultsPage({
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-[var(--border)] py-8 sm:py-12 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Primary CTA */}
-          <div className="text-center mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 text-[var(--accent)] hover:underline text-lg font-medium">
-              Run another test →
-            </Link>
-          </div>
-
-          {/* Footer info */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-6 border-t border-[var(--border)]">
-            <div className="text-center sm:text-left">
-              <p className="text-[var(--foreground)] font-medium text-sm">
-                Built by <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a>
-              </p>
-              <p className="text-[var(--muted-foreground)] text-xs mt-1">
-                27 years helping {industryCopy.verticalPlural} stop sounding like everyone else
-              </p>
-            </div>
-
-            <nav className="flex items-center gap-6 text-sm">
-              <Link href="/how-it-works" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">How it works</Link>
-              <Link href="/privacy" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Privacy</Link>
-              <Link href="/contact" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Contact</Link>
-              <span className="text-[var(--muted-foreground)] opacity-30 text-xs">v{VERSION}</span>
-            </nav>
-          </div>
-        </div>
-      </footer>
+      <Footer showCta tagline={`27 years helping ${industryCopy.verticalPlural} stop sounding like everyone else`} />
     </main>
   )
 }
