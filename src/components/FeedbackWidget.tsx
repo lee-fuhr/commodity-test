@@ -72,10 +72,10 @@ export default function FeedbackWidget({ toolName }: FeedbackWidgetProps) {
 
   return (
     <>
-      {/* Trigger button - subtle, bottom right */}
+      {/* Trigger button - subtle, bottom right, above footer */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-40 bg-[var(--muted)] hover:bg-[var(--accent)] hover:text-white text-[var(--muted-foreground)] text-xs px-3 py-2 transition-colors border border-[var(--border)]"
+        className="fixed bottom-20 right-4 z-40 bg-[var(--muted)] hover:bg-[var(--accent)] hover:text-white text-[var(--muted-foreground)] text-xs px-3 py-2 transition-colors border border-[var(--border)]"
         aria-label="Report an issue"
       >
         Report issue
