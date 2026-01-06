@@ -24,6 +24,8 @@ function ProcessingContent() {
   const [error, setError] = useState<string | null>(null)
   const [errorHint, setErrorHint] = useState<string | null>(null)
   const [isRateLimited, setIsRateLimited] = useState(false)
+  const [displayedLabel, setDisplayedLabel] = useState(STAGES[0].label)
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Use ref to track if component is mounted and to store abort controller
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -165,8 +167,6 @@ function ProcessingContent() {
   }
 
   const currentStage = STAGES[stageIndex]
-  const [displayedLabel, setDisplayedLabel] = useState(currentStage.label)
-  const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Crossfade effect when stage changes
   useEffect(() => {
