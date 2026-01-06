@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+
+const VERSION = '0.14.0'
 
 interface ScanEntry {
   url: string
@@ -211,17 +213,16 @@ function ScoreDistribution({ scans }: { scans: ScanEntry[] }) {
               href={scan.resultUrl || `/r/${scan.resultId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="absolute w-3 h-3 rounded-full cursor-pointer hover:scale-150 transition-transform group"
+              className="absolute w-3 h-3 rounded-full cursor-pointer hover:scale-150 transition-transform z-10 hover:z-50 group/dot"
               style={{
                 left: `${left}%`,
                 bottom: `${Math.min(bottom, 64)}px`,
                 backgroundColor: INDUSTRY_COLORS[scan.industry] || INDUSTRY_COLORS.general,
                 transform: 'translateX(-50%)',
               }}
-              title={`${scan.companyName} (${scan.score}) - ${scan.industry}`}
             >
-              {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[var(--background)] border border-[var(--border)] px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-lg">
+              {/* Tooltip - positioned above with high z-index */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-[var(--background)] border border-[var(--border)] px-2 py-1.5 rounded text-xs opacity-0 group-hover/dot:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[100] shadow-lg">
                 <div className="font-medium text-[var(--foreground)]">{scan.companyName}</div>
                 <div className="text-[var(--muted-foreground)]">Score: {scan.score} • {scan.industry}</div>
               </div>
@@ -255,6 +256,30 @@ export default function AdminPage() {
   const [showIgnored, setShowIgnored] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
 
+  // Auto-login with saved password
+  useEffect(() => {
+    const saved = localStorage.getItem('commodity-admin-key')
+    if (saved) {
+      setPassword(saved)
+      // Attempt auto-login
+      fetch('/api/admin/stats', {
+        headers: { 'Authorization': `Bearer ${saved}` }
+      }).then(res => {
+        if (res.ok) {
+          res.json().then(statsData => {
+            setData(statsData)
+            setAuthenticated(true)
+          })
+        } else {
+          // Invalid saved key, clear it
+          localStorage.removeItem('commodity-admin-key')
+        }
+      }).catch(() => {
+        // Network error, don't clear - might be temporary
+      })
+    }
+  }, [])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -267,6 +292,7 @@ export default function AdminPage() {
 
       if (res.status === 401) {
         setError('Invalid password')
+        localStorage.removeItem('commodity-admin-key')
         setLoading(false)
         return
       }
@@ -278,6 +304,8 @@ export default function AdminPage() {
       const statsData = await res.json()
       setData(statsData)
       setAuthenticated(true)
+      // Save password for next time
+      localStorage.setItem('commodity-admin-key', password)
     } catch {
       setError('Failed to load data')
     } finally {
@@ -369,6 +397,7 @@ export default function AdminPage() {
           <p className="text-[var(--muted-foreground)] text-xs mt-4 text-center">
             Password is your ADMIN_API_KEY from Vercel
           </p>
+          <p className="text-[var(--muted-foreground)] text-[10px] mt-6 text-center opacity-50">v{VERSION}</p>
         </div>
       </main>
     )
@@ -393,7 +422,9 @@ export default function AdminPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-[var(--foreground)]">Commodity Test Admin</h1>
+            <h1 className="text-2xl font-semibold text-[var(--foreground)]">
+              Commodity Test Admin <span className="text-sm font-normal text-[var(--muted-foreground)]">v{VERSION}</span>
+            </h1>
             <p className="text-[var(--muted-foreground)] text-sm">
               Last updated: {formatDate(data.summary.lastUpdated)}
             </p>
