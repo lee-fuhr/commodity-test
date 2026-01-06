@@ -55,6 +55,8 @@ export interface ExtractedContent {
   wordCount: number
   hasStructuredContent: boolean
   isErrorPage?: boolean
+  schemaDescription?: string  // From JSON-LD schema markup
+  metaDescription?: string    // From meta description tag
 }
 
 function isPrivateUrl(url: string): boolean {
@@ -369,6 +371,36 @@ function isErrorPage(text: string, headline: string): boolean {
 export function extractContent(html: string, url: string): ExtractedContent {
   const $ = cheerio.load(html)
 
+  // Extract JSON-LD schema BEFORE removing scripts
+  let schemaDescription = ''
+  $('script[type="application/ld+json"]').each((_, el) => {
+    try {
+      const jsonText = $(el).html()
+      if (jsonText) {
+        const data = JSON.parse(jsonText)
+        // Handle both single object and array of objects
+        const schemas = Array.isArray(data) ? data : [data]
+        for (const schema of schemas) {
+          // Look for description in Organization, LocalBusiness, WebSite, etc.
+          if (schema.description && typeof schema.description === 'string') {
+            schemaDescription += ' ' + schema.description
+          }
+          // Also check @type for business descriptors
+          if (schema['@type'] && typeof schema['@type'] === 'string') {
+            schemaDescription += ' ' + schema['@type']
+          }
+        }
+      }
+    } catch {
+      // Invalid JSON, skip
+    }
+  })
+  schemaDescription = schemaDescription.trim()
+
+  // Extract meta description
+  const metaDescription = $('meta[name="description"]').attr('content')?.trim() ||
+                         $('meta[property="og:description"]').attr('content')?.trim() || ''
+
   // Remove script, style, nav, footer, header (common noise)
   $('script, style, noscript, iframe, nav, footer, header').remove()
 
@@ -513,5 +545,7 @@ export function extractContent(html: string, url: string): ExtractedContent {
     wordCount,
     hasStructuredContent,
     isErrorPage: errorPage,
+    schemaDescription: schemaDescription || undefined,
+    metaDescription: metaDescription || undefined,
   }
 }

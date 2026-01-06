@@ -518,7 +518,7 @@ export async function POST(request: NextRequest) {
 
     // Extract content from HTML
     const extractedContent = extractFromHtml(scrapeResult.html, validUrl)
-    const { headline, subheadline, bodyText, companyName, contentQuality, wordCount } = extractedContent
+    const { headline, subheadline, bodyText, companyName, contentQuality, wordCount, schemaDescription, metaDescription } = extractedContent
 
     console.log(`[Analyze] Extracted content: ${wordCount} words, quality: ${contentQuality}`)
 
@@ -530,8 +530,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Combine all text for analysis
-    const allText = `${headline} ${subheadline} ${bodyText}`
+    // Combine all text for analysis (including schema/meta for better industry detection)
+    const allText = `${headline} ${subheadline} ${schemaDescription || ''} ${metaDescription || ''} ${bodyText}`
 
     // Detect commodity phrases
     const detectedPhrases = detectCommodityPhrases(allText).map(phrase => ({
