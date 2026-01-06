@@ -25,6 +25,7 @@ export function SuggestionVote({
 }: SuggestionVoteProps) {
   const [vote, setVote] = useState<VoteState>('none')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   // Storage key for this specific suggestion
   const storageKey = `vote:${resultId}:${fixNumber}:${suggestionIndex}`
@@ -69,6 +70,16 @@ export function SuggestionVote({
     }
   }
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(suggestionText)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
   // Visual styles based on vote state
   const containerStyles = vote === 'down'
     ? 'opacity-50'
@@ -80,7 +91,7 @@ export function SuggestionVote({
 
   return (
     <div className={`flex gap-2 transition-all duration-200 ${containerStyles}`}>
-      {/* Vote buttons - left side, stacked vertically */}
+      {/* Action buttons - left side, stacked vertically: up, copy, down */}
       <div className="flex flex-col gap-0.5 pt-3">
         <button
           onClick={() => handleVote('up')}
@@ -98,6 +109,22 @@ export function SuggestionVote({
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
           </svg>
+        </button>
+        <button
+          onClick={handleCopy}
+          className="p-1 rounded transition-all text-[var(--muted-foreground)] hover:bg-[var(--accent)]/20 hover:text-[var(--accent)]"
+          title="Copy to clipboard"
+          aria-label="Copy suggestion"
+        >
+          {copied ? (
+            <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          )}
         </button>
         <button
           onClick={() => handleVote('down')}
