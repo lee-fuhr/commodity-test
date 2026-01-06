@@ -1,5 +1,11 @@
 import { kv } from '@vercel/kv'
 
+// Whitelisted IPs (no rate limit)
+const WHITELISTED_IPS = [
+  '68.7.124.54',    // Lee's home IP
+  '127.0.0.1',      // localhost
+]
+
 interface RateLimitConfig {
   hourlyLimit: number
   dailyLimit: number
@@ -26,6 +32,15 @@ export async function checkRateLimit(
   ip: string,
   config: RateLimitConfig = DEFAULT_CONFIG
 ): Promise<RateLimitResult> {
+  // Skip rate limiting for whitelisted IPs
+  if (WHITELISTED_IPS.includes(ip)) {
+    return {
+      allowed: true,
+      hourlyRemaining: 999,
+      dailyRemaining: 999,
+    }
+  }
+
   const now = Date.now()
   const hourKey = `ratelimit:hour:${ip}`
   const dayKey = `ratelimit:day:${ip}`
