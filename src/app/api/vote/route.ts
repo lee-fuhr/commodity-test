@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
 // GET endpoint for admin to see vote stats
 export async function GET(request: NextRequest) {
   try {
-    // Get recent votes
-    const recentVotes = await kv.lrange<Vote>('suggestion:votes', 0, 99)
+    // Get recent votes (last 500)
+    const recentVotes = await kv.lrange<Vote>('suggestion:votes', 0, 499)
 
     // Get approach aggregates
     const approaches = [
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       totalVotes: recentVotes.length,
-      recentVotes: recentVotes.slice(0, 20),
+      recentVotes,
       approachStats: Object.fromEntries(sortedApproaches),
     })
   } catch (error) {
