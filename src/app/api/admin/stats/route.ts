@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
+import { detectIndustry, type DetectedIndustry } from '@/lib/scoring'
 
 // Simple API key protection - set ADMIN_API_KEY in env
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY
@@ -182,11 +183,101 @@ export async function POST(request: NextRequest) {
         await kv.sadd('admin:ignored-records', `${type}:${timestamp}`)
         return NextResponse.json({ success: true, message: `Deleted (ignored) ${type}:${timestamp}` })
 
+      case 'recategorize':
+        // Re-run industry detection on all stored results
+        return await recategorizeResults()
+
       default:
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
     }
   } catch (error) {
     console.error('Admin action error:', error)
     return NextResponse.json({ error: 'Failed to perform action' }, { status: 500 })
+  }
+}
+
+// Recategorize all stored results with updated industry detection
+async function recategorizeResults() {
+  try {
+    // Get recent scans to find result IDs
+    const scans = await kv.lrange<ScanEntry>('analytics:scans', 0, 499)
+    const resultIds = [...new Set(scans.map(s => s.resultId))]
+
+    let updated = 0
+    let skipped = 0
+    const changes: Array<{ id: string; from: string; to: string }> = []
+
+    for (const id of resultIds) {
+      try {
+        // Get stored result
+        const result = await kv.get<{
+          industry: DetectedIndustry
+          companyName: string
+          detectedPhrases: Array<{ context?: string }>
+          diagnosis: string
+          [key: string]: unknown
+        }>(`result:${id}`)
+
+        if (!result) {
+          skipped++
+          continue
+        }
+
+        // Reconstruct text from stored data for re-detection
+        // We'll use the detected phrases contexts and diagnosis as proxy for original text
+        let textForDetection = result.companyName || ''
+        if (result.detectedPhrases) {
+          textForDetection += ' ' + result.detectedPhrases.map(p => p.context || '').join(' ')
+        }
+        if (result.diagnosis) {
+          textForDetection += ' ' + result.diagnosis
+        }
+
+        // Check if there's stored body text
+        if ((result as { bodyText?: string }).bodyText) {
+          textForDetection = (result as { bodyText?: string }).bodyText || textForDetection
+        }
+
+        const newIndustry = detectIndustry(textForDetection)
+        const oldIndustry = result.industry
+
+        if (newIndustry !== oldIndustry) {
+          // Update the stored result
+          await kv.set(`result:${id}`, { ...result, industry: newIndustry })
+          changes.push({ id, from: oldIndustry, to: newIndustry })
+          updated++
+        } else {
+          skipped++
+        }
+      } catch {
+        skipped++
+      }
+    }
+
+    // Also update the scan log entries
+    const updatedScans = scans.map(scan => {
+      const change = changes.find(c => c.id === scan.resultId)
+      if (change) {
+        return { ...scan, industry: change.to }
+      }
+      return scan
+    })
+
+    // Rewrite scan log if there were changes
+    if (changes.length > 0) {
+      await kv.del('analytics:scans')
+      for (const scan of updatedScans.reverse()) {
+        await kv.lpush('analytics:scans', scan)
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Recategorized ${updated} results, skipped ${skipped}`,
+      changes,
+    })
+  } catch (error) {
+    console.error('Recategorize error:', error)
+    return NextResponse.json({ error: 'Failed to recategorize' }, { status: 500 })
   }
 }

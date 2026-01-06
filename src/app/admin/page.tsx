@@ -94,6 +94,7 @@ function downloadCSV(data: Record<string, unknown>[], filename: string) {
 const INDUSTRY_COLORS: Record<string, string> = {
   manufacturing: '#3b82f6', // blue
   saas: '#8b5cf6', // purple
+  agency: '#a855f7', // purple-500 (distinct from saas)
   services: '#10b981', // green
   construction: '#f59e0b', // amber
   distribution: '#06b6d4', // cyan
@@ -320,6 +321,8 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'scans' | 'guide' | 'resultEmails' | 'contacts' | 'settings'>('scans')
   const [showIgnored, setShowIgnored] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
+  const [recategorizing, setRecategorizing] = useState(false)
+  const [recategorizeResult, setRecategorizeResult] = useState<{ message: string; changes: Array<{ id: string; from: string; to: string }> } | null>(null)
 
   // Auto-login with saved password
   useEffect(() => {
@@ -952,6 +955,62 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="bg-[var(--muted)] p-6">
+              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Recategorize industries</h3>
+              <p className="text-[var(--muted-foreground)] text-sm mb-4">
+                Re-run industry detection on all stored results. Use this after adding new industry categories.
+              </p>
+              <button
+                onClick={async () => {
+                  setRecategorizing(true)
+                  setRecategorizeResult(null)
+                  try {
+                    const res = await fetch('/api/admin/stats', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${password}`,
+                      },
+                      body: JSON.stringify({ action: 'recategorize' }),
+                    })
+                    const data = await res.json()
+                    if (res.ok) {
+                      setRecategorizeResult(data)
+                      // Refresh stats to show updated industries
+                      refresh()
+                    } else {
+                      setError(data.error || 'Failed to recategorize')
+                    }
+                  } catch {
+                    setError('Failed to recategorize')
+                  } finally {
+                    setRecategorizing(false)
+                  }
+                }}
+                disabled={recategorizing}
+                className="bg-[var(--accent)] text-white px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+              >
+                {recategorizing ? 'Recategorizing...' : 'Recategorize all results'}
+              </button>
+              {recategorizeResult && (
+                <div className="mt-4 p-4 bg-[var(--background)] border border-[var(--border)]">
+                  <p className="text-[var(--foreground)] font-medium mb-2">{recategorizeResult.message}</p>
+                  {recategorizeResult.changes.length > 0 && (
+                    <div className="space-y-1 text-sm">
+                      {recategorizeResult.changes.slice(0, 20).map((change, i) => (
+                        <div key={i} className="text-[var(--muted-foreground)]">
+                          {change.id.slice(0, 8)}...: <span className="text-red-400">{change.from}</span> → <span className="text-green-400">{change.to}</span>
+                        </div>
+                      ))}
+                      {recategorizeResult.changes.length > 20 && (
+                        <p className="text-[var(--muted-foreground)]">...and {recategorizeResult.changes.length - 20} more</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

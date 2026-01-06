@@ -478,13 +478,14 @@ export function generateDiagnosis(
 }
 
 // Industry detection based on content keywords
-export type DetectedIndustry = 'manufacturing' | 'distribution' | 'saas' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
+export type DetectedIndustry = 'manufacturing' | 'distribution' | 'saas' | 'agency' | 'services' | 'construction' | 'healthcare' | 'finance' | 'retail' | 'general'
 
 const INDUSTRY_KEYWORDS: Record<DetectedIndustry, string[]> = {
   manufacturing: ['manufacturing', 'manufacturer', 'machining', 'cnc', 'precision', 'fabrication', 'tooling', 'oem', 'supply chain', 'iso 9001', 'assembly', 'production', 'industrial', 'made in usa', 'made in the usa'],
   distribution: ['distributor', 'distribution', 'wholesale', 'mro', 'maintenance repair', 'industrial supplies', 'safety supplies', 'fasteners', 'electrical supplies', 'plumbing supplies', 'hvac supplies', 'ppe', 'safety equipment', 'bulk orders', 'ship same day', 'next day delivery', 'will call', 'local branch', 'stock', 'in stock', 'catalog', 'skus', 'part number', 'sku'],
   saas: ['software', 'saas', 'platform', 'cloud', 'api', 'integration', 'dashboard', 'subscription', 'deploy', 'onboarding', 'workflow', 'automation tool', 'work management', 'project management', 'crm', 'team collaboration', 'collaborate', 'workspace', 'app', 'sign up free', 'free trial', 'get started', 'pricing plans', 'per user', 'per month', 'per seat'],
-  services: ['consulting', 'agency', 'service provider', 'professional services', 'advisory', 'consulting firm', 'managed services'],
+  agency: ['agency', 'creative agency', 'digital agency', 'marketing agency', 'design agency', 'branding agency', 'web agency', 'advertising agency', 'full-service agency', 'boutique agency', 'our work', 'case studies', 'our clients', 'portfolio', 'we partner', 'brand strategy', 'creative direction', 'campaign', 'client roster', 'studio', 'creative studio', 'design studio'],
+  services: ['consulting', 'service provider', 'professional services', 'advisory', 'consulting firm', 'managed services'],
   construction: ['construction', 'contractor', 'builder', 'building', 'jobsite', 'job site', 'renovation', 'commercial construction', 'general contractor', 'subcontractor', 'excavation', 'concrete', 'framing', 'roofing'],
   healthcare: ['healthcare', 'medical', 'patient', 'clinical', 'health', 'hospital', 'provider', 'hipaa', 'physician'],
   finance: ['financial', 'banking', 'investment', 'wealth', 'insurance', 'lending', 'mortgage', 'credit'],
@@ -496,6 +497,7 @@ const INDUSTRY_COPY: Record<DetectedIndustry, { verticalNoun: string; verticalPl
   manufacturing: { verticalNoun: 'manufacturer', verticalPlural: 'manufacturers', dealContext: '$2M–$10M manufacturers' },
   distribution: { verticalNoun: 'distributor', verticalPlural: 'distributors', dealContext: 'industrial distributors' },
   saas: { verticalNoun: 'software company', verticalPlural: 'software companies', dealContext: 'B2B SaaS companies' },
+  agency: { verticalNoun: 'agency', verticalPlural: 'agencies', dealContext: 'creative and digital agencies' },
   services: { verticalNoun: 'service business', verticalPlural: 'service businesses', dealContext: 'professional service firms' },
   construction: { verticalNoun: 'contractor', verticalPlural: 'contractors', dealContext: 'commercial contractors' },
   healthcare: { verticalNoun: 'healthcare provider', verticalPlural: 'healthcare providers', dealContext: 'healthcare organizations' },
@@ -510,6 +512,7 @@ export function detectIndustry(text: string): DetectedIndustry {
     manufacturing: 0,
     distribution: 0,
     saas: 0,
+    agency: 0,
     services: 0,
     construction: 0,
     healthcare: 0,
@@ -557,6 +560,7 @@ const INDUSTRY_DEAL_ASSUMPTIONS: Record<DetectedIndustry, { dealValue: number; a
   manufacturing: { dealValue: 50000, annualDeals: 30 },      // B2B manufacturing: bigger deals, fewer of them
   distribution: { dealValue: 25000, annualDeals: 50 },       // Industrial distribution: mid-size, moderate volume
   saas: { dealValue: 12000, annualDeals: 200 },              // SaaS: smaller ARR per deal, high volume
+  agency: { dealValue: 40000, annualDeals: 25 },             // Agency: project-based, moderate volume
   services: { dealValue: 75000, annualDeals: 20 },           // Professional services: big projects, few clients
   construction: { dealValue: 150000, annualDeals: 15 },      // Construction: large projects, few per year
   healthcare: { dealValue: 80000, annualDeals: 25 },         // Healthcare: substantial contracts

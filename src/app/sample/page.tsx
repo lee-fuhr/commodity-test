@@ -5,6 +5,7 @@ import { Footer } from '@/components/Footer'
 const INDUSTRY_COLORS: Record<string, string> = {
   manufacturing: '#3b82f6',
   saas: '#8b5cf6',
+  agency: '#a855f7',
   services: '#10b981',
   construction: '#f59e0b',
   distribution: '#06b6d4',
