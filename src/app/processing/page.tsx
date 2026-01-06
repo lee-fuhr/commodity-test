@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { VERSION } from '@/lib/version'
+import { Footer } from '@/components/Footer'
 
 const STAGES = [
   { label: 'Fetching your homepage', tease: null },
@@ -236,13 +236,9 @@ function ProcessingContent() {
         </div>
       </div>
 
-      {/* Footer - minimal for processing page */}
-      <div className="absolute bottom-6 flex items-center gap-4 text-sm">
-        <span className="text-[var(--background)] text-xs select-none">v{VERSION}</span>
-        <span className="text-[var(--muted-foreground)]">
-          <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr Inc</a> · No email required
-        </span>
-        <Link href="/privacy" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Privacy</Link>
+      {/* Footer */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <Footer />
       </div>
     </main>
   )

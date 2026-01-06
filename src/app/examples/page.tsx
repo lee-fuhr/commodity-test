@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Footer } from '@/components/Footer'
 
 const examples = [
   {
@@ -223,16 +224,7 @@ export default function ExamplesPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-brand-900 text-brand-400 py-10 px-6">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm">© 2025 Lee Fuhr Inc</p>
-          <nav className="flex gap-6 text-sm">
-            <Link href="/how-it-works" className="hover:text-white">How it works</Link>
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-            <a href="mailto:hello@leefuhr.com" className="hover:text-white">Contact</a>
-          </nav>
-        </div>
-      </footer>
+      <Footer showCta tagline="27 years helping manufacturers stop sounding like everyone else" />
     </main>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Footer } from '@/components/Footer'
 
 type FormType = 'quote' | 'retainer'
 
@@ -298,13 +299,7 @@ function ContactFormContent() {
         </div>
       </section>
 
-      <footer className="border-t border-[var(--border)] py-8 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-body text-sm">
-            Prefer to just talk? <a href="https://cal.com/leefuhr/30i" className="text-[var(--accent)] hover:underline">Schedule a call directly</a>
-          </p>
-        </div>
-      </footer>
+      <Footer tagline="Prefer to just talk? Schedule a call directly at cal.com/leefuhr/30i" />
     </main>
   )
 }
