@@ -177,60 +177,67 @@ function IndustryBreakdown({ scans }: { scans: ScanEntry[] }) {
   )
 }
 
-// Score distribution chart (bell curve visualization)
+// Score distribution chart (dot plot - each scan is a dot)
 function ScoreDistribution({ scans }: { scans: ScanEntry[] }) {
-  if (scans.length < 3) return null
+  // Filter to scans with valid scores
+  const scansWithScores = scans.filter(s => typeof s.score === 'number' && !isNaN(s.score))
 
-  // Group scores into buckets of 10 (0-9, 10-19, ..., 90-100)
-  const buckets: Record<number, { count: number; industries: Record<string, number> }> = {}
-  for (let i = 0; i <= 90; i += 10) {
-    buckets[i] = { count: 0, industries: {} }
+  if (scansWithScores.length === 0) {
+    return (
+      <div className="bg-[var(--muted)] p-4 mb-6">
+        <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">Score distribution</h3>
+        <p className="text-xs text-[var(--muted-foreground)]">No scans with scores yet</p>
+      </div>
+    )
   }
 
-  scans.forEach(s => {
-    const bucket = Math.min(90, Math.floor(s.score / 10) * 10)
-    buckets[bucket].count++
-    const ind = s.industry || 'general'
-    buckets[bucket].industries[ind] = (buckets[bucket].industries[ind] || 0) + 1
-  })
-
-  const maxCount = Math.max(...Object.values(buckets).map(b => b.count), 1)
+  // Sort by score for consistent positioning
+  const sorted = [...scansWithScores].sort((a, b) => a.score - b.score)
 
   return (
     <div className="bg-[var(--muted)] p-4 mb-6">
       <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">Score distribution</h3>
-      <div className="flex items-end gap-1 h-24">
-        {Object.entries(buckets).map(([bucket, data]) => {
-          const height = (data.count / maxCount) * 100
-          // Stack industries within each bar
-          const industries = Object.entries(data.industries).sort((a, b) => b[1] - a[1])
+      <div className="relative h-20 mb-2">
+        {/* Dots */}
+        {sorted.map((scan, idx) => {
+          const left = (scan.score / 100) * 100
+          // Stack dots at same score vertically
+          const sameScoreIndex = sorted.slice(0, idx).filter(s => Math.abs(s.score - scan.score) < 3).length
+          const bottom = 4 + (sameScoreIndex * 14)
 
           return (
-            <div key={bucket} className="flex-1 flex flex-col items-center group relative">
-              <div className="w-full flex flex-col-reverse rounded-t overflow-hidden" style={{ height: `${height}%`, minHeight: data.count > 0 ? '4px' : '0' }}>
-                {industries.map(([ind, count], idx) => (
-                  <div
-                    key={ind}
-                    className="w-full"
-                    style={{
-                      height: `${(count / data.count) * 100}%`,
-                      backgroundColor: INDUSTRY_COLORS[ind] || INDUSTRY_COLORS.general,
-                      opacity: 0.8
-                    }}
-                  />
-                ))}
+            <a
+              key={`${scan.timestamp}-${idx}`}
+              href={scan.resultUrl || `/r/${scan.resultId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute w-3 h-3 rounded-full cursor-pointer hover:scale-150 transition-transform group"
+              style={{
+                left: `${left}%`,
+                bottom: `${Math.min(bottom, 64)}px`,
+                backgroundColor: INDUSTRY_COLORS[scan.industry] || INDUSTRY_COLORS.general,
+                transform: 'translateX(-50%)',
+              }}
+              title={`${scan.companyName} (${scan.score}) - ${scan.industry}`}
+            >
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[var(--background)] border border-[var(--border)] px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-lg">
+                <div className="font-medium text-[var(--foreground)]">{scan.companyName}</div>
+                <div className="text-[var(--muted-foreground)]">Score: {scan.score} • {scan.industry}</div>
               </div>
-              <span className="text-[10px] text-[var(--muted-foreground)] mt-1">{bucket}</span>
-              {data.count > 0 && (
-                <div className="absolute bottom-full mb-1 bg-[var(--background)] border border-[var(--border)] px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                  {data.count} scan{data.count !== 1 ? 's' : ''}
-                </div>
-              )}
-            </div>
+            </a>
           )
         })}
       </div>
-      <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] mt-2">
+      {/* X-axis labels */}
+      <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] border-t border-[var(--border)] pt-1">
+        <span>0</span>
+        <span>25</span>
+        <span>50</span>
+        <span>75</span>
+        <span>100</span>
+      </div>
+      <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] mt-1">
         <span>← Undifferentiated</span>
         <span>Differentiated →</span>
       </div>
@@ -332,8 +339,8 @@ export default function AdminPage() {
   }
 
   const rerunScan = (url: string) => {
-    // Open homepage with the URL pre-filled (using URL param)
-    window.open(`/?url=${encodeURIComponent(url)}`, '_blank')
+    // Go directly to processing page to run the analysis
+    window.open(`/processing?url=${encodeURIComponent(url)}`, '_blank')
   }
 
   if (!authenticated) {
