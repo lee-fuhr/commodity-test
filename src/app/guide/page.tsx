@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Footer } from '@/components/Footer'
 
 const guideContents = [
   'The 12 commodity patterns killing your differentiation',
@@ -235,22 +236,7 @@ export default function GuidePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--border)] py-8 px-6">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-center md:text-left">
-            <p className="text-[var(--foreground)] font-semibold">Built by <a href="https://oww.leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a></p>
-            <p className="text-body text-sm">27 years helping manufacturers stop sounding like everyone else</p>
-          </div>
-          <nav className="flex gap-6 text-sm">
-            <Link href="/how-it-works" className="text-body hover:text-[var(--accent)]">How it works</Link>
-            <Link href="/privacy" className="text-body hover:text-[var(--accent)]">Privacy</Link>
-            <Link href="/contact" className="text-body hover:text-[var(--accent)]">Contact</Link>
-          </nav>
-          <Link href="/" className="text-[var(--accent)] hover:underline">
-            Run the test →
-          </Link>
-        </div>
-      </footer>
+      <Footer showCta tagline="27 years helping manufacturers stop sounding like everyone else" />
     </main>
   )
 }
