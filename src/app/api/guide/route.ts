@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
 <body>
   <div class="wrapper">
     <div class="header">
+      <img src="https://thecommoditytest.com/lee-avatar.png" alt="Lee Fuhr" width="80" height="80" style="border-radius: 50%; margin-bottom: 15px; border: 3px solid rgba(255,255,255,0.3);" />
       <h1>The Commodity Messaging Fix Kit</h1>
       <p>Your complete DIY guide to differentiated copy</p>
     </div>
@@ -364,10 +365,13 @@ export async function POST(request: NextRequest) {
     </div>
 
     <div class="footer">
-      <div class="sig">
-        <strong>Lee Fuhr</strong><br>
-        I help manufacturers stop sounding like everyone else.<br>
-        <a href="https://leefuhr.com">leefuhr.com</a>
+      <div class="sig" style="display: flex; align-items: center; gap: 15px;">
+        <img src="https://thecommoditytest.com/lee-avatar.png" alt="Lee Fuhr" width="50" height="50" style="border-radius: 50%;" />
+        <div>
+          <strong>Lee Fuhr</strong><br>
+          I help manufacturers stop sounding like everyone else.<br>
+          <a href="https://leefuhr.com">leefuhr.com</a>
+        </div>
       </div>
       <p style="font-size: 12px; color: #94a3b8;">
         You're receiving this because you requested the guide at thecommoditytest.com.<br>
