@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-
-const VERSION = '0.14.0'
+import { VERSION } from '@/lib/version'
 
 interface ScanEntry {
   url: string
