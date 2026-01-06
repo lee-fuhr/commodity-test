@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Result ID is required' }, { status: 400 })
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thecommoditytest.com'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://areyougeneric.com'
     const resultUrl = `${siteUrl}/r/${resultId}`
 
     // Store the lead with result association

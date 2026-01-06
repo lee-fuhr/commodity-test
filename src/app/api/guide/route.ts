@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 <body>
   <div class="wrapper">
     <div class="header">
-      <img src="https://thecommoditytest.com/lee-avatar.png" alt="Lee Fuhr" width="80" height="80" style="border-radius: 50%; margin-bottom: 15px; border: 3px solid rgba(255,255,255,0.3);" />
+      <img src="https://areyougeneric.com/lee-avatar.png" alt="Lee Fuhr" width="80" height="80" style="border-radius: 50%; margin-bottom: 15px; border: 3px solid rgba(255,255,255,0.3);" />
       <h1>The Commodity Messaging Fix Kit</h1>
       <p>Your complete DIY guide to differentiated copy</p>
     </div>
@@ -354,7 +354,7 @@ export async function POST(request: NextRequest) {
 
       <div class="cta">
         <p>Want to see exactly where YOUR site has commodity language?</p>
-        <a href="https://thecommoditytest.com/?utm_source=guide&utm_medium=email">Run the free Commodity Test →</a>
+        <a href="https://areyougeneric.com/?utm_source=guide&utm_medium=email">Run the free Commodity Test →</a>
       </div>
 
       <div class="cta" style="background: linear-gradient(135deg, #0a2540 0%, #1a4070 100%); margin-top: 0;">
@@ -365,7 +365,7 @@ export async function POST(request: NextRequest) {
 
     <div class="footer">
       <div class="sig" style="display: flex; align-items: center; gap: 15px;">
-        <img src="https://thecommoditytest.com/lee-avatar.png" alt="Lee Fuhr" width="50" height="50" style="border-radius: 50%;" />
+        <img src="https://areyougeneric.com/lee-avatar.png" alt="Lee Fuhr" width="50" height="50" style="border-radius: 50%;" />
         <div>
           <strong>Lee Fuhr</strong><br>
           I help manufacturers stop sounding like everyone else.<br>
@@ -373,7 +373,7 @@ export async function POST(request: NextRequest) {
         </div>
       </div>
       <p style="font-size: 12px; color: #94a3b8;">
-        You're receiving this because you requested the guide at thecommoditytest.com.<br>
+        You're receiving this because you requested the guide at areyougeneric.com.<br>
         <a href="{{unsubscribe_url}}" style="color: #94a3b8;">Unsubscribe</a>
       </p>
     </div>

@@ -80,7 +80,7 @@ export async function generateMetadata({
   const { id } = await params
   const result = await getAnalysis(id)
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thecommoditytest.com'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://areyougeneric.com'
 
   if (!result) {
     return {
@@ -204,7 +204,7 @@ export default async function ResultsPage({
   const scoreInfo = getScoreLabel(result.commodityScore)
   const industry = result.industry || 'general'
   const industryCopy = INDUSTRY_COPY[industry]
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thecommoditytest.com'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://areyougeneric.com'
   const resultUrl = `${siteUrl}/r/${result.id}`
 
   return (

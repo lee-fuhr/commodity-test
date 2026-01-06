@@ -5,7 +5,7 @@ import { kv } from '@vercel/kv'
 // Configuration
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL || 'hi@leefuhr.com'
-const FROM_EMAIL = process.env.FROM_EMAIL || 'contact@thecommoditytest.com'
+const FROM_EMAIL = process.env.FROM_EMAIL || 'contact@areyougeneric.com'
 
 // Initialize Resend if configured
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null

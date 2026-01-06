@@ -316,53 +316,38 @@ function ScansPerDay({ scans }: { scans: ScanEntry[] }) {
     )
   }
 
-  // Find first day with data to trim empty space
+  // Find first day with data to trim empty space from left
   const firstDataIndex = days.findIndex(d => d.count > 0)
   const visibleDays = firstDataIndex > 0 ? days.slice(Math.max(0, firstDataIndex - 1)) : days
-
-  // Y-axis ticks - show 0, mid, and max
-  const yTicks = maxCount <= 2 ? [0, 1, 2] : [0, Math.round(maxCount / 2), maxCount]
 
   return (
     <div className="bg-[var(--muted)] p-4 mb-6">
       <h3 className="text-sm font-medium text-[var(--foreground)] mb-3">
         Scans per day <span className="text-[var(--muted-foreground)] font-normal">({totalScans} total)</span>
       </h3>
-      <div className="flex">
-        {/* Y-axis labels */}
-        <div className="flex flex-col justify-between h-20 pr-2 text-[9px] text-[var(--muted-foreground)]">
-          <span>{yTicks[2]}</span>
-          <span>{yTicks[1]}</span>
-          <span>{yTicks[0]}</span>
-        </div>
-        {/* Chart bars */}
-        <div className="flex items-end gap-1 h-20 flex-1">
-          {visibleDays.map((day) => {
-            const height = (day.count / maxCount) * 100
-            return (
-              <div key={day.date} className="flex-1 flex flex-col items-center group relative">
-                <div
-                  className="w-full bg-[var(--accent)] rounded-t transition-all"
-                  style={{ height: `${height}%`, minHeight: day.count > 0 ? '4px' : '0' }}
-                />
-                {day.count > 0 && (
-                  <div className="absolute bottom-full mb-1 bg-[var(--background)] border border-[var(--border)] px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                    {day.count} scan{day.count !== 1 ? 's' : ''}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+      <div className="flex items-end gap-1 h-20">
+        {visibleDays.map((day) => {
+          const height = (day.count / maxCount) * 100
+          return (
+            <div key={day.date} className="flex-1 flex flex-col items-center group relative">
+              <div
+                className="w-full bg-[var(--accent)] rounded-t transition-all"
+                style={{ height: `${height}%`, minHeight: day.count > 0 ? '4px' : '0' }}
+              />
+              {day.count > 0 && (
+                <div className="absolute bottom-full mb-1 bg-[var(--background)] border border-[var(--border)] px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  {day.count} scan{day.count !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
       {/* X-axis labels */}
-      <div className="flex text-[9px] text-[var(--muted-foreground)] mt-1">
-        <div className="pr-2 w-6"></div> {/* Spacer for Y-axis */}
-        <div className="flex-1 flex justify-between">
-          {visibleDays.filter((_, i) => i % Math.ceil(visibleDays.length / 7) === 0 || i === visibleDays.length - 1).map(day => (
-            <span key={day.date}>{day.label}</span>
-          ))}
-        </div>
+      <div className="flex justify-between text-[9px] text-[var(--muted-foreground)] mt-1">
+        {visibleDays.filter((_, i) => i % Math.ceil(visibleDays.length / 7) === 0 || i === visibleDays.length - 1).map(day => (
+          <span key={day.date}>{day.label}</span>
+        ))}
       </div>
     </div>
   )
