@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     </div>
 
     <div class="content">
-      <p class="intro">${firstName ? `${firstName}, here's` : 'Here's'} everything you need to audit your homepage and fix the generic language that's costing you deals. Bookmark this email—you'll want to come back to it.</p>
+      <p class="intro">${firstName ? `${firstName}, here` : 'Here'}'s everything you need to audit your homepage and fix the generic language that's costing you deals. Bookmark this email—you'll want to come back to it.</p>
 
       <div class="toc">
         <h2>What's inside</h2>
