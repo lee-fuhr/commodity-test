@@ -1,20 +1,6 @@
 import Link from 'next/link'
 import { Footer } from '@/components/Footer'
 
-// Industry colors (matches admin dashboard)
-const INDUSTRY_COLORS: Record<string, string> = {
-  manufacturing: '#3b82f6',
-  saas: '#8b5cf6',
-  agency: '#a855f7',
-  services: '#10b981',
-  construction: '#f59e0b',
-  distribution: '#06b6d4',
-  healthcare: '#ec4899',
-  finance: '#6366f1',
-  retail: '#f97316',
-  general: '#6b7280',
-}
-
 // Sample data using Caterpillar as a recognizable example
 // Note: These are illustrative phrases typical of the industry, demonstrating what the tool finds
 const sampleResult = {
@@ -120,7 +106,7 @@ function HighlightedContext({ context, phrase }: { context: string; phrase: stri
   const idx = lowerContext.indexOf(lowerPhrase)
 
   if (idx === -1) {
-    return <span className="text-[var(--muted-foreground)]">{context}</span>
+    return <span className="text-[var(--muted-foreground)] italic">{context}</span>
   }
 
   const before = context.slice(0, idx)
@@ -128,7 +114,7 @@ function HighlightedContext({ context, phrase }: { context: string; phrase: stri
   const after = context.slice(idx + phrase.length)
 
   return (
-    <span>
+    <span className="italic">
       <span className="text-[var(--muted-foreground)]">{before}</span>
       <span className="text-[var(--foreground)] font-semibold bg-[var(--accent)]/20 px-1">{match}</span>
       <span className="text-[var(--muted-foreground)]">{after}</span>
@@ -136,26 +122,32 @@ function HighlightedContext({ context, phrase }: { context: string; phrase: stri
   )
 }
 
-// Approach badge colors - high contrast for readability
+// Approach badge colors - match result page style (faded transparency)
 function getApproachStyle(approach: string): string {
-  const styles: Record<string, string> = {
-    'quantify it': 'bg-blue-600 text-white border-blue-700',
-    'show the process': 'bg-purple-600 text-white border-purple-700',
-    'make a guarantee': 'bg-green-600 text-white border-green-700',
-    'tell their story': 'bg-amber-600 text-white border-amber-700',
-    'publish the metrics': 'bg-cyan-700 text-white border-cyan-800',
-    'stake something on it': 'bg-red-600 text-white border-red-700',
-    'name the innovation': 'bg-fuchsia-600 text-white border-fuchsia-700',
-    'describe the experience': 'bg-orange-600 text-white border-orange-700',
-    'claim the niche': 'bg-emerald-600 text-white border-emerald-700',
-    'prove retention': 'bg-indigo-600 text-white border-indigo-700',
-    'add numbers': 'bg-sky-600 text-white border-sky-700',
-    'say what you do': 'bg-lime-700 text-white border-lime-800',
-    'find your only': 'bg-rose-600 text-white border-rose-700',
-    'cite the evidence': 'bg-teal-600 text-white border-teal-700',
-    'quantify the impact': 'bg-violet-600 text-white border-violet-700',
+  switch (approach) {
+    case 'quantify it':
+    case 'add numbers':
+    case 'quantify the impact':
+      return 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+    case 'tell their story':
+    case 'describe the experience':
+    case 'cite the evidence':
+      return 'bg-green-500/20 text-green-300 border-green-500/30'
+    case 'show the process':
+    case 'name the innovation':
+    case 'claim the niche':
+    case 'find your only':
+      return 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+    case 'make a guarantee':
+    case 'stake something on it':
+    case 'publish the metrics':
+      return 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+    case 'say what you do':
+    case 'prove retention':
+      return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+    default:
+      return 'bg-[var(--muted)] text-[var(--muted-foreground)] border-[var(--border)]'
   }
-  return styles[approach] || 'bg-[var(--muted)] text-[var(--foreground)] border-[var(--border)]'
 }
 
 export default function SamplePage() {
@@ -172,115 +164,97 @@ export default function SamplePage() {
       </div>
 
       {/* Header */}
-      <header className="border-b border-[var(--border)] py-4 px-6">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <Link href="/" className="text-section text-lg text-[var(--foreground)]">
+      <header className="border-b border-[var(--border)] py-3 sm:py-4 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto flex justify-between items-center gap-4">
+          <Link href="/" className="text-section text-base sm:text-lg text-[var(--foreground)]">
             The Commodity Test
           </Link>
-          <Link href="/" className="btn-kinetic text-sm py-2 px-4">
+          <Link href="/" className="btn-outline text-xs sm:text-sm py-2 px-3 sm:px-4 min-h-[44px] flex items-center">
             Test your site
           </Link>
         </div>
       </header>
 
       {/* Results header */}
-      <section className="bg-[var(--muted)] py-8 px-6 border-b border-[var(--border)]">
+      <section className="bg-[var(--muted)] py-6 sm:py-8 px-4 sm:px-6 border-b border-[var(--border)]">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-label mb-2">Results for</p>
-          <h1 className="text-section text-3xl md:text-4xl text-[var(--foreground)] mb-2">
+          <h1 className="text-section text-2xl sm:text-3xl md:text-4xl text-[var(--foreground)] mb-2 break-words">
             {sampleResult.companyName}
           </h1>
-          <div className="flex items-center justify-center gap-3">
-            <a
-              href={`https://${sampleResult.url}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-body text-sm text-[var(--accent)] hover:underline"
-            >
-              {sampleResult.url} →
-            </a>
-            <span
-              className="text-xs px-2 py-0.5 rounded capitalize"
-              style={{
-                backgroundColor: `${INDUSTRY_COLORS[sampleResult.industry]}20`,
-                color: INDUSTRY_COLORS[sampleResult.industry]
-              }}
-            >
-              {sampleResult.industry}
-            </span>
-          </div>
+          <p className="text-body text-xs sm:text-sm break-all">{sampleResult.url}</p>
         </div>
       </section>
 
       {/* Score section */}
-      <section className="py-16 px-6">
+      <section className="py-12 sm:py-16 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center">
           {/* Big score */}
           <div className="mb-8">
-            <p className="text-label mb-4">Differentiation score</p>
-            <p className={`text-[8rem] md:text-[12rem] font-display leading-none ${scoreInfo.color}`}>
+            <p className="text-label mb-4">Commodity score</p>
+            <p className={`text-[5rem] sm:text-[6rem] md:text-[8rem] lg:text-[12rem] font-display leading-none ${scoreInfo.color}`}>
               {sampleResult.differentiationScore}
             </p>
-            <p className={`text-section text-2xl ${scoreInfo.color}`}>{scoreInfo.label}</p>
-            <p className="text-body text-sm text-[var(--muted-foreground)] mt-2">100 = highly differentiated · 0 = pure commodity</p>
+            <p className={`text-section text-xl sm:text-2xl ${scoreInfo.color}`}>{scoreInfo.label}</p>
+            <p className="text-body text-xs sm:text-sm mt-2 opacity-70">
+              (Higher is better. 100 = highly differentiated. 0 = pure commodity.)
+            </p>
           </div>
 
           {/* Context */}
           <div className="flex justify-center gap-8 mb-8 text-sm">
             <div className="text-center">
               <p className="text-body">Industry avg</p>
-              <p className="text-[var(--foreground)] font-semibold text-xl">36</p>
+              <p className="text-[var(--foreground)] font-semibold text-xl">64</p>
             </div>
             <div className="w-px bg-[var(--border)]" />
             <div className="text-center">
-              <p className="text-body">This sample</p>
+              <p className="text-body">This score</p>
               <p className="text-[var(--foreground)] font-semibold text-xl">{sampleResult.differentiationScore}</p>
-            </div>
-            <div className="w-px bg-[var(--border)]" />
-            <div className="text-center">
-              <p className="text-body">Target</p>
-              <p className="text-green-400 font-semibold text-xl">70+</p>
             </div>
           </div>
 
           {/* Diagnosis */}
-          <p className="text-body text-xl max-w-2xl mx-auto">{sampleResult.diagnosis}</p>
+          <p className="text-body text-lg sm:text-xl max-w-2xl mx-auto">{sampleResult.diagnosis}</p>
         </div>
       </section>
 
       {/* Cost section with methodology */}
-      <section className="bg-[var(--accent)] py-12 px-6">
+      <section className="bg-[var(--accent)] py-10 sm:py-12 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-section text-2xl text-white mb-4">
+            <h2 className="text-section text-xl sm:text-2xl text-[var(--accent-foreground)] mb-4">
               What this is costing you
             </h2>
-            <p className="text-[5rem] md:text-[7rem] font-display text-white leading-none mb-4">
+            <p className="text-[var(--accent-foreground)] text-xs sm:text-sm mb-4 max-w-xl mx-auto opacity-90 px-2">
+              Based on typical deal values for $2M–$10M manufacturers, mid-range deal volume, and a {Math.round(sampleResult.costAssumptions.lossRate * 100)}% loss rate to &quot;cheaper&quot; competitors.
+            </p>
+            <p className="text-[3rem] sm:text-[4rem] md:text-[5rem] lg:text-[7rem] font-display text-[var(--accent-foreground)] leading-none mb-4">
               ${sampleResult.costEstimate.toLocaleString()}
             </p>
-            <p className="text-white">
+            <p className="text-[var(--accent-foreground)] opacity-90 text-sm sm:text-base">
               in lost deals annually (estimated)
             </p>
           </div>
 
           {/* Methodology breakdown */}
-          <div className="bg-black/20 p-6 mt-8">
-            <p className="text-label text-white/70 mb-4">How I calculated this</p>
-            <div className="grid md:grid-cols-3 gap-6 text-white">
+          <div className="bg-black/20 p-4 sm:p-6 mt-8">
+            <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-4">How we calculated this</p>
+            <div className="grid md:grid-cols-3 gap-4 sm:gap-6 text-[var(--accent-foreground)]">
               <div>
-                <p className="text-3xl font-display">${sampleResult.costAssumptions.averageDealValue.toLocaleString()}</p>
-                <p className="text-sm opacity-70">avg deal value (industry typical)</p>
+                <p className="text-2xl sm:text-3xl font-display">${sampleResult.costAssumptions.averageDealValue.toLocaleString()}</p>
+                <p className="text-xs sm:text-sm opacity-70">avg deal value (industry typical)</p>
               </div>
               <div>
-                <p className="text-3xl font-display">×{sampleResult.costAssumptions.annualDeals}</p>
-                <p className="text-sm opacity-70">deals per year ($2-10M company)</p>
+                <p className="text-2xl sm:text-3xl font-display">×{sampleResult.costAssumptions.annualDeals}</p>
+                <p className="text-xs sm:text-sm opacity-70">deals per year ($2-10M company)</p>
               </div>
               <div>
-                <p className="text-3xl font-display">×{Math.round(sampleResult.costAssumptions.lossRate * 100)}%</p>
-                <p className="text-sm opacity-70">{sampleResult.costAssumptions.lossRateLabel}</p>
+                <p className="text-2xl sm:text-3xl font-display">×{Math.round(sampleResult.costAssumptions.lossRate * 100)}%</p>
+                <p className="text-xs sm:text-sm opacity-70">{sampleResult.costAssumptions.lossRateLabel}</p>
               </div>
             </div>
-            <p className="text-sm text-white/60 mt-4">
+            <p className="text-xs sm:text-sm text-[var(--accent-foreground)]/60 mt-4">
               Based on analysis of messaging impact at $2M-$10M manufacturers. Your actual numbers may vary.
             </p>
           </div>
@@ -288,64 +262,56 @@ export default function SamplePage() {
       </section>
 
       {/* Fixes section */}
-      <section className="py-16 px-6">
+      <section className="py-12 sm:py-16 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-display text-4xl md:text-5xl text-[var(--foreground)] mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-display text-3xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
               5 things to fix
             </h2>
-            <p className="text-body text-xl">
-              These are the specific recommendations generated for this sample company.
+            <p className="text-body text-lg sm:text-xl">
+              Specific to YOUR homepage. Not generic advice.
             </p>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-8 sm:space-y-12">
             {sampleResult.fixes.map((fix) => (
-              <div key={fix.number} className="border-2 border-[var(--border)] p-8">
-                <div className="flex items-start gap-6">
-                  <span className="text-[var(--accent)] text-4xl font-display shrink-0">
+              <div key={fix.number} className="border-2 border-[var(--border)] p-4 sm:p-6 md:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-6">
+                  <span className="text-[var(--accent)] text-2xl sm:text-4xl font-display shrink-0">
                     {String(fix.number).padStart(2, '0')}
                   </span>
-                  <div className="space-y-6 flex-1">
+                  <div className="space-y-4 sm:space-y-6 flex-1 min-w-0">
                     {/* Original phrase with context */}
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-label">Found on site</p>
-                        {'sourceUrl' in fix && (
-                          <a
-                            href={fix.sourceUrl as string}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-[var(--accent)] hover:underline flex items-center gap-1"
-                          >
-                            View on live site →
-                          </a>
-                        )}
+                      <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 sm:mb-3">Found on site</p>
+                      <div className="bg-[var(--muted)] p-3 sm:p-4 text-base sm:text-lg leading-relaxed relative">
+                        {/* Quotemark graphic */}
+                        <span className="absolute top-2 left-2 sm:top-3 sm:left-3 text-[2.5rem] sm:text-[3rem] text-[var(--foreground)]/10 font-serif leading-none select-none pointer-events-none">&ldquo;</span>
+                        <div className="pl-8 sm:pl-10 relative">
+                          <HighlightedContext context={fix.context} phrase={fix.originalPhrase} />
+                        </div>
                       </div>
-                      <div className="bg-[var(--muted)] p-4 text-lg leading-relaxed">
-                        <HighlightedContext context={fix.context} phrase={fix.originalPhrase} />
-                      </div>
-                      <p className="text-body text-sm mt-2">Location: {fix.location}</p>
+                      <p className="text-body text-xs sm:text-sm mt-2">Location: {fix.location}</p>
                     </div>
 
                     {/* Why it hurts */}
                     <div>
-                      <p className="text-label mb-2">Why it hurts you</p>
-                      <p className="text-body text-lg">{fix.whyBad}</p>
+                      <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2">Why it hurts you</p>
+                      <p className="text-body text-base sm:text-lg">{fix.whyBad}</p>
                     </div>
 
-                    {/* Multiple suggestions */}
+                    {/* Drop-in replacements */}
                     <div>
-                      <p className="text-label mb-3">Replace the entire sentence with one of these</p>
+                      <p className="text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 sm:mb-3">Replace with</p>
                       <div className="space-y-3">
                         {fix.suggestions.map((suggestion, idx) => (
                           <div
                             key={idx}
-                            className="bg-[var(--accent)]/10 border-l-4 border-[var(--accent)] p-4"
+                            className="bg-[var(--accent)]/10 border-l-4 border-[var(--accent)] p-3 sm:p-4"
                           >
-                            <div className="flex items-start justify-between gap-4">
-                              <p className="text-[var(--foreground)] text-lg flex-1">{suggestion.text}</p>
-                              <span className={`text-xs uppercase tracking-wider px-2 py-1 border shrink-0 ${getApproachStyle(suggestion.approach)}`}>
+                            <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                              <p className="text-[var(--foreground)] text-base sm:text-lg flex-1">{suggestion.text}</p>
+                              <span className={`text-[10px] sm:text-xs uppercase tracking-wider px-2 py-1 border shrink-0 self-start ${getApproachStyle(suggestion.approach)}`}>
                                 {suggestion.approach}
                               </span>
                             </div>
@@ -354,7 +320,11 @@ export default function SamplePage() {
                       </div>
                     </div>
 
-                    <p className="text-body text-sm italic">{fix.whyBetter}</p>
+                    {/* Key insight */}
+                    <div className="bg-blue-500/90 p-3 sm:p-4 mt-2">
+                      <p className="text-blue-100 text-[10px] sm:text-xs uppercase tracking-wider font-semibold mb-1">The key insight</p>
+                      <p className="text-white text-base sm:text-lg font-medium">{fix.whyBetter}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -363,17 +333,52 @@ export default function SamplePage() {
         </div>
       </section>
 
+      {/* What's next section */}
+      <section className="py-12 sm:py-16 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-display text-3xl sm:text-4xl text-[var(--foreground)] text-center mb-8 sm:mb-12">
+            What&apos;s next?
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* DIY option */}
+            <div className="border-2 border-[var(--border)] p-5 sm:p-8">
+              <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-3 sm:mb-4">Fix it yourself</h3>
+              <p className="text-body text-base sm:text-lg mb-4 sm:mb-6">
+                Want the full methodology? Download the guide that walks you through
+                de-commodifying your entire site.
+              </p>
+              <Link href="/guide" className="btn-outline w-full min-h-[44px]">
+                Get the DIY guide
+              </Link>
+            </div>
+
+            {/* Done-for-you option */}
+            <div className="bg-[var(--accent)] p-5 sm:p-8">
+              <h3 className="text-section text-lg sm:text-xl text-[var(--accent-foreground)] mb-3 sm:mb-4">Hire me to do it for you</h3>
+              <p className="text-[var(--accent-foreground)] opacity-90 text-base sm:text-lg mb-4 sm:mb-6">
+                I build websites that win deals for manufacturers who are tired of competing
+                on price. $18K-$25K, 6-8 weeks.
+              </p>
+              <Link href="/pricing" className="btn-reversed w-full min-h-[44px]">
+                See pricing & process
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA section */}
-      <section className="bg-[var(--muted)] py-16 px-6 border-t border-[var(--border)]">
+      <section className="bg-[var(--muted)] py-12 sm:py-16 px-4 sm:px-6 border-t border-[var(--border)]">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-display text-4xl md:text-5xl text-[var(--foreground)] mb-4">
+          <h2 className="text-display text-3xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
             Ready to see yours?
           </h2>
-          <p className="text-body text-xl mb-8">
+          <p className="text-body text-lg sm:text-xl mb-8">
             Get your Commodity Score, cost estimate, and 5 specific fixes in 30 seconds.
             No email required.
           </p>
-          <Link href="/" className="btn-kinetic text-lg">
+          <Link href="/" className="btn-kinetic text-lg min-h-[44px]">
             Test your website now
           </Link>
         </div>
