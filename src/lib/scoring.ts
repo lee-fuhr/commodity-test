@@ -552,6 +552,14 @@ export function detectIndustry(text: string): DetectedIndustry {
     // Custom software for clients (dev shops)
     { pattern: /\b(custom|bespoke).{0,10}(software|applications?|apps?|platforms?).{0,20}for.{0,20}(clients?|companies|firms|businesses)\b/i, industry: 'agency', bonus: 12 },
     { pattern: /\bwe build.{0,20}(websites?|apps?|applications?|platforms?|software)\b/i, industry: 'agency', bonus: 10 },
+
+    // Freelancer/consultant patterns (solo practitioners doing agency-type work)
+    { pattern: /\bfreelance.{0,10}(designer|developer|consultant|strategist)\b/i, industry: 'agency', bonus: 12 },
+    { pattern: /\bindependent.{0,10}(designer|developer|consultant|strategist)\b/i, industry: 'agency', bonus: 10 },
+    { pattern: /\b(available for|open to).{0,10}(hire|projects?|work|freelance)\b/i, industry: 'agency', bonus: 10 },
+    { pattern: /\blet'?s?.{0,10}work together\b/i, industry: 'agency', bonus: 8 },
+    { pattern: /\b(i work with|working with).{0,15}(clients?|companies|brands|startups)\b/i, industry: 'agency', bonus: 10 },
+    { pattern: /\b(ux|ui|product|web|digital).{0,10}(designer|developer|strategist|consultant)\b/i, industry: 'agency', bonus: 8 },
   ]
 
   for (const { pattern, industry, bonus } of strongDeclarations) {
