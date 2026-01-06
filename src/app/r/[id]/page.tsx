@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { kv } from '@vercel/kv'
 import { Metadata } from 'next'
 import { ShareButtons } from './ShareButtons'
-import { CopyButton } from './CopyButton'
 import { InteractiveCostCalculator } from './InteractiveCostCalculator'
 import { EmailCapture } from './EmailCapture'
 import { SuggestionVote } from './SuggestionVote'
@@ -349,10 +348,7 @@ export default async function ResultsPage({
                           >
                             <div className="bg-[var(--accent)]/10 border-l-4 border-[var(--accent)] p-3 sm:p-4">
                               <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
-                                <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                                  <CopyButton text={suggestion.text} />
-                                  <p className="text-[var(--foreground)] text-base sm:text-lg flex-1">{suggestion.text}</p>
-                                </div>
+                                <p className="text-[var(--foreground)] text-base sm:text-lg flex-1">{suggestion.text}</p>
                                 <span className={`text-[10px] sm:text-xs uppercase tracking-wider px-2 py-1 border shrink-0 self-start ${getApproachStyle(suggestion.approach)}`}>
                                   {suggestion.approach}
                                 </span>
