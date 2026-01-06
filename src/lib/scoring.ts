@@ -539,6 +539,19 @@ export function detectIndustry(text: string): DetectedIndustry {
     { pattern: /\bfractional (cto|cmo|cdo|designer|developer)\b/i, industry: 'agency', bonus: 12 },
     { pattern: /\b(web|digital|front-?end|ux|ui).{0,10}(design|development).{0,10}(services?|specialists?|experts?|consultants?)\b/i, industry: 'agency', bonus: 10 },
     { pattern: /\bsolve.{0,20}(challenges?|problems?).{0,20}for.{0,20}(clients?|companies|organizations|brands)\b/i, industry: 'agency', bonus: 10 },
+
+    // Studio and boutique patterns
+    { pattern: /\b(web|design|development|digital).{0,15}studio\b/i, industry: 'agency', bonus: 12 },
+    { pattern: /\bboutique.{0,15}(studio|firm|shop|consultancy)\b/i, industry: 'agency', bonus: 10 },
+    { pattern: /\bboutique.{0,15}(web|design|development|digital)\b/i, industry: 'agency', bonus: 10 },
+
+    // Partner patterns for agencies
+    { pattern: /\b(web|design|development|digital).{0,10}partner\b/i, industry: 'agency', bonus: 10 },
+    { pattern: /\byour.{0,10}(design|development|digital|web).{0,10}partner\b/i, industry: 'agency', bonus: 10 },
+
+    // Custom software for clients (dev shops)
+    { pattern: /\b(custom|bespoke).{0,10}(software|applications?|apps?|platforms?).{0,20}for.{0,20}(clients?|companies|firms|businesses)\b/i, industry: 'agency', bonus: 12 },
+    { pattern: /\bwe build.{0,20}(websites?|apps?|applications?|platforms?|software)\b/i, industry: 'agency', bonus: 10 },
   ]
 
   for (const { pattern, industry, bonus } of strongDeclarations) {
