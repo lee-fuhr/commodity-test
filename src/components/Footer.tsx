@@ -23,7 +23,7 @@ export function Footer({ showCta = false, tagline }: FooterProps) {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
           {/* Left: version (invisible) + attribution */}
           <div className="flex items-center gap-4">
-            <span className="text-[var(--background)] text-xs select-none">v{VERSION}</span>
+            <span className="text-[var(--background)] text-xs">v{VERSION}</span>
             <div className="text-center sm:text-left">
               <p className="text-[var(--foreground)] font-medium text-sm">
                 Built by <a href="https://leefuhr.com" className="text-[var(--accent)] hover:underline">Lee Fuhr</a>
