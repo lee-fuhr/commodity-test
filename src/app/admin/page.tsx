@@ -975,7 +975,7 @@ export default function AdminPage() {
             <div className="bg-[var(--muted)] p-6">
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Recategorize industries</h3>
               <p className="text-[var(--muted-foreground)] text-sm mb-4">
-                Re-run industry detection on all stored results. Use this after adding new industry categories.
+                Re-scrapes all URLs and re-runs industry detection. Takes ~30 seconds for 25 results.
               </p>
               <button
                 onClick={async () => {
@@ -1014,9 +1014,9 @@ export default function AdminPage() {
                   <p className="text-[var(--foreground)] font-medium mb-2">{recategorizeResult.message}</p>
                   {recategorizeResult.changes.length > 0 && (
                     <div className="space-y-1 text-sm">
-                      {recategorizeResult.changes.slice(0, 20).map((change, i) => (
+                      {recategorizeResult.changes.slice(0, 20).map((change: { id: string; url?: string; from: string; to: string }, i: number) => (
                         <div key={i} className="text-[var(--muted-foreground)]">
-                          {change.id.slice(0, 8)}...: <span className="text-red-400">{change.from}</span> → <span className="text-green-400">{change.to}</span>
+                          <span className="truncate max-w-[200px] inline-block align-bottom">{change.url || change.id.slice(0, 8)}</span>: <span className="text-red-400">{change.from}</span> → <span className="text-green-400">{change.to}</span>
                         </div>
                       ))}
                       {recategorizeResult.changes.length > 20 && (

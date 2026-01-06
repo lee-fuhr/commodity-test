@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
 import { detectIndustry, type DetectedIndustry } from '@/lib/scoring'
+import { scrapeUrl, extractContent } from '@/lib/scraper'
 
 // Simple API key protection - set ADMIN_API_KEY in env
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY
@@ -197,24 +198,30 @@ export async function POST(request: NextRequest) {
 }
 
 // Recategorize all stored results with updated industry detection
+// This re-scrapes URLs to get fresh text for detection
 async function recategorizeResults() {
   try {
-    // Get recent scans to find result IDs
+    // Get recent scans to find result IDs and URLs
     const scans = await kv.lrange<ScanEntry>('analytics:scans', 0, 499)
-    const resultIds = [...new Set(scans.map(s => s.resultId))]
+
+    // Dedupe by resultId, keeping track of URLs
+    const resultMap = new Map<string, { id: string; url: string; oldIndustry: string }>()
+    for (const scan of scans) {
+      if (!resultMap.has(scan.resultId)) {
+        resultMap.set(scan.resultId, { id: scan.resultId, url: scan.url, oldIndustry: scan.industry })
+      }
+    }
 
     let updated = 0
     let skipped = 0
-    const changes: Array<{ id: string; from: string; to: string }> = []
+    let failed = 0
+    const changes: Array<{ id: string; url: string; from: string; to: string }> = []
 
-    for (const id of resultIds) {
+    for (const [id, { url, oldIndustry }] of resultMap) {
       try {
         // Get stored result
         const result = await kv.get<{
           industry: DetectedIndustry
-          companyName: string
-          detectedPhrases: Array<{ context?: string }>
-          diagnosis: string
           [key: string]: unknown
         }>(`result:${id}`)
 
@@ -223,34 +230,34 @@ async function recategorizeResults() {
           continue
         }
 
-        // Reconstruct text from stored data for re-detection
-        // We'll use the detected phrases contexts and diagnosis as proxy for original text
-        let textForDetection = result.companyName || ''
-        if (result.detectedPhrases) {
-          textForDetection += ' ' + result.detectedPhrases.map(p => p.context || '').join(' ')
-        }
-        if (result.diagnosis) {
-          textForDetection += ' ' + result.diagnosis
+        // Re-scrape the URL to get fresh text for industry detection
+        const fullUrl = url.startsWith('http') ? url : `https://${url}`
+        const scrapeResult = await scrapeUrl(fullUrl)
+
+        if (scrapeResult.method === 'failed' || !scrapeResult.html) {
+          failed++
+          continue
         }
 
-        // Check if there's stored body text
-        if ((result as { bodyText?: string }).bodyText) {
-          textForDetection = (result as { bodyText?: string }).bodyText || textForDetection
-        }
+        const extracted = extractContent(scrapeResult.html)
+        const textForDetection = `${extracted.title} ${extracted.metaDescription} ${extracted.bodyText}`
 
         const newIndustry = detectIndustry(textForDetection)
-        const oldIndustry = result.industry
 
         if (newIndustry !== oldIndustry) {
           // Update the stored result
           await kv.set(`result:${id}`, { ...result, industry: newIndustry })
-          changes.push({ id, from: oldIndustry, to: newIndustry })
+          changes.push({ id, url, from: oldIndustry, to: newIndustry })
           updated++
         } else {
           skipped++
         }
-      } catch {
-        skipped++
+
+        // Small delay to avoid hammering sites
+        await new Promise(resolve => setTimeout(resolve, 200))
+      } catch (e) {
+        console.error(`Failed to recategorize ${id}:`, e)
+        failed++
       }
     }
 
@@ -273,7 +280,7 @@ async function recategorizeResults() {
 
     return NextResponse.json({
       success: true,
-      message: `Recategorized ${updated} results, skipped ${skipped}`,
+      message: `Recategorized ${updated} results, skipped ${skipped}, failed ${failed}`,
       changes,
     })
   } catch (error) {
