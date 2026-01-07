@@ -37,3 +37,5 @@ Thumbs.db
 test-analyze.js
 .env.prod
 .env.vercel
+.env*.local
+.env.production
