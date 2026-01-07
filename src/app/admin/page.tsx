@@ -329,7 +329,7 @@ function ScansPerDay({ scans }: { scans: ScanEntry[] }) {
         {visibleDays.map((day) => {
           const height = (day.count / maxCount) * 100
           return (
-            <div key={day.date} className="flex-1 flex flex-col items-center group relative">
+            <div key={day.date} className="flex-1 h-full flex flex-col items-center justify-end group relative">
               <div
                 className="w-full bg-[var(--accent)] rounded-t transition-all"
                 style={{ height: `${height}%`, minHeight: day.count > 0 ? '4px' : '0' }}
