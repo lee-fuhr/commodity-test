@@ -31,6 +31,9 @@ Thumbs.db
 # IDE
 .idea/
 .vscode/
+
+# Local Claude notes (not committed)
+CLAUDE.local.md
 *.swp
 *.swo
 .env.prod
