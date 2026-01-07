@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.14.1 - CSP fix
+- Fixed Content Security Policy blocking JS bundles on production
+- Added proper CSP headers in next.config.js allowing self, Plausible, Google Fonts, Supabase
+
 ## v0.12.0 - Lead capture + admin tools
 - Admin dashboard: Full `/admin` page with password protection, tabbed views, CSV export
 - Lead capture: Guide emails now stored in KV for future marketing
