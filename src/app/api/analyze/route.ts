@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as cheerio from 'cheerio'
 import { nanoid } from 'nanoid'
 import { kv } from '@vercel/kv'
-import { createClaudeClient } from '@shared/lib/claude-client'
+import Anthropic from '@anthropic-ai/sdk'
 import { scrapeUrl, extractContent as extractFromHtml, type ExtractedContent } from '@/lib/scraper'
 import {
   detectCommodityPhrases,
@@ -106,9 +106,9 @@ interface AnalysisResult {
   createdAt: string
 }
 
-// Initialize Claude client with automatic failover
+// Initialize Claude client
 const anthropic = process.env.ANTHROPIC_API_KEY
-  ? createClaudeClient()
+  ? new Anthropic()
   : null
 
 if (!anthropic) {
