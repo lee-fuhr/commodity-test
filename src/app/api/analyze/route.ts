@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as cheerio from 'cheerio'
 import { nanoid } from 'nanoid'
-import Anthropic from '@anthropic-ai/sdk'
 import { kv } from '@vercel/kv'
+import { createClaudeClient } from '@shared/lib/claude-client'
 import { scrapeUrl, extractContent as extractFromHtml, type ExtractedContent } from '@/lib/scraper'
 import {
   detectCommodityPhrases,
@@ -106,9 +106,9 @@ interface AnalysisResult {
   createdAt: string
 }
 
-// Initialize Anthropic client if API key is available
+// Initialize Claude client with automatic failover
 const anthropic = process.env.ANTHROPIC_API_KEY
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  ? createClaudeClient()
   : null
 
 if (!anthropic) {

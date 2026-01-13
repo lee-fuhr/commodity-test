@@ -2,6 +2,19 @@
 
 import { useState, useRef, useEffect } from 'react'
 
+// Format numbers compactly: 495000 → $495k, 1500000 → $1.5m
+function formatCompact(num: number, prefix = '$'): string {
+  if (num >= 1000000) {
+    const m = num / 1000000
+    return `${prefix}${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}m`
+  }
+  if (num >= 1000) {
+    const k = num / 1000
+    return `${prefix}${k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)}k`
+  }
+  return `${prefix}${num.toLocaleString()}`
+}
+
 interface CostAssumptions {
   averageDealValue: number
   annualDeals: number
@@ -229,9 +242,9 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
             label="loss rate"
           />
           <span className="text-xl sm:text-2xl text-white/70">=</span>
-          <div className="bg-white/10 px-3 sm:px-4 py-2 sm:py-3 min-w-[100px] sm:min-w-[120px] border-2 border-white/30">
-            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${annualLoss.toLocaleString()}</p>
-            <p className="text-[10px] sm:text-xs text-white/70">annual loss</p>
+          <div className="bg-white/10 px-3 sm:px-4 py-2 sm:py-3 min-w-[80px] sm:min-w-[100px] border-2 border-white/30">
+            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">{formatCompact(annualLoss)}</p>
+            <p className="text-[10px] sm:text-xs text-white/70">lost annually</p>
           </div>
         </div>
         {/* Mobile: stacked layout with tap-to-edit */}
@@ -257,8 +270,8 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
           </div>
           <div className="flex justify-center">
             <div className="bg-white/10 px-4 py-2 border-2 border-white/30 text-center">
-              <p className="text-2xl font-display text-white">${annualLoss.toLocaleString()}</p>
-              <p className="text-[10px] text-white/70">annual loss</p>
+              <p className="text-2xl font-display text-white">{formatCompact(annualLoss)}</p>
+              <p className="text-[10px] text-white/70">lost annually</p>
             </div>
           </div>
         </div>
@@ -271,25 +284,25 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
           A Core Site rebuild runs $18K. Keep just half the deals you&apos;d otherwise lose, and here&apos;s your return:
         </p>
         {/* Desktop: horizontal flow */}
-        <div className="hidden sm:flex flex-wrap items-center justify-center gap-2 md:gap-4 text-center text-white mb-4">
-          <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
-            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">${annualLoss.toLocaleString()}</p>
-            <p className="text-[10px] sm:text-xs text-white/70">annual loss</p>
+        <div className="hidden sm:flex flex-wrap items-center justify-center gap-2 md:gap-3 text-center text-white mb-4">
+          <div className="bg-black/20 px-2 sm:px-3 py-2 sm:py-3">
+            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">{formatCompact(annualLoss)}</p>
+            <p className="text-[10px] sm:text-xs text-white/70">lost annually</p>
           </div>
           <span className="text-xl sm:text-2xl text-white/70">×</span>
-          <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
+          <div className="bg-black/20 px-2 sm:px-3 py-2 sm:py-3">
             <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">50%</p>
-            <p className="text-[10px] sm:text-xs text-white/70">conservative</p>
+            <p className="text-[10px] sm:text-xs text-white/70">deals kept</p>
           </div>
           <span className="text-xl sm:text-2xl text-white/70">÷</span>
-          <div className="bg-black/20 px-3 sm:px-4 py-2 sm:py-3">
-            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">$18,000</p>
+          <div className="bg-black/20 px-2 sm:px-3 py-2 sm:py-3">
+            <p className="text-xl sm:text-2xl md:text-3xl font-display text-white">$18k</p>
             <p className="text-[10px] sm:text-xs text-white/70">investment</p>
           </div>
           <span className="text-xl sm:text-2xl text-white/70">=</span>
-          <div className="bg-green-500/20 px-3 sm:px-4 py-2 sm:py-3 border-2 border-green-400/40">
+          <div className="bg-green-500/20 px-2 sm:px-3 py-2 sm:py-3 border-2 border-green-400/40">
             <p className="text-xl sm:text-2xl md:text-3xl font-display text-green-200">{roi}%</p>
-            <p className="text-sm sm:text-lg font-display text-green-200">(${roiDollars.toLocaleString()})</p>
+            <p className="text-sm sm:text-lg font-display text-green-200">({formatCompact(roiDollars)})</p>
             <p className="text-[10px] sm:text-xs text-green-200/80">first-year ROI</p>
           </div>
         </div>
@@ -297,22 +310,22 @@ export function InteractiveCostCalculator({ initialAssumptions }: Props) {
         <div className="sm:hidden space-y-3 mb-4">
           <div className="grid grid-cols-3 gap-2 text-center text-white">
             <div className="bg-black/20 px-2 py-2">
-              <p className="text-lg font-display">${annualLoss.toLocaleString()}</p>
-              <p className="text-[10px] text-white/70">annual loss</p>
+              <p className="text-lg font-display">{formatCompact(annualLoss)}</p>
+              <p className="text-[10px] text-white/70">lost annually</p>
             </div>
             <div className="bg-black/20 px-2 py-2">
               <p className="text-lg font-display">50%</p>
-              <p className="text-[10px] text-white/70">conservative</p>
+              <p className="text-[10px] text-white/70">deals kept</p>
             </div>
             <div className="bg-black/20 px-2 py-2">
-              <p className="text-lg font-display">$18,000</p>
+              <p className="text-lg font-display">$18k</p>
               <p className="text-[10px] text-white/70">investment</p>
             </div>
           </div>
           <div className="flex justify-center">
             <div className="bg-green-500/20 px-4 py-2 border-2 border-green-400/40 text-center">
               <p className="text-2xl font-display text-green-200">{roi}%</p>
-              <p className="text-base font-display text-green-200">(${roiDollars.toLocaleString()})</p>
+              <p className="text-base font-display text-green-200">({formatCompact(roiDollars)})</p>
               <p className="text-[10px] text-green-200/80">first-year ROI</p>
             </div>
           </div>
