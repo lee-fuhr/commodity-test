@@ -206,7 +206,7 @@ function ProcessingContent() {
           <div className="flex justify-between text-sm">
             <span className="text-body">{Math.round(progress)}%</span>
             <span className="text-body">
-              {url ? new URL(url).hostname : ''}
+              {url ? (() => { try { return new URL(url.startsWith('http') ? url : `https://${url}`).hostname } catch { return url } })() : ''}
             </span>
           </div>
         </div>

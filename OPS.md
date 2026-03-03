@@ -28,8 +28,26 @@
 - Check Vercel Logs tab to see actual server errors (not just browser console)
 - The "Last used" column on Anthropic API keys page helps verify which key is actually being used
 
+### 2026-03-02: vercel.json function path fix
+
+**Issue:**
+- `vercel.json` used path `src/app/api/analyze/route.ts` but Next.js app router requires `app/api/analyze/route.ts` (without `src/` prefix)
+- This means the `maxDuration: 120` setting was NOT being applied to the analyze function
+- The function was running on whatever Vercel's default timeout is for the plan tier
+- Additionally, `maxDuration: 120` exceeds hobby plan's 60s cap
+
+**Fix:**
+- Changed path from `src/app/api/analyze/route.ts` to `app/api/analyze/route.ts`
+- Set `maxDuration: 60` (hobby plan maximum)
+- Also fixed stale CSP `connect-src` reference from `*.supabase.co` to `*.upstash.io`
+- Fixed URL parsing safety in processing page
+
+**Deploy needed:** Yes - redeploy for vercel.json and next.config.js changes to take effect.
+
+---
+
 ## Version Numbers
 
 - `package.json` version and `src/lib/version.ts` VERSION are separate
-- Footer displays VERSION from src/lib/version.ts (currently 0.18.19)
+- Footer displays VERSION from src/lib/version.ts (currently 0.18.21)
 - Keep them in sync manually when releasing
