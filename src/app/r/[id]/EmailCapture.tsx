@@ -54,7 +54,7 @@ export function EmailCapture({ resultId, companyName }: Props) {
   return (
     <form onSubmit={handleSubmit} className="bg-[var(--muted)] p-4">
       <p className="text-[var(--foreground)] font-medium text-sm mb-3">
-        Save this report
+        Email me this report
       </p>
       <div className="flex flex-col sm:flex-row gap-2">
         <input

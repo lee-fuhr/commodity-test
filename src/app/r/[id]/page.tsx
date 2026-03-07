@@ -393,34 +393,46 @@ export default async function ResultsPage({
 
       {/* CTAs section */}
       <section className="py-12 sm:py-16 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <h2 className="text-display text-3xl sm:text-4xl text-[var(--foreground)] text-center mb-8 sm:mb-12">
             What&apos;s next?
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {/* DIY option */}
-            <div className="border-2 border-[var(--border)] p-5 sm:p-8">
-              <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-3 sm:mb-4">Fix it yourself</h3>
-              <p className="text-body text-base sm:text-lg mb-4 sm:mb-6">
-                Want the full methodology? Download the guide that walks you through
-                de-commodifying your entire site.
+            <div className="border-2 border-[var(--border)] p-5 sm:p-8 flex flex-col">
+              <p className="text-label text-xs mb-3">OPTION 1 · FREE</p>
+              <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-3">Fix it yourself</h3>
+              <p className="text-body text-base mb-6 flex-1">
+                The 6-page Commodity Messaging Fix Kit: worksheet, rewrite frameworks, and before/after examples from real manufacturers.
               </p>
               <Link href="/guide" className="btn-outline w-full min-h-[44px]">
-                Get the DIY guide
+                Get the free guide
               </Link>
             </div>
 
-            {/* Done-for-you option */}
-            <div className="bg-[var(--accent)] p-5 sm:p-8">
-              <h3 className="text-section text-lg sm:text-xl text-[var(--accent-foreground)] mb-3 sm:mb-4">Hire me to do it for you</h3>
-              <p className="text-[var(--accent-foreground)] opacity-90 text-base sm:text-lg mb-4 sm:mb-6">
-                I build websites that win deals for {industryCopy.verticalPlural} who are tired of competing
-                on price. $18K-$25K, 6-8 weeks.
+            {/* Call option */}
+            <div className="border-2 border-[var(--accent)] p-5 sm:p-8 flex flex-col">
+              <p className="text-label text-xs mb-3 text-[var(--accent)]">OPTION 2 · FREE</p>
+              <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-3">Talk it through</h3>
+              <p className="text-body text-base mb-6 flex-1">
+                Thirty minutes. You walk me through where you&apos;re stuck, I react. No pitch, no agenda. I&apos;ve been doing this for 27 years — I probably know what&apos;s wrong.
               </p>
-              <Link href="/pricing" className="btn-reversed w-full min-h-[44px]">
-                See pricing & process
-              </Link>
+              <a href="mailto:hi@leefuhr.com?subject=30-minute call — Commodity Test" className="btn-outline border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] w-full min-h-[44px] flex items-center justify-center">
+                Email me to book
+              </a>
+            </div>
+
+            {/* Done-for-you option */}
+            <div className="bg-[var(--accent)] p-5 sm:p-8 flex flex-col">
+              <p className="text-label text-xs mb-3 text-[var(--accent-foreground)] opacity-70">OPTION 3 · $400</p>
+              <h3 className="text-section text-lg sm:text-xl text-[var(--accent-foreground)] mb-3">Full site audit</h3>
+              <p className="text-[var(--accent-foreground)] opacity-90 text-base mb-6 flex-1">
+                I run your entire site — every page — through a full messaging audit. You get a prioritized fix list and the copy rewrites. Done in 48 hours.
+              </p>
+              <a href="https://website-audit.vercel.app" className="btn-reversed w-full min-h-[44px] flex items-center justify-center">
+                Get the full audit →
+              </a>
             </div>
           </div>
         </div>

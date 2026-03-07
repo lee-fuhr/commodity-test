@@ -339,18 +339,26 @@ export default function HomePage() {
 
           {/* More tools */}
           <p className="text-label mb-6 text-center">MORE TOOLS FOR MANUFACTURERS</p>
-          <div className="grid md:grid-cols-3 gap-6">
-            <a href="https://proposal-analyzer.vercel.app" className="bg-[var(--background)] p-6 border border-[var(--border)] hover:border-[var(--accent)] transition-colors">
-              <p className="text-section text-lg mb-2">Proposal Analyzer</p>
-              <p className="text-body text-sm text-[var(--muted-foreground)]">Spot commodity language in your proposals before the deadline. Get copy-paste fixes.</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="https://website-audit.vercel.app" className="bg-[var(--background)] p-5 border border-[var(--border)] hover:border-[var(--accent)] transition-colors group">
+              <p className="text-label text-xs mb-2 text-[var(--accent)]">$400</p>
+              <p className="text-section text-base mb-2 group-hover:text-[var(--accent)] transition-colors">Website Audit</p>
+              <p className="text-body text-sm text-[var(--muted-foreground)]">Full messaging audit — every page, prioritized fix list, copy rewrites. 48-hour turnaround.</p>
             </a>
-            <a href="https://case-study-extractor.vercel.app" className="bg-[var(--background)] p-6 border border-[var(--border)] hover:border-[var(--accent)] transition-colors">
-              <p className="text-section text-lg mb-2">Case Study Extractor</p>
-              <p className="text-body text-sm text-[var(--muted-foreground)]">Turn project photos and invoices into sales-ready case studies in 5 minutes.</p>
+            <a href="https://proposal-analyzer.vercel.app" className="bg-[var(--background)] p-5 border border-[var(--border)] hover:border-[var(--accent)] transition-colors group">
+              <p className="text-label text-xs mb-2 text-[var(--accent)]">$97</p>
+              <p className="text-section text-base mb-2 group-hover:text-[var(--accent)] transition-colors">Proposal Analyzer</p>
+              <p className="text-body text-sm text-[var(--muted-foreground)]">Catch commodity language before the deadline. Copy-paste fixes in 2 minutes.</p>
             </a>
-            <a href="https://risk-translator.vercel.app" className="bg-[var(--background)] p-6 border border-[var(--border)] hover:border-[var(--accent)] transition-colors">
-              <p className="text-section text-lg mb-2">Risk Translator</p>
-              <p className="text-body text-sm text-[var(--muted-foreground)]">Translate your specs into risk language that gets purchasing to approve the budget.</p>
+            <a href="https://case-study-extractor.vercel.app" className="bg-[var(--background)] p-5 border border-[var(--border)] hover:border-[var(--accent)] transition-colors group">
+              <p className="text-label text-xs mb-2 text-[var(--accent)]">$147</p>
+              <p className="text-section text-base mb-2 group-hover:text-[var(--accent)] transition-colors">Case Study Extractor</p>
+              <p className="text-body text-sm text-[var(--muted-foreground)]">Turn project photos and invoices into polished case studies that close deals.</p>
+            </a>
+            <a href="https://risk-translator.vercel.app" className="bg-[var(--background)] p-5 border border-[var(--border)] hover:border-[var(--accent)] transition-colors group">
+              <p className="text-label text-xs mb-2 text-[var(--accent)]">$97</p>
+              <p className="text-section text-base mb-2 group-hover:text-[var(--accent)] transition-colors">Risk Translator</p>
+              <p className="text-body text-sm text-[var(--muted-foreground)]">Turn specs into risk-justified decisions that get past purchasing. No more &ldquo;went with the cheapest.&rdquo;</p>
             </a>
           </div>
         </div>

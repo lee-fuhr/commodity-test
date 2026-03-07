@@ -396,6 +396,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Schedule nurture follow-up emails
+    try {
+      const signupAt = new Date().toISOString()
+      const now = Date.now()
+      const MS_PER_DAY = 24 * 60 * 60 * 1000
+      await kv.zadd('nurture:queue',
+        { score: now + (3 * MS_PER_DAY),  member: { email, firstName: firstName || null, step: 2, signupAt } },
+        { score: now + (10 * MS_PER_DAY), member: { email, firstName: firstName || null, step: 3, signupAt } },
+        { score: now + (21 * MS_PER_DAY), member: { email, firstName: firstName || null, step: 4, signupAt } }
+      )
+    } catch (nurtureErr) {
+      // Don't fail the request — guide was already delivered
+      console.error('Failed to schedule nurture emails:', nurtureErr)
+    }
+
+    // Notify Lee about the new lead
+    try {
+      await resend.emails.send({
+        from: 'Commodity Test <hi@mail.leefuhr.com>',
+        to: ['hi@leefuhr.com'],
+        subject: `New lead: ${firstName ? firstName + ' (' + email + ')' : email} downloaded the guide`,
+        html: `<p>New guide download from <strong>${firstName || '(no name)'}</strong> — ${email}</p>
+<p>Signed up: ${new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })} PST</p>
+<p>3-email nurture sequence scheduled (days 3, 10, 21).</p>
+<p style="font-size:12px;color:#888;">View all leads: <a href="https://thecommoditytest.com/admin">thecommoditytest.com/admin</a></p>`,
+      })
+    } catch (notifyErr) {
+      // Non-critical — lead stored, guide sent, nurture scheduled
+      console.error('Failed to notify Lee:', notifyErr)
+    }
+
     return NextResponse.json({ success: true, messageId: data?.id })
   } catch (error) {
     console.error('Guide delivery error:', error)
