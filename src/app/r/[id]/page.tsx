@@ -127,11 +127,11 @@ export async function generateMetadata({
 // Differentiation score: 100 = highly differentiated (good), 0 = pure commodity (bad)
 // Be pessimistic - 61 shouldn't feel "well done"
 function getScoreLabel(score: number): { label: string; color: string; adjective: string } {
-  if (score >= 85) return { label: 'Highly differentiated', adjective: 'Strongly', color: 'text-green-400' }
-  if (score >= 70) return { label: 'Well differentiated', adjective: 'Clearly', color: 'text-lime-400' }
-  if (score >= 55) return { label: 'Moderately differentiated', adjective: 'Somewhat', color: 'text-yellow-400' }
-  if (score >= 40) return { label: 'Weakly differentiated', adjective: 'Barely', color: 'text-orange-400' }
-  return { label: 'Undifferentiated', adjective: 'Not', color: 'text-red-400' }
+  if (score >= 85) return { label: 'Highly differentiated', adjective: 'Strongly', color: 'text-[var(--score-excellent)]' }
+  if (score >= 70) return { label: 'Well differentiated', adjective: 'Clearly', color: 'text-[var(--score-excellent)]' }
+  if (score >= 55) return { label: 'Moderately differentiated', adjective: 'Somewhat', color: 'text-[var(--score-good)]' }
+  if (score >= 40) return { label: 'Weakly differentiated', adjective: 'Barely', color: 'text-[var(--score-fair)]' }
+  return { label: 'Undifferentiated', adjective: 'Not', color: 'text-[var(--score-poor)]' }
 }
 
 // Highlight the phrase within its context
@@ -161,11 +161,11 @@ function HighlightedContext({ context, phrase }: { context: string; phrase: stri
 function getApproachStyle(approach: string): string {
   switch (approach) {
     case 'specific stats':
-      return 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+      return 'bg-[var(--score-good-bg)] text-[var(--score-good)] border-[var(--score-good)]'
     case 'social proof':
-      return 'bg-green-500/20 text-green-300 border-green-500/30'
+      return 'bg-[var(--score-excellent-bg)] text-[var(--score-excellent)] border-[var(--score-excellent)]'
     case 'unique process':
-      return 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+      return 'bg-[var(--score-fair-bg)] text-[var(--score-fair)] border-[var(--score-fair)]'
     default:
       return 'bg-[var(--muted)] text-[var(--muted-foreground)] border-[var(--border)]'
   }
@@ -250,7 +250,7 @@ export default async function ResultsPage({
           {/* Context */}
           <div className="flex justify-center gap-8 mb-8 text-sm">
             <div className="text-center">
-              <p className="text-body">Industry avg</p>
+              <p className="text-body">Industry avg (est.)</p>
               <p className="text-[var(--foreground)] font-semibold text-xl">64</p>
             </div>
             <div className="w-px bg-[var(--border)]" />
@@ -287,7 +287,6 @@ export default async function ResultsPage({
           {result.costAssumptions && (
             <InteractiveCostCalculator
               initialAssumptions={result.costAssumptions}
-              industryContext={industryCopy.dealContext}
             />
           )}
         </div>
@@ -298,7 +297,7 @@ export default async function ResultsPage({
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-display text-3xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
-              5 things to fix
+              {result.fixes.length} thing{result.fixes.length !== 1 ? 's' : ''} to fix
             </h2>
             <p className="text-body text-lg sm:text-xl">
               Specific to YOUR homepage. Not generic advice.
@@ -338,7 +337,7 @@ export default async function ResultsPage({
                       <div className="space-y-3">
                         {fix.suggestions.map((suggestion, idx) => (
                           <SuggestionVote
-                            key={idx}
+                            key={suggestion.text}
                             resultId={result.id}
                             fixNumber={fix.number}
                             suggestionIndex={idx}
@@ -394,14 +393,41 @@ export default async function ResultsPage({
       {/* CTAs section */}
       <section className="py-12 sm:py-16 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-display text-3xl sm:text-4xl text-[var(--foreground)] text-center mb-8 sm:mb-12">
-            What&apos;s next?
+          <h2 className="text-display text-3xl sm:text-4xl text-[var(--foreground)] text-center mb-4">
+            Now fix it.
           </h2>
+          <p className="text-body text-center text-lg mb-8 sm:mb-12">
+            Three ways to go from generic to specific.
+          </p>
 
           <div className="grid md:grid-cols-3 gap-6">
+            {/* Done-for-you option */}
+            <div className="bg-[var(--accent)] p-5 sm:p-8 flex flex-col">
+              <p className="text-label text-xs mb-3 text-[var(--accent-foreground)] opacity-70">OPTION 1 · $400</p>
+              <h3 className="text-section text-lg sm:text-xl text-[var(--accent-foreground)] mb-3">Full site audit</h3>
+              <p className="text-[var(--accent-foreground)] opacity-90 text-base mb-6 flex-1">
+                Every page. 15–20 specific rewrites, prioritized by impact. You get the copy — not a list of things to fix, but the actual words to use. Done in 48 hours.
+              </p>
+              <a href="https://websiteaudit.leefuhr.com" className="btn-reversed w-full min-h-[44px] flex items-center justify-center">
+                Get the full audit →
+              </a>
+            </div>
+
+            {/* Call option */}
+            <div className="border-2 border-[var(--accent)] p-5 sm:p-8 flex flex-col">
+              <p className="text-label text-xs mb-3 text-[var(--accent)]">OPTION 2 · FREE</p>
+              <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-3">Talk it through</h3>
+              <p className="text-body text-base mb-6 flex-1">
+                Thirty minutes. You walk me through where you&apos;re stuck, I react. No pitch, no agenda. I&apos;ve been doing this for 27 years — I probably know what&apos;s wrong before you finish the sentence.
+              </p>
+              <a href="https://cal.com/leefuhr/30i" target="_blank" rel="noopener noreferrer" className="btn-outline border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] w-full min-h-[44px] flex items-center justify-center">
+                Book a time →
+              </a>
+            </div>
+
             {/* DIY option */}
             <div className="border-2 border-[var(--border)] p-5 sm:p-8 flex flex-col">
-              <p className="text-label text-xs mb-3">OPTION 1 · FREE</p>
+              <p className="text-label text-xs mb-3">OPTION 3 · FREE</p>
               <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-3">Fix it yourself</h3>
               <p className="text-body text-base mb-6 flex-1">
                 The 6-page Commodity Messaging Fix Kit: worksheet, rewrite frameworks, and before/after examples from real manufacturers.
@@ -410,35 +436,91 @@ export default async function ResultsPage({
                 Get the free guide
               </Link>
             </div>
-
-            {/* Call option */}
-            <div className="border-2 border-[var(--accent)] p-5 sm:p-8 flex flex-col">
-              <p className="text-label text-xs mb-3 text-[var(--accent)]">OPTION 2 · FREE</p>
-              <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-3">Talk it through</h3>
-              <p className="text-body text-base mb-6 flex-1">
-                Thirty minutes. You walk me through where you&apos;re stuck, I react. No pitch, no agenda. I&apos;ve been doing this for 27 years — I probably know what&apos;s wrong.
-              </p>
-              <a href="mailto:hi@leefuhr.com?subject=30-minute call — Commodity Test" className="btn-outline border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] w-full min-h-[44px] flex items-center justify-center">
-                Email me to book
-              </a>
-            </div>
-
-            {/* Done-for-you option */}
-            <div className="bg-[var(--accent)] p-5 sm:p-8 flex flex-col">
-              <p className="text-label text-xs mb-3 text-[var(--accent-foreground)] opacity-70">OPTION 3 · $400</p>
-              <h3 className="text-section text-lg sm:text-xl text-[var(--accent-foreground)] mb-3">Full site audit</h3>
-              <p className="text-[var(--accent-foreground)] opacity-90 text-base mb-6 flex-1">
-                I run your entire site — every page — through a full messaging audit. You get a prioritized fix list and the copy rewrites. Done in 48 hours.
-              </p>
-              <a href="https://website-audit.vercel.app" className="btn-reversed w-full min-h-[44px] flex items-center justify-center">
-                Get the full audit →
-              </a>
-            </div>
           </div>
         </div>
       </section>
 
-      <Footer showCta tagline={`27 years helping ${industryCopy.verticalPlural} stop sounding like everyone else`} />
+      {/* Cross-sell: website-audit — highest value upsell ($400) */}
+      <section className="py-10 sm:py-12 px-4 sm:px-6 border-t border-[var(--border)]">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 sm:p-8 border-2 border-[var(--accent)] bg-[var(--accent)]/5">
+            <div className="flex-1">
+              <p className="text-label text-xs mb-2 text-[var(--accent)]">YOUR SCORE · FULL FIX</p>
+              <h3 className="text-section text-xl sm:text-2xl text-[var(--foreground)] mb-2">
+                Your score shows the problem. The audit shows the fix.
+              </h3>
+              <p className="text-body text-base">
+                Your commodity score is {result.commodityScore}. We found the specific phrases killing your credibility — all of them, across every page. Get the complete fix-it list with exact rewrites.
+              </p>
+            </div>
+            <a href="https://websiteaudit.leefuhr.com" className="btn-kinetic shrink-0 min-h-[44px] flex items-center px-6 whitespace-nowrap">
+              Get 15–20 specific rewrites — $400 →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Cross-sell: proposal-analyzer */}
+      <section className="py-10 sm:py-12 px-4 sm:px-6 border-t border-[var(--border)]">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 sm:p-8 border-2 border-[var(--border)]">
+            <div className="flex-1">
+              <p className="text-label text-xs mb-2">WHILE YOU&apos;RE AT IT</p>
+              <h3 className="text-section text-xl sm:text-2xl text-[var(--foreground)] mb-2">
+                If your website sounds generic, your proposals probably do too.
+              </h3>
+              <p className="text-body text-base">
+                Same methodology applied to proposals. Upload your last one and get drop-in rewrites for the phrases that are costing you bids.
+              </p>
+            </div>
+            <a href="https://proposal-analyzer.vercel.app" className="btn-outline shrink-0 min-h-[44px] flex items-center px-6 whitespace-nowrap">
+              Check your proposal →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Cross-sell: risk-translator — free entry point */}
+      <section className="py-8 sm:py-10 px-4 sm:px-6 border-t border-[var(--border)]">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-5 sm:p-7 border border-[var(--border)] bg-[var(--muted)]/40">
+            <div className="flex-1">
+              <p className="text-label text-xs mb-2">FREE TOOL</p>
+              <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-2">
+                Your website sounds like everyone else&apos;s. So might your technical pitch.
+              </h3>
+              <p className="text-body text-sm sm:text-base">
+                If purchasing keeps eliminating you on price, you might not be translating your technical advantages into language they respond to. Try the risk translator — free.
+              </p>
+            </div>
+            <a href="https://risktranslator.leefuhr.com" className="btn-outline shrink-0 min-h-[44px] flex items-center px-6 whitespace-nowrap text-sm">
+              Translate my specs — free →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Cross-sell: case-study-extractor — free entry point */}
+      <section className="py-8 sm:py-10 px-4 sm:px-6 border-t border-[var(--border)]">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-5 sm:p-7 border border-[var(--border)] bg-[var(--muted)]/40">
+            <div className="flex-1">
+              <p className="text-label text-xs mb-2">FREE TOOL</p>
+              <h3 className="text-section text-lg sm:text-xl text-[var(--foreground)] mb-2">
+                Better language is one thing. Proof is another.
+              </h3>
+              <p className="text-body text-sm sm:text-base">
+                Your score shows your site sounds like everyone else. But do you have case studies to back up the claims? Turn your best project photos and invoices into a professional case study in 10 minutes.
+              </p>
+            </div>
+            <a href="https://casestudyextractor.leefuhr.com" className="btn-outline shrink-0 min-h-[44px] flex items-center px-6 whitespace-nowrap text-sm">
+              Build my first case study — free →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <Footer showCta tagline="27 years helping B2B companies win on value, not price" />
     </main>
   )
 }
