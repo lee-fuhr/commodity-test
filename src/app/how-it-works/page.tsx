@@ -243,7 +243,7 @@ export default function HowItWorksPage() {
 
           <div className="space-y-6 text-body text-lg">
             <p>
-              I&apos;m Lee Fuhr. 27 years helping manufacturers stop sounding like everyone else.
+              I&apos;m Lee Fuhr. 27 years helping B2B companies win on value, not price.
             </p>
 
             <p>
@@ -307,7 +307,7 @@ export default function HowItWorksPage() {
       </section>
 
       {/* Footer */}
-      <Footer showCta tagline="27 years helping manufacturers stop sounding like everyone else" />
+      <Footer showCta tagline="27 years helping B2B companies win on value, not price" />
     </main>
   )
 }

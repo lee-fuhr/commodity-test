@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { kv } from '@vercel/kv'
+import { logger } from '@shared/lib/logger'
 
 // Configuration
 const RESEND_API_KEY = process.env.RESEND_API_KEY
@@ -54,11 +55,12 @@ export async function POST(request: NextRequest) {
     try {
       if (process.env.KV_REST_API_URL) {
         await kv.lpush('contact_submissions', JSON.stringify(submission))
+        await kv.ltrim('contact_submissions', 0, 499) // keep last 500
         await kv.set(`submission:${submission.id}`, JSON.stringify(submission))
         stored = true
       }
     } catch (kvError) {
-      console.error('KV storage error (non-fatal):', kvError)
+      logger.error('KV storage error — non-fatal', { tool: 'commodity-test', fn: 'route handler', err: String(kvError) })
     }
 
     // Send email via Resend if configured
@@ -77,19 +79,11 @@ export async function POST(request: NextRequest) {
         })
         emailed = true
       } catch (emailError) {
-        console.error('Resend email error (non-fatal):', emailError)
+        logger.error('Resend email error — non-fatal', { tool: 'commodity-test', fn: 'route handler', err: String(emailError) })
       }
     }
 
-    // Always log for debugging
-    console.log('=== CONTACT FORM SUBMISSION ===')
-    console.log('ID:', submission.id)
-    console.log('Type:', formType)
-    console.log('Tier:', tier)
-    console.log('Stored:', stored)
-    console.log('Emailed:', emailed)
-    console.log('Data:', JSON.stringify(formData, null, 2))
-    console.log('===============================')
+    logger.info('Contact form submission', { tool: 'commodity-test', fn: 'route handler', submissionId: submission.id, formType, tier, stored, emailed })
 
     // Success if either stored or emailed, or if neither is configured (dev mode)
     if (stored || emailed || (!process.env.KV_REST_API_URL && !resend)) {
@@ -105,7 +99,7 @@ export async function POST(request: NextRequest) {
       )
     }
   } catch (error) {
-    console.error('Contact form error:', error)
+    logger.error('Contact form error', { tool: 'commodity-test', fn: 'route handler', err: String(error) })
     return NextResponse.json(
       { success: false, error: 'Server error' },
       { status: 500 }

@@ -1,0 +1,10 @@
+{
+  "name": "@lfi/shared",
+  "version": "1.0.0",
+  "description": "Shared utilities for LFI tools",
+  "main": "index.ts",
+  "dependencies": {
+    "resend": "^4.0.0",
+    "stripe": "^17.0.0"
+  }
+}

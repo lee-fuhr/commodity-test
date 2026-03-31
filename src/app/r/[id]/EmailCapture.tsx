@@ -53,11 +53,12 @@ export function EmailCapture({ resultId, companyName }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-[var(--muted)] p-4">
-      <p className="text-[var(--foreground)] font-medium text-sm mb-3">
+      <label htmlFor="email-capture" className="text-[var(--foreground)] font-medium text-sm mb-3 block">
         Email me this report
-      </p>
+      </label>
       <div className="flex flex-col sm:flex-row gap-2">
         <input
+          id="email-capture"
           type="email"
           placeholder="your@email.com"
           value={email}

@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
         source: 'commodity-test-guide'
       })
+      await kv.ltrim('guide:emails', 0, 999) // keep last 1000
     } catch (kvError) {
       // Don't fail the request if KV storage fails - still send the email
       console.error('Failed to store guide email in KV:', kvError)
@@ -374,7 +375,7 @@ export async function POST(request: NextRequest) {
       </div>
       <p style="font-size: 12px; color: #94a3b8;">
         You're receiving this because you requested the guide at areyougeneric.com.<br>
-        <a href="{{unsubscribe_url}}" style="color: #94a3b8;">Unsubscribe</a>
+        <a href="https://areyougeneric.com/unsubscribe?email=${encodeURIComponent(email)}" style="color: #94a3b8;">Unsubscribe</a>
       </p>
     </div>
   </div>

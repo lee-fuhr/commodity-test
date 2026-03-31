@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { kv } from '@vercel/kv'
+import { logger } from '@shared/lib/logger'
 
 interface NurtureEntry {
   email: string
@@ -16,8 +17,9 @@ function checkAuth(request: NextRequest): boolean {
   return auth === `Bearer ${cronSecret}`
 }
 
-function step2Html(firstName: string | null): string {
+function step2Html(firstName: string | null, email: string): string {
   const name = firstName ? firstName : 'Hey'
+  const unsubscribeUrl = `https://areyougeneric.com/unsubscribe?email=${encodeURIComponent(email)}`
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -51,14 +53,15 @@ function step2Html(firstName: string | null): string {
 
   <div class="footer">
     You're getting this because you downloaded the guide at areyougeneric.com.
-    <a href="{{unsubscribe_url}}" style="color: #888;">Unsubscribe</a>
+    <a href="${unsubscribeUrl}" style="color: #888;">Unsubscribe</a>
   </div>
 </body>
 </html>`
 }
 
-function step3Html(firstName: string | null): string {
+function step3Html(firstName: string | null, email: string): string {
   const name = firstName ? firstName : 'Hey'
+  const unsubscribeUrl = `https://areyougeneric.com/unsubscribe?email=${encodeURIComponent(email)}`
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -102,14 +105,15 @@ function step3Html(firstName: string | null): string {
 
   <div class="footer">
     You're getting this because you downloaded the guide at areyougeneric.com.
-    <a href="{{unsubscribe_url}}" style="color: #888;">Unsubscribe</a>
+    <a href="${unsubscribeUrl}" style="color: #888;">Unsubscribe</a>
   </div>
 </body>
 </html>`
 }
 
-function step4Html(firstName: string | null): string {
+function step4Html(firstName: string | null, email: string): string {
   const name = firstName ? firstName : 'Hey'
+  const unsubscribeUrl = `https://areyougeneric.com/unsubscribe?email=${encodeURIComponent(email)}`
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -143,13 +147,13 @@ function step4Html(firstName: string | null): string {
 
   <div class="footer">
     You're getting this because you downloaded the guide at areyougeneric.com.
-    <a href="{{unsubscribe_url}}" style="color: #888;">Unsubscribe</a>
+    <a href="${unsubscribeUrl}" style="color: #888;">Unsubscribe</a>
   </div>
 </body>
 </html>`
 }
 
-const STEP_CONFIG: Record<number, { subject: string; html: (n: string | null) => string }> = {
+const STEP_CONFIG: Record<number, { subject: string; html: (n: string | null, email: string) => string }> = {
   2: {
     subject: 'That worksheet — did you actually use it?',
     html: step2Html,
@@ -171,7 +175,7 @@ export async function GET(request: NextRequest) {
 
   const resendApiKey = process.env.RESEND_API_KEY
   if (!resendApiKey) {
-    console.error('RESEND_API_KEY not configured — nurture cron cannot send')
+    logger.error('RESEND_API_KEY not configured — nurture cron cannot send', { tool: 'commodity-test', fn: 'GET /api/cron/nurture' })
     return NextResponse.json({ error: 'Email not configured' }, { status: 500 })
   }
   const resend = new Resend(resendApiKey)
@@ -189,9 +193,16 @@ export async function GET(request: NextRequest) {
     const errors: string[] = []
 
     for (const entry of dueEntries) {
+      // Check if unsubscribed
+      const unsubscribed = await kv.get(`unsub:${entry.email}`)
+      if (unsubscribed) {
+        await kv.zrem('nurture:queue', entry)
+        continue
+      }
+
       const config = STEP_CONFIG[entry.step]
       if (!config) {
-        console.error(`Unknown nurture step: ${entry.step}`)
+        logger.error('Unknown nurture step', { tool: 'commodity-test', fn: 'GET /api/cron/nurture', step: entry.step })
         await kv.zrem('nurture:queue', entry)
         continue
       }
@@ -201,11 +212,11 @@ export async function GET(request: NextRequest) {
           from: 'Lee Fuhr <hi@mail.leefuhr.com>',
           to: [entry.email],
           subject: config.subject,
-          html: config.html(entry.firstName),
+          html: config.html(entry.firstName, entry.email),
         })
 
         if (error) {
-          console.error(`Resend error for ${entry.email} step ${entry.step}:`, error)
+          logger.error('Resend send error', { tool: 'commodity-test', fn: 'GET /api/cron/nurture', step: entry.step, err: error.message })
           failed++
           errors.push(`${entry.email} step ${entry.step}: ${error.message}`)
         } else {
@@ -213,16 +224,16 @@ export async function GET(request: NextRequest) {
           sent++
         }
       } catch (err) {
-        console.error(`Failed to send to ${entry.email} step ${entry.step}:`, err)
+        logger.error('Unexpected send error', { tool: 'commodity-test', fn: 'GET /api/cron/nurture', step: entry.step, err: String(err) })
         failed++
         errors.push(`${entry.email} step ${entry.step}: unexpected error`)
       }
     }
 
-    console.log(`Nurture cron: ${sent} sent, ${failed} failed`)
+    logger.info('Nurture cron complete', { tool: 'commodity-test', fn: 'GET /api/cron/nurture', sent, failed })
     return NextResponse.json({ success: true, sent, failed, errors: errors.length > 0 ? errors : undefined })
   } catch (err) {
-    console.error('Nurture cron error:', err)
+    logger.error('Nurture cron error', { tool: 'commodity-test', fn: 'GET /api/cron/nurture', err: String(err) })
     return NextResponse.json({ error: 'Cron failed' }, { status: 500 })
   }
 }

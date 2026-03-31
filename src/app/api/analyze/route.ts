@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as cheerio from 'cheerio'
 import { nanoid } from 'nanoid'
 import { kv } from '@vercel/kv'
-import Anthropic from '@anthropic-ai/sdk'
+import crypto from 'crypto'
+import { waitUntil } from '@vercel/functions'
 import { scrapeUrl, extractContent as extractFromHtml, type ExtractedContent } from '@/lib/scraper'
 import {
   detectCommodityPhrases,
@@ -11,52 +12,20 @@ import {
   generateDiagnosis,
   calculateCostEstimate,
   detectIndustry,
-  type DetectedPhrase,
-  type DifferentiationSignal,
   type DetectedIndustry,
 } from '@/lib/scoring'
 import { checkRateLimit, getClientIP } from '@/lib/rate-limit'
+import { generateFixesWithClaude } from '@/lib/claude-orchestrator'
+import { logger } from '@shared/lib/logger'
+
+function hashIP(ip: string): string {
+  return crypto.createHash('sha256').update(ip).digest('hex').slice(0, 16)
+}
 
 // TTL for stored results (30 days in seconds for Vercel KV)
 const RESULT_TTL_SECONDS = 30 * 24 * 60 * 60
-
-// Calculate text similarity using Jaccard index
-function calculateSimilarity(text1: string, text2: string): number {
-  const words1 = new Set(text1.toLowerCase().split(/\s+/).filter(w => w.length > 3))
-  const words2 = new Set(text2.toLowerCase().split(/\s+/).filter(w => w.length > 3))
-
-  const intersection = new Set(Array.from(words1).filter(w => words2.has(w)))
-  const union = new Set([...Array.from(words1), ...Array.from(words2)])
-
-  if (union.size === 0) return 0
-  return intersection.size / union.size
-}
-
-// Select diverse phrases - one from each category first, then fill remaining
-// This ensures we don't get 5 variations of "quality" when there are other issues
-function selectDiversePhrases(phrases: DetectedPhrase[], count: number): DetectedPhrase[] {
-  if (phrases.length <= count) return phrases
-
-  const selected: DetectedPhrase[] = []
-  const usedCategories = new Set<string>()
-
-  // First pass: one phrase per category (highest weight first since input is sorted)
-  for (const phrase of phrases) {
-    if (!usedCategories.has(phrase.category) && selected.length < count) {
-      selected.push(phrase)
-      usedCategories.add(phrase.category)
-    }
-  }
-
-  // Second pass: fill remaining slots with next highest weight phrases
-  for (const phrase of phrases) {
-    if (!selected.includes(phrase) && selected.length < count) {
-      selected.push(phrase)
-    }
-  }
-
-  return selected
-}
+// TTL for pending/processing state (10 minutes — if analysis hasn't completed, it failed)
+const PENDING_TTL_SECONDS = 10 * 60
 
 interface CostAssumptions {
   averageDealValue: number
@@ -67,6 +36,7 @@ interface CostAssumptions {
 
 interface AnalysisResult {
   id: string
+  status: 'processing' | 'complete' | 'error'
   url: string
   companyName: string
   headline: string
@@ -104,15 +74,8 @@ interface AnalysisResult {
   contentQuality: 'excellent' | 'good' | 'minimal' | 'failed'
   industry: DetectedIndustry
   createdAt: string
-}
-
-// Initialize Claude client
-const anthropic = process.env.ANTHROPIC_API_KEY
-  ? new Anthropic()
-  : null
-
-if (!anthropic) {
-  console.error('FATAL: ANTHROPIC_API_KEY not set. Claude API is required for analysis.')
+  error?: string
+  errorHint?: string
 }
 
 // Find key internal pages to scrape for stats
@@ -141,16 +104,14 @@ function findKeyPages(html: string, baseUrl: string): string[] {
 
       if (patterns.some(p => p.test(fullUrl.pathname))) {
         const url = fullUrl.origin + fullUrl.pathname
-        if (!keyPages.includes(url)) {
-          keyPages.push(url)
-        }
+        if (!keyPages.includes(url)) keyPages.push(url)
       }
     } catch {
       // Invalid URL, skip
     }
   })
 
-  return keyPages.slice(0, 3) // Max 3 additional pages
+  return keyPages.slice(0, 3)
 }
 
 // Extract stats and proof points from text
@@ -172,9 +133,7 @@ function extractStats(text: string): string[] {
 
   for (const pattern of patterns) {
     const matches = text.match(pattern)
-    if (matches) {
-      stats.push(...matches.map(m => m.trim()))
-    }
+    if (matches) stats.push(...matches.map(m => m.trim()))
   }
 
   return [...new Set(stats)].slice(0, 20)
@@ -183,8 +142,8 @@ function extractStats(text: string): string[] {
 // Extract notable projects/clients mentioned
 function extractProofPoints(text: string): string[] {
   const proofs: string[] = []
-
   const sentences = text.split(/[.!?]/)
+
   for (const sentence of sentences) {
     if (sentence.match(/(?:built|completed|delivered|served|worked with|partnered with|helped)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/)) {
       proofs.push(sentence.trim())
@@ -215,356 +174,73 @@ function extractPhraseContext(fullText: string, phrase: string): string {
   return context
 }
 
-async function generateFixesWithClaude(
-  detectedPhrases: DetectedPhrase[],
-  differentiationSignals: DifferentiationSignal[],
-  headline: string,
-  subheadline: string,
-  bodyText: string,
-  companyName: string,
-  url: string,
-  siteStats: string[] = [],
-  proofPoints: string[] = []
-): Promise<AnalysisResult['fixes']> {
-  if (!anthropic) {
-    throw new Error('ANTHROPIC_API_KEY is required. Cannot generate fixes without Claude API.')
-  }
-
-  // Select diverse phrases - one from each category first, then fill remaining
-  const topPhrases = selectDiversePhrases(detectedPhrases, 5)
-
-  // If no commodity phrases detected but we have content, provide specific feedback
-  if (topPhrases.length === 0) {
-    // Check if we have differentiation signals to comment on
-    if (differentiationSignals.length > 0) {
-      return [{
-        number: 1,
-        originalPhrase: headline.slice(0, 50) + (headline.length > 50 ? '...' : ''),
-        location: 'Headline',
-        context: headline,
-        whyBad: `Your messaging avoids common commodity phrases - good start. But "${headline.slice(0, 30)}..." could be more specific. You have ${differentiationSignals.length} proof point${differentiationSignals.length === 1 ? '' : 's'} (${differentiationSignals.slice(0, 2).map(s => s.value).join(', ')}) that could be featured more prominently.`,
-        suggestions: [
-          { text: differentiationSignals[0]?.value || `47 years machining precision parts`, approach: 'lead with proof' },
-          { text: `The only ${companyName.split(' ')[0]} that ${siteStats[0] || 'delivers same-day quotes'}`, approach: 'unique claim' },
-          { text: `${proofPoints[0]?.slice(0, 50) || 'ISO 9001 certified since 2005'}`, approach: 'credential first' },
-        ],
-        whyBetter: 'Lead with your strongest proof point instead of generic positioning.',
-      }]
-    } else {
-      return [{
-        number: 1,
-        originalPhrase: headline.slice(0, 50) + (headline.length > 50 ? '...' : ''),
-        location: 'Headline',
-        context: headline,
-        whyBad: `Your messaging avoids common commodity phrases, but it's also missing specifics. Without numbers, proof points, or unique claims, buyers still can't distinguish you.`,
-        suggestions: [
-          { text: `[X] years serving [industry] manufacturers`, approach: 'add a number' },
-          { text: `Trusted by [Client A, Client B, Client C]`, approach: 'name names' },
-          { text: `The only [your region] shop with [capability]`, approach: 'claim your niche' },
-        ],
-        whyBetter: 'Specificity is differentiation. Add numbers, names, or unique capabilities.',
-      }]
-    }
-  }
-
-  // Build context about what we detected
-  const phraseSummary = topPhrases
-    .map((p, i) => `${i + 1}. "${p.phrase}" (found in ${p.location}, category: ${p.category})\n   Context: "${p.context}"`)
-    .join('\n\n')
-
-  const diffSignalsSummary = differentiationSignals.length > 0
-    ? `\nDIFFERENTIATION SIGNALS FOUND (good things to amplify):\n${differentiationSignals.slice(0, 5).map(s => `- ${s.value} (${s.type}, strength ${s.strength}/10)`).join('\n')}`
-    : ''
-
-  const statsSection = siteStats.length > 0
-    ? `\nREAL STATS FOUND ON THEIR SITE (use these in suggestions):\n${siteStats.map(s => `- ${s}`).join('\n')}`
-    : ''
-
-  const proofsSection = proofPoints.length > 0
-    ? `\nPROOF POINTS & ACHIEVEMENTS FOUND:\n${proofPoints.slice(0, 5).map(p => `- ${p}`).join('\n')}`
-    : ''
-
-  const prompt = `You are an expert B2B messaging strategist helping a manufacturing company improve their website copy.
-
-COMPANY: ${companyName}
-WEBSITE: ${url}
-HEADLINE: "${headline}"
-SUBHEADLINE: "${subheadline}"
-
-DETECTED COMMODITY PHRASES (with surrounding context):
-${phraseSummary}
-${diffSignalsSummary}
-${statsSection}
-${proofsSection}
-
-HOMEPAGE EXCERPT:
-${bodyText.slice(0, 1500)}
-
-Provide EXACTLY 5 fixes. Use the ${topPhrases.length} detected commodity phrases first, then add ${5 - topPhrases.length} more fixes for other weak spots (vague claims, missed opportunities, generic language).
-
-CRITICAL REQUIREMENTS:
-1. Each fix must address a DIFFERENT sentence/phrase - never flag variations of the same phrase twice
-2. NEVER suggest fixing testimonials, quotes, or attributed statements (text in quotation marks with a name/title)
-3. If you see "..." - Name, Title format, that's a testimonial - SKIP IT
-4. Find 5 DISTINCT issues from different parts of the page
-5. If you can't find 5 truly different issues, provide fewer rather than duplicate
-
-For additional fixes, pull ACTUAL TEXT from the homepage excerpt - quote their real words.
-
-For each fix, provide:
-1. whyBad: Why this specific phrase hurts differentiation (1-2 sentences, direct)
-2. suggestions: THREE different DROP-IN REPLACEMENTS that create grammatically correct sentences.
-
-   CRITICAL: The replacement must slot into the original context grammatically. Test it mentally.
-
-   VARY the approaches: quantify it, show the process, make a guarantee, tell their story, prove retention, claim the niche, name the innovation.
-
-3. whyBetter: The KEY INSIGHT - why this change works. Punchy and memorable (1 sentence).
-
-CRITICAL - USE REAL DATA WHEN AVAILABLE:
-- If we found real stats, USE THEM in suggestions
-- Repurpose their own numbers, years, project counts, client names
-- NEVER use brackets like [X] - always provide concrete text
-- The suggestions should be ready to use TODAY
-
-Respond in this exact JSON format:
-{
-  "fixes": [
-    {
-      "number": 1,
-      "originalPhrase": "the exact phrase detected",
-      "location": "where found",
-      "context": "surrounding text",
-      "whyBad": "explanation",
-      "suggestions": [
-        {"text": "rewrite 1", "approach": "approach type"},
-        {"text": "rewrite 2", "approach": "approach type"},
-        {"text": "rewrite 3", "approach": "approach type"}
-      ],
-      "whyBetter": "brief reason"
-    }
-  ]
-}
-
-Only return the JSON, no other text.`
-
-  const CLAUDE_TIMEOUT_MS = 45000
-  const MAX_RETRIES = 1
-
-  async function callClaudeWithTimeout(attempt: number): Promise<Anthropic.Message> {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS)
-
-    try {
-      const message = await anthropic!.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2048,
-        messages: [{ role: 'user', content: prompt }],
-      }, {
-        signal: controller.signal
-      })
-      clearTimeout(timeoutId)
-      return message
-    } catch (error) {
-      clearTimeout(timeoutId)
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error(`Claude API timeout after ${CLAUDE_TIMEOUT_MS / 1000}s (attempt ${attempt + 1})`)
-      }
-      throw error
-    }
-  }
-
+// The actual analysis work — runs in background via waitUntil()
+async function runAnalysis(id: string, validUrl: string, clientIP: string): Promise<void> {
   try {
-    let message: Anthropic.Message | null = null
-    let lastError: Error | null = null
-
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        message = await callClaudeWithTimeout(attempt)
-        break
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error))
-        console.warn(`Claude API attempt ${attempt + 1} failed:`, lastError.message)
-        if (attempt < MAX_RETRIES) {
-          console.log(`Retrying Claude API call...`)
-        }
-      }
-    }
-
-    if (!message) {
-      throw lastError || new Error('Claude API failed after all retries')
-    }
-
-    const responseText = message.content
-      .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map(block => block.text)
-      .join('')
-
-    let jsonText = responseText.trim()
-    if (jsonText.startsWith('```')) {
-      jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-    }
-
-    const parsed = JSON.parse(jsonText)
-
-    if (parsed.fixes && Array.isArray(parsed.fixes) && parsed.fixes.length > 0) {
-      const validatedFixes = parsed.fixes
-        .slice(0, 5)
-        .filter((fix: Record<string, unknown>) =>
-          fix.number && fix.originalPhrase && fix.location &&
-          fix.whyBad && fix.suggestions && Array.isArray(fix.suggestions) && fix.whyBetter
-        )
-
-      // Deduplicate fixes
-      const dedupedFixes = validatedFixes.filter((fix: any, index: number) => {
-        const currentPhrase = fix.originalPhrase.toLowerCase().trim()
-        const currentLocation = fix.location.toLowerCase().trim()
-        const currentContent = (fix.whyBad + ' ' + fix.suggestions.map((s: any) => s.text).join(' ') + ' ' + fix.whyBetter).toLowerCase().trim()
-
-        for (let i = 0; i < index; i++) {
-          const prevFix = validatedFixes[i]
-          const prevPhrase = prevFix.originalPhrase.toLowerCase().trim()
-          const prevLocation = prevFix.location.toLowerCase().trim()
-          const prevContent = (prevFix.whyBad + ' ' + prevFix.suggestions.map((s: any) => s.text).join(' ') + ' ' + prevFix.whyBetter).toLowerCase().trim()
-
-          if (currentContent === prevContent) return false
-
-          const similarity = calculateSimilarity(currentContent, prevContent)
-          if (similarity > 0.2) return false
-
-          if (currentLocation === prevLocation) {
-            if (currentPhrase === prevPhrase) return false
-            if (currentPhrase.includes(prevPhrase) || prevPhrase.includes(currentPhrase)) return false
-
-            const currentWords = new Set<string>(currentPhrase.split(/\s+/).filter((w: string) => w.length > 3))
-            const prevWords = new Set<string>(prevPhrase.split(/\s+/).filter((w: string) => w.length > 3))
-            const commonWords = Array.from(currentWords).filter((w: string) => prevWords.has(w))
-            if (commonWords.length >= 2) return false
-          }
-        }
-
-        return true
-      })
-
-      if (dedupedFixes.length > 0) {
-        // Log warning if deduplication removed too many fixes
-        if (validatedFixes.length >= 4 && dedupedFixes.length < 3) {
-          console.warn(`[Analysis] Deduplication reduced fixes from ${validatedFixes.length} to ${dedupedFixes.length} - Claude may have returned duplicates`)
-        }
-        return dedupedFixes
-      }
-    }
-
-    throw new Error('Failed to parse Claude response')
-  } catch (error) {
-    console.error('Claude API error:', error)
-    throw new Error(`Claude API failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Check rate limit before doing any expensive work
-    const clientIP = getClientIP(request)
-    const rateLimitResult = await checkRateLimit(clientIP, {
-      hourlyLimit: 3,
-      dailyLimit: 3,
-    })
-
-    if (!rateLimitResult.allowed) {
-      console.log(`[Analyze] Rate limited: ${clientIP} - ${rateLimitResult.message}`)
-      const response = NextResponse.json(
-        {
-          error: rateLimitResult.message,
-          rateLimited: true,
-          retryAfterSeconds: rateLimitResult.retryAfterSeconds,
-        },
-        { status: 429 }
-      )
-      if (rateLimitResult.retryAfterSeconds) {
-        response.headers.set('Retry-After', String(rateLimitResult.retryAfterSeconds))
-      }
-      return response
-    }
-
-    const { url } = await request.json()
-
-    if (!url) {
-      return NextResponse.json({ error: 'Please enter a website URL to analyze.' }, { status: 400 })
-    }
-
-    // Basic URL validation
-    let validUrl: string
-    try {
-      const urlWithProtocol = url.startsWith('http') ? url : `https://${url}`
-      validUrl = new URL(urlWithProtocol).toString()
-    } catch {
-      return NextResponse.json({ error: 'That doesn\'t look like a valid website address. Try something like "example.com" or "https://example.com".' }, { status: 400 })
-    }
-
-    console.log(`[Analyze] Starting analysis for: ${validUrl}`)
-
-    // Scrape the URL with fallback chain
     const scrapeResult = await scrapeUrl(validUrl)
 
-    // Check if scraping completely failed
     if (scrapeResult.method === 'failed' || scrapeResult.contentLength < 100) {
-      console.log(`[Analyze] Scraping failed: ${scrapeResult.error}`)
-      return NextResponse.json({
+      logger.warn('Scraping failed', { tool: 'commodity-test', fn: 'runAnalysis', url: validUrl, error: scrapeResult.error })
+      await kv.set(`result:${id}`, {
+        id,
+        status: 'error',
+        url: validUrl,
         error: 'That site won\'t let anyone look.',
-        hint: 'Some companies are... protective about their messaging. Their security blocks outside analysis. Make of that what you will. Try a competitor instead.',
-      }, { status: 400 })
+        errorHint: 'Some companies are... protective about their messaging. Their security blocks outside analysis. Make of that what you will. Try a competitor instead.',
+        createdAt: new Date().toISOString(),
+      }, { ex: PENDING_TTL_SECONDS })
+      return
     }
 
-    // Extract content from HTML
-    const extractedContent = extractFromHtml(scrapeResult.html, validUrl)
+    const extractedContent: ExtractedContent = extractFromHtml(scrapeResult.html, validUrl)
     const { headline, subheadline, bodyText, companyName, contentQuality, wordCount, schemaDescription, metaDescription } = extractedContent
 
-    console.log(`[Analyze] Extracted content: ${wordCount} words, quality: ${contentQuality}`)
+    logger.info('Extracted content', { tool: 'commodity-test', fn: 'runAnalysis', wordCount, contentQuality })
 
-    // Check for minimal content
     if (contentQuality === 'failed') {
-      return NextResponse.json({
+      await kv.set(`result:${id}`, {
+        id,
+        status: 'error',
+        url: validUrl,
         error: 'Can\'t find the text on this one.',
-        hint: 'The way this site was built hides its content from analysis tools—usually JavaScript frameworks or text baked into images. Not great for their SEO either. Try another page or a different site.',
-      }, { status: 400 })
+        errorHint: 'The way this site was built hides its content from analysis tools—usually JavaScript frameworks or text baked into images. Not great for their SEO either. Try another page or a different site.',
+        createdAt: new Date().toISOString(),
+      }, { ex: PENDING_TTL_SECONDS })
+      return
     }
 
-    // Combine all text for analysis (including schema/meta for better industry detection)
     const allText = `${headline} ${subheadline} ${schemaDescription || ''} ${metaDescription || ''} ${bodyText}`
 
-    // Detect commodity phrases
     const detectedPhrases = detectCommodityPhrases(allText).map(phrase => ({
       ...phrase,
       context: extractPhraseContext(allText, phrase.phrase)
     }))
 
-    // Detect differentiation signals
     const differentiationSignals = detectDifferentiationSignals(allText)
 
-    // Calculate score using bell curve
     const scoringResult = calculateScore(detectedPhrases, differentiationSignals, contentQuality)
     const commodityScore = scoringResult.score
 
-    // Handle unscoreable content
     if (commodityScore === -1) {
-      return NextResponse.json({
+      await kv.set(`result:${id}`, {
+        id,
+        status: 'error',
+        url: validUrl,
         error: 'We couldn\'t analyze this page.',
-        hint: 'The content we found wasn\'t what we expected. Try your homepage or a main services page instead.',
-      }, { status: 400 })
+        errorHint: 'The content we found wasn\'t what we expected. Try your homepage or a main services page instead.',
+        createdAt: new Date().toISOString(),
+      }, { ex: PENDING_TTL_SECONDS })
+      return
     }
 
-    // Detect industry - check learned overrides first, then auto-detect
     const domain = new URL(validUrl).hostname.replace(/^www\./, '')
     const learnedIndustry = await kv.get<string>(`industry:learned:${domain}`)
     const industry = (learnedIndustry as DetectedIndustry) || detectIndustry(allText)
-    console.log(`[Analyze] Score: ${commodityScore} (penalty: ${scoringResult.commodityPenalty}, bonus: ${scoringResult.differentiationBonus}), industry: ${industry}${learnedIndustry ? ' (learned)' : ''}`)
+    logger.info('Score calculated', { tool: 'commodity-test', fn: 'runAnalysis', commodityScore, penalty: scoringResult.commodityPenalty, bonus: scoringResult.differentiationBonus, industry, learnedIndustry: !!learnedIndustry })
 
-    // Generate diagnosis and cost (pass contentQuality and industry for honest diagnosis)
     const diagnosis = generateDiagnosis(commodityScore, detectedPhrases.length, differentiationSignals.length, contentQuality, industry)
     const costResult = calculateCostEstimate(commodityScore, industry)
 
-    // Fetch additional pages for more context (if direct scrape worked)
     const allStats: string[] = []
     const allProofs: string[] = []
 
@@ -578,17 +254,15 @@ export async function POST(request: NextRequest) {
             allStats.push(...extractStats(pageContent.bodyText))
             allProofs.push(...extractProofPoints(pageContent.bodyText))
           }
-        } catch {
-          // Silent fail for secondary pages
+        } catch (err) {
+          logger.error('Secondary scrape failed', { tool: 'commodity-test', fn: 'runAnalysis', pageUrl, error: err instanceof Error ? err.message : String(err) })
         }
       }
     }
 
-    // Add stats from main page
     allStats.push(...extractStats(allText))
     allProofs.push(...extractProofPoints(allText))
 
-    // Generate fixes with Claude
     const fixes = await generateFixesWithClaude(
       detectedPhrases,
       differentiationSignals,
@@ -601,10 +275,9 @@ export async function POST(request: NextRequest) {
       [...new Set(allProofs)].slice(0, 5)
     )
 
-    // Create result
-    const id = nanoid(10)
     const result: AnalysisResult = {
       id,
+      status: 'complete',
       url: validUrl,
       companyName,
       headline,
@@ -627,10 +300,8 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     }
 
-    // Store result in Vercel KV
     await kv.set(`result:${id}`, result, { ex: RESULT_TTL_SECONDS })
 
-    // Store scan log with full URL and result ID (so Lee can see exact reports)
     try {
       await kv.lpush('analytics:scans', {
         url: validUrl,
@@ -638,16 +309,14 @@ export async function POST(request: NextRequest) {
         companyName,
         score: commodityScore,
         industry,
-        ip: clientIP,
+        ip: hashIP(clientIP),
         timestamp: new Date().toISOString(),
       })
-      // Keep last 500 scans (30 days of results stored, scan log for visibility)
       await kv.ltrim('analytics:scans', 0, 499)
-    } catch {
-      // Silent fail - scan log shouldn't break the main flow
+    } catch (err) {
+      logger.warn('KV scan log failed — non-fatal', { fn: 'runAnalysis', err: String(err) })
     }
 
-    // Store anonymized analytics (aggregate stats)
     try {
       const analyticsData = {
         timestamp: new Date().toISOString(),
@@ -661,74 +330,115 @@ export async function POST(request: NextRequest) {
       }
       await kv.lpush('analytics:analyses', JSON.stringify(analyticsData))
       await kv.ltrim('analytics:analyses', 0, 999)
-    } catch {
-      // Silent fail - analytics shouldn't break the main flow
+    } catch (err) {
+      logger.warn('KV analytics log failed — non-fatal', { fn: 'runAnalysis', err: String(err) })
     }
 
-    console.log(`[Analyze] Success: ID ${id}, score ${commodityScore}`)
+    logger.info('Analysis complete', { tool: 'commodity-test', fn: 'runAnalysis', resultId: id, commodityScore })
+
+  } catch (error) {
+    logger.error('Analysis error', { tool: 'commodity-test', fn: 'runAnalysis', id, error: error instanceof Error ? error.message : String(error) })
+
+    // Store the error state so the polling client knows what happened
+    const errorMessage = getErrorMessage(error)
+    await kv.set(`result:${id}`, {
+      id,
+      status: 'error',
+      url: validUrl,
+      error: errorMessage,
+      createdAt: new Date().toISOString(),
+    }, { ex: PENDING_TTL_SECONDS }).catch(() => {
+      // If even the error storage fails, there's nothing more we can do
+    })
+  }
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    const errorMsg = error.message.toLowerCase()
+    const errorName = error.name || ''
+
+    if (errorMsg.includes('timed out') || errorMsg.includes('timeout') || errorName === 'AbortError') {
+      return 'The website took too long to respond. Try again or try a different site.'
+    }
+    if (errorMsg.includes('enotfound') || errorMsg.includes('dns') || errorMsg.includes('getaddrinfo')) {
+      return 'Could not find that website. Check the URL and try again.'
+    }
+    if (errorMsg.includes('econnrefused') || errorMsg.includes('connection refused')) {
+      return 'The website refused the connection. It may be down or blocking automated access.'
+    }
+    if (errorMsg.includes('certificate') || errorMsg.includes('ssl') || errorMsg.includes('tls')) {
+      return 'We couldn\'t connect securely to that website. The site may be having technical issues. Try again later or contact the site owner.'
+    }
+    if (errorMsg.includes('403') || errorMsg.includes('forbidden')) {
+      return 'The website blocked our request. It may be using bot protection.'
+    }
+    if (errorMsg.includes('404') || errorMsg.includes('not found')) {
+      return 'Page not found. Check the URL and try again.'
+    }
+    if (errorMsg.includes('508') || errorMsg.includes('loop')) {
+      return 'The website has a redirect loop. This is a site configuration issue - try a different URL.'
+    }
+    if (process.env.NODE_ENV === 'development') {
+      return `Analysis failed: ${error.message}`
+    }
+  }
+  return 'Failed to analyze URL. Please check the URL and try again.'
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const clientIP = getClientIP(request)
+    const rateLimitResult = await checkRateLimit(clientIP, { hourlyLimit: 3, dailyLimit: 3 })
+
+    if (!rateLimitResult.allowed) {
+      logger.warn('Rate limited', { tool: 'commodity-test', fn: 'POST /api/analyze', ip: clientIP, message: rateLimitResult.message })
+      const response = NextResponse.json(
+        { error: rateLimitResult.message, rateLimited: true, retryAfterSeconds: rateLimitResult.retryAfterSeconds },
+        { status: 429 }
+      )
+      if (rateLimitResult.retryAfterSeconds) {
+        response.headers.set('Retry-After', String(rateLimitResult.retryAfterSeconds))
+      }
+      return response
+    }
+
+    const { url } = await request.json()
+
+    if (!url) {
+      return NextResponse.json({ error: 'Please enter a website URL to analyze.' }, { status: 400 })
+    }
+
+    let validUrl: string
+    try {
+      const urlWithProtocol = url.startsWith('http') ? url : `https://${url}`
+      validUrl = new URL(urlWithProtocol).toString()
+    } catch {
+      return NextResponse.json({ error: 'That doesn\'t look like a valid website address. Try something like "example.com" or "https://example.com".' }, { status: 400 })
+    }
+
+    // Generate ID and store pending state immediately
+    const id = nanoid(10)
+    await kv.set(`result:${id}`, {
+      id,
+      status: 'processing',
+      url: validUrl,
+      createdAt: new Date().toISOString(),
+    }, { ex: PENDING_TTL_SECONDS })
+
+    logger.info('Starting analysis (async)', { tool: 'commodity-test', fn: 'POST /api/analyze', url: validUrl, id })
+
+    // Run the analysis in the background via waitUntil
+    // This allows us to return the ID to the client immediately
+    // while the analysis continues running on Vercel's infrastructure
+    waitUntil(runAnalysis(id, validUrl, clientIP))
+
+    // Return immediately with the job ID
     return NextResponse.json({ id })
 
   } catch (error) {
-    console.error('Analysis error:', error)
-
-    if (error instanceof Error) {
-      const errorMsg = error.message.toLowerCase()
-      const errorName = error.name || ''
-
-      if (errorMsg.includes('timed out') || errorMsg.includes('timeout') || errorName === 'AbortError') {
-        return NextResponse.json({
-          error: 'The website took too long to respond. Try again or try a different site.'
-        }, { status: 504 })
-      }
-
-      if (errorMsg.includes('enotfound') || errorMsg.includes('dns') || errorMsg.includes('getaddrinfo')) {
-        return NextResponse.json({
-          error: 'Could not find that website. Check the URL and try again.'
-        }, { status: 400 })
-      }
-
-      if (errorMsg.includes('econnrefused') || errorMsg.includes('connection refused')) {
-        return NextResponse.json({
-          error: 'The website refused the connection. It may be down or blocking automated access.'
-        }, { status: 503 })
-      }
-
-      if (errorMsg.includes('certificate') || errorMsg.includes('ssl') || errorMsg.includes('tls')) {
-        return NextResponse.json({
-          error: 'We couldn\'t connect securely to that website. The site may be having technical issues. Try again later or contact the site owner.'
-        }, { status: 400 })
-      }
-
-      if (errorMsg.includes('403') || errorMsg.includes('forbidden')) {
-        return NextResponse.json({
-          error: 'The website blocked our request. It may be using bot protection.'
-        }, { status: 403 })
-      }
-
-      if (errorMsg.includes('404') || errorMsg.includes('not found')) {
-        return NextResponse.json({
-          error: 'Page not found. Check the URL and try again.'
-        }, { status: 404 })
-      }
-
-      if (errorMsg.includes('508') || errorMsg.includes('loop')) {
-        return NextResponse.json({
-          error: 'The website has a redirect loop. This is a site configuration issue - try a different URL.'
-        }, { status: 508 })
-      }
-
-      if (process.env.NODE_ENV === 'development') {
-        return NextResponse.json(
-          { error: `Analysis failed: ${error.message}` },
-          { status: 500 }
-        )
-      }
-    }
-
-    return NextResponse.json(
-      { error: 'Failed to analyze URL. Please check the URL and try again.' },
-      { status: 500 }
-    )
+    logger.error('Analysis setup error', { tool: 'commodity-test', fn: 'POST /api/analyze', error: error instanceof Error ? error.message : String(error) })
+    return NextResponse.json({ error: 'Failed to start analysis. Please try again.' }, { status: 500 })
   }
 }
 

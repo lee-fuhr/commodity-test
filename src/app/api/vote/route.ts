@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
+import { logger } from '@shared/lib/logger'
 
 interface Vote {
   resultId: string
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
 
     // Store individual vote
     await kv.lpush('suggestion:votes', voteEntry)
+    await kv.ltrim(`suggestion:votes`, 0, 99)
 
     // Also aggregate by approach for quick analysis
     // Key: votes:approach:{approach}:{up|down}
@@ -46,13 +48,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Vote error:', error)
+    logger.error('Vote error', { tool: 'commodity-test', fn: 'POST /api/vote', error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Failed to record vote' }, { status: 500 })
   }
 }
 
 // GET endpoint for admin to see vote stats
 export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.ADMIN_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     // Get recent votes (last 500)
     const recentVotes = await kv.lrange<Vote>('suggestion:votes', 0, 499)
@@ -91,7 +98,7 @@ export async function GET(request: NextRequest) {
       approachStats: Object.fromEntries(sortedApproaches),
     })
   } catch (error) {
-    console.error('Vote stats error:', error)
+    logger.error('Vote stats error', { tool: 'commodity-test', fn: 'GET /api/vote', error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json({ error: 'Failed to fetch vote stats' }, { status: 500 })
   }
 }

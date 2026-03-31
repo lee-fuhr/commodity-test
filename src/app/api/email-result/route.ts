@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
         source: 'result-page-email'
       })
+      await kv.ltrim('result:emails', 0, 499) // keep last 500
     } catch (kvError) {
       console.error('Failed to store result email in KV:', kvError)
     }

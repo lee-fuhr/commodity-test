@@ -127,7 +127,7 @@ export default function FeedbackWidget({ toolName }: FeedbackWidgetProps) {
                 </p>
 
                 {status === 'error' && (
-                  <p className="text-[var(--danger)] text-sm mb-4">
+                  <p className="text-[var(--error)] text-sm mb-4">
                     Failed to submit. Please email <a href="mailto:hi@leefuhr.com" className="underline">hi@leefuhr.com</a> directly.
                   </p>
                 )}

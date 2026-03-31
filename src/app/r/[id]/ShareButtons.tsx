@@ -60,7 +60,7 @@ export function ShareButtons({ resultUrl, companyName, score }: ShareButtonsProp
       {/* Email */}
       <a
         href={`mailto:?subject=Commodity Test results for ${companyName}&body=I just ran The Commodity Test on our homepage. Score: ${score}/100.%0A%0ASee the full results: ${resultUrl}`}
-        className="flex items-center gap-2 px-6 py-3 bg-brand-100 text-brand-800 border-2 border-brand-300 rounded font-semibold hover:bg-brand-200 transition-colors"
+        className="flex items-center gap-2 px-6 py-3 bg-[var(--muted)] text-[var(--foreground)] border-2 border-[var(--border-light)] rounded font-semibold hover:bg-[var(--border-light)] transition-colors"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -73,8 +73,8 @@ export function ShareButtons({ resultUrl, companyName, score }: ShareButtonsProp
         onClick={handleCopy}
         className={`flex items-center gap-2 px-6 py-3 rounded font-semibold transition-all ${
           copied
-            ? 'bg-score-excellent text-white'
-            : 'bg-white text-accent-400 border-2 border-accent-400 hover:bg-accent-50'
+            ? 'bg-[var(--success)] text-white'
+            : 'bg-[var(--background)] text-[var(--accent)] border-2 border-[var(--accent)] hover:bg-[var(--muted)]'
         }`}
       >
         {copied ? (

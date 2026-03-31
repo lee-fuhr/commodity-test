@@ -24,7 +24,6 @@ interface CostAssumptions {
 
 interface Props {
   initialAssumptions: CostAssumptions
-  industryContext: string
 }
 
 // Truly inline editable number - no layout shift
@@ -91,6 +90,15 @@ function EditableNumber({
         spanRef.current.innerText = displayNumber
       }
       setIsEditing(false)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const increment = showAsK ? 1000 : 1000
+      onChange(value + increment)
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      const decrement = showAsK ? 1000 : 1000
+      const newVal = Math.max(0, value - decrement)
+      onChange(newVal)
     }
   }
 
@@ -104,6 +112,8 @@ function EditableNumber({
         {prefix}
         <span
           ref={spanRef}
+          role="spinbutton"
+          aria-label={`${label} amount`}
           contentEditable={isEditing}
           suppressContentEditableWarning
           onBlur={handleBlur}
@@ -173,6 +183,14 @@ function EditablePercent({
         spanRef.current.innerText = displayNumber
       }
       setIsEditing(false)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const newVal = Math.min(1, value + 0.01)
+      onChange(newVal)
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      const newVal = Math.max(0.01, value - 0.01)
+      onChange(newVal)
     }
   }
 
@@ -185,6 +203,8 @@ function EditablePercent({
       <p className="text-xl sm:text-2xl md:text-3xl font-display text-white group-hover:text-blue-200 transition-colors">
         <span
           ref={spanRef}
+          role="spinbutton"
+          aria-label={`${label} percentage`}
           contentEditable={isEditing}
           suppressContentEditableWarning
           onBlur={handleBlur}

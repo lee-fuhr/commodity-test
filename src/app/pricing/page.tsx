@@ -318,7 +318,7 @@ export default function PricingPage() {
       </section>
 
       {/* Footer */}
-      <Footer showCta tagline="27 years helping manufacturers stop sounding like everyone else" />
+      <Footer showCta tagline="27 years helping B2B companies win on value, not price" />
     </main>
   )
 }

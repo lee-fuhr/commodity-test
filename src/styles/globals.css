@@ -16,11 +16,24 @@
   --border-light: #E5E5E5;
   --success: #15803d;
   --warning: #ca8a04;
-  --danger: #dc2626;
+  --error: #dc2626;
 
   --font-display: 'Albert Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Literata', Georgia, serif;
   --font-mono: 'JetBrains Mono', monospace;
+
+  /* Score color tokens */
+  --score-excellent: #16a34a;
+  --score-good: #ca8a04;
+  --score-fair: #ea580c;
+  --score-poor: #dc2626;
+  --score-excellent-bg: #dcfce7;
+  --score-good-bg: #fef9c3;
+  --score-fair-bg: #ffedd5;
+  --score-poor-bg: #fee2e2;
+
+  /* Focus ring token */
+  --focus-ring: var(--accent);
 }
 
 @layer base {
@@ -55,8 +68,8 @@
   }
 
   *:focus-visible {
-    outline: 3px solid var(--accent);
-    outline-offset: 3px;
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
   }
 }
 
@@ -115,6 +128,7 @@
   /* Section headers */
   .text-section {
     font-family: var(--font-display);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.1;
@@ -346,14 +360,24 @@
     border-bottom-color: var(--background);
   }
 
+  /* Massive number display - for large stat callouts */
+  .number-massive {
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 12vw, 9rem);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--foreground);
+  }
+
   /* Score colors */
   .score-good { color: var(--success); }
   .score-warning { color: var(--warning); }
-  .score-danger { color: var(--danger); }
+  .score-danger { color: var(--error); }
 
   .bg-score-good { background-color: var(--success); }
   .bg-score-warning { background-color: var(--warning); }
-  .bg-score-danger { background-color: var(--danger); }
+  .bg-score-danger { background-color: var(--error); }
 }
 
 @media (prefers-reduced-motion: reduce) {

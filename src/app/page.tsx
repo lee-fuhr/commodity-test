@@ -48,17 +48,21 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             {/* Left: Headline */}
             <div>
-              <p className="text-label mb-4">COMMODITY TEST</p>
+              <div className="flex items-baseline gap-3 mb-4">
+                <span className="text-[var(--accent)] text-5xl font-black leading-none">Free</span>
+                <span className="text-label">SCORE YOUR SITE IN 30 SECONDS</span>
+              </div>
               <h1 className="text-display text-[clamp(2.25rem,6vw,5rem)] mb-6">
-                Could a competitor
+                Your competitors say
                 <br />
-                <span className="text-[var(--accent)]">say exactly</span>
+                <span className="text-[var(--accent)]">exactly what</span>
                 <br />
-                what you&apos;re saying?
+                you&apos;re saying.
               </h1>
-              <p className="text-body text-xl md:text-2xl max-w-xl mb-6">
-                Your website says &ldquo;quality&rdquo; and &ldquo;trusted partner.&rdquo; So does everyone else&apos;s. When buyers can&apos;t tell you apart, they compare on price. We show you exactly where you blend in — and <strong>how to become the obvious choice.</strong>
+              <p className="text-body text-xl md:text-2xl max-w-xl mb-4">
+                Your website says &ldquo;quality&rdquo; and &ldquo;trusted partner.&rdquo; So does everyone else&apos;s. When buyers can&apos;t tell you apart, they compare on price. Enter your URL and see exactly where you blend in — and how to become the obvious choice.
               </p>
+              <p className="text-sm text-[var(--muted-foreground)] mb-6">27 years helping B2B companies win on value, not price.</p>
               <div className="flex flex-wrap gap-4 text-sm text-[var(--muted-foreground)]">
                 <span>30 seconds</span>
                 <span>·</span>
@@ -137,14 +141,14 @@ export default function HomePage() {
             <span className="text-white">→</span>
             <span className="text-section text-base md:text-lg text-white">Compare on price</span>
             <span className="text-white">→</span>
-            <span className="text-section text-base md:text-lg text-white">3-bid territory</span>
+            <span className="text-section text-base md:text-lg text-white">Commoditized</span>
             <span className="text-white">→</span>
             <span className="text-section text-base md:text-lg text-white">Margins erode</span>
             <span className="text-white text-xl">★</span>
           </div>
           <div className="md:hidden flex flex-col items-center gap-2 text-center">
             <span className="text-section text-base text-white">Can&apos;t tell you apart → Compare on price</span>
-            <span className="text-section text-base text-white">→ 3-bid territory → Margins erode ★</span>
+            <span className="text-section text-base text-white">→ Commoditized → Margins erode ★</span>
           </div>
         </div>
       </section>
@@ -340,7 +344,7 @@ export default function HomePage() {
           {/* More tools */}
           <p className="text-label mb-6 text-center">MORE TOOLS FOR MANUFACTURERS</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <a href="https://website-audit.vercel.app" className="bg-[var(--background)] p-5 border border-[var(--border)] hover:border-[var(--accent)] transition-colors group">
+            <a href="https://websiteaudit.leefuhr.com" className="bg-[var(--background)] p-5 border border-[var(--border)] hover:border-[var(--accent)] transition-colors group">
               <p className="text-label text-xs mb-2 text-[var(--accent)]">$400</p>
               <p className="text-section text-base mb-2 group-hover:text-[var(--accent)] transition-colors">Website Audit</p>
               <p className="text-body text-sm text-[var(--muted-foreground)]">Full messaging audit — every page, prioritized fix list, copy rewrites. 48-hour turnaround.</p>
@@ -365,7 +369,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <Footer tagline="27 years helping manufacturers stop sounding like everyone else" />
+      <Footer tagline="27 years helping B2B companies win on value, not price" />
     </main>
   )
 }

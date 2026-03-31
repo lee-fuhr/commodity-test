@@ -124,6 +124,20 @@ function ProcessingContent() {
     }
   }, [url, router])
 
+  const currentStage = STAGES[stageIndex]
+
+  // Crossfade effect when stage changes — must be before any conditional return
+  useEffect(() => {
+    if (currentStage.label !== displayedLabel) {
+      setIsTransitioning(true)
+      const timeout = setTimeout(() => {
+        setDisplayedLabel(currentStage.label)
+        setIsTransitioning(false)
+      }, 250) // Half of 500ms - fade out, then fade in
+      return () => clearTimeout(timeout)
+    }
+  }, [currentStage.label, displayedLabel])
+
   if (error) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-6">
@@ -165,20 +179,6 @@ function ProcessingContent() {
       </main>
     )
   }
-
-  const currentStage = STAGES[stageIndex]
-
-  // Crossfade effect when stage changes
-  useEffect(() => {
-    if (currentStage.label !== displayedLabel) {
-      setIsTransitioning(true)
-      const timeout = setTimeout(() => {
-        setDisplayedLabel(currentStage.label)
-        setIsTransitioning(false)
-      }, 250) // Half of 500ms - fade out, then fade in
-      return () => clearTimeout(timeout)
-    }
-  }, [currentStage.label, displayedLabel])
 
   return (
     <main className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-6">
@@ -223,9 +223,9 @@ function ProcessingContent() {
 
         {/* Stage dots */}
         <div className="flex justify-center gap-3">
-          {STAGES.map((_, idx) => (
+          {STAGES.map((stage, idx) => (
             <div
-              key={idx}
+              key={stage.label}
               className={`w-2 h-2 rounded-full transition-colors ${
                 idx <= stageIndex
                   ? 'bg-[var(--accent)]'
@@ -248,7 +248,7 @@ export default function ProcessingPage() {
   return (
     <Suspense fallback={
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
+        <div className="w-8 h-8 border-2 border-[var(--border)] border-t-[var(--accent)] rounded-full animate-spin" />
       </main>
     }>
       <ProcessingContent />

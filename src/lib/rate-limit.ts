@@ -1,9 +1,9 @@
 import { kv } from '@vercel/kv'
 
-// Whitelisted IPs (no rate limit)
+// Whitelisted IPs (no rate limit) — configure via WHITELISTED_IPS env var (comma-separated)
 const WHITELISTED_IPS = [
-  '68.7.124.54',    // Lee's home IP
   '127.0.0.1',      // localhost
+  ...(process.env.WHITELISTED_IPS ? process.env.WHITELISTED_IPS.split(',').map(ip => ip.trim()) : []),
 ]
 
 interface RateLimitConfig {
